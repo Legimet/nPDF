@@ -1,0 +1,5 @@
+mupdf-1.4-source
+mupdf-1.4-source.tar.gz
+*.o
+*.tns
+*.gdb
