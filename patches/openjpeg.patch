@@ -1,0 +1,25 @@
+From 7774fc47c346eb15829c94ddf4bedcc1ee856227 Mon Sep 17 00:00:00 2001
+From: Legimet <legimet.calc@gmail.com>
+Date: Fri, 23 May 2014 22:51:58 -0400
+Subject: [PATCH] Modify for TI-Nspire
+
+---
+ libopenjpeg/opj_malloc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libopenjpeg/opj_malloc.h b/libopenjpeg/opj_malloc.h
+index b279445..378f4e0 100644
+--- a/libopenjpeg/opj_malloc.h
++++ b/libopenjpeg/opj_malloc.h
+@@ -88,7 +88,7 @@ Allocate memory aligned to a 16 byte boundry
+   #elif defined(__FreeBSD__)
+     #define HAVE_POSIX_MEMALIGN
+ 	/* Linux x86_64 and OSX always align allocations to 16 bytes */
+-	#elif !defined(__amd64__) && !defined(__APPLE__) && !defined(_AIX)
++	#elif !defined(__amd64__) && !defined(__APPLE__) && !defined(_AIX) && !defined(_TINSPIRE)
+ 		#define HAVE_MEMALIGN
+ 		#include <malloc.h>			
+ 	#endif
+-- 
+1.7.9.5
+
