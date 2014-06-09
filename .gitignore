@@ -1,8 +1,9 @@
 mupdf-1.4-source
 mupdf-1.4-source.tar.gz
-.kdev4
+.kdev*
 *.kdev4
 *.o
 *.tns
 *.gdb
 *.swp
+*~
