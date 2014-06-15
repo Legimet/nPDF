@@ -19,17 +19,16 @@
 extern "C" {
 #include <mupdf/fitz.h>
 }
-#include <cstdio>
 #include <algorithm>
 #include <libndls.h>
-#include <syscall.h>
-#include <syscall-list.h>
 #include "Viewer.hpp"
 #include "Screen.hpp"
 
 const int Viewer::scroll = 20;
 const float Viewer::zoom = 1.142857;
 const unsigned char Viewer::bgColor = 103;
+const float Viewer::maxScale = 2.0;
+const float Viewer::minScale = 0.1;
 
 // We have a separate initialization method for the error handling
 Viewer::Viewer() {
@@ -87,7 +86,7 @@ void Viewer::openDoc(const char *path) {
     }
     fz_catch(ctx) {
 	show_msgbox("nPDF", "Can't open document");
-	fz_throw(ctx, 1, "Can't open document");
+	fz_throw(ctx, 1, "can't open document");
     }
 }
 
@@ -117,11 +116,16 @@ void Viewer::drawPage() {
     fz_irect bbox;
     fz_round_rect(&bbox, &bounds);
     
-    if (xPos >= bounds.x1 - bounds.x0) {
+    // Make sure we don't go out of bounds
+    if (xPos < 0 || bounds.x1 - bounds.x0 <= width) {
 	xPos = 0;
+    } else if (xPos >= (bounds.x1 - bounds.x0) - std::min(width, (int)(bounds.x1 - bounds.x0))) {
+	xPos = (bounds.x1 - bounds.x0) - std::min(width, (int)(bounds.x1 - bounds.x0));
     }
-    if (yPos >= bounds.y1 - bounds.y0) {
-	xPos = 0;
+    if (yPos < 0 || bounds.y1 - bounds.y0 <= height) {
+	yPos = 0;
+    } else if (yPos >= (bounds.y1 - bounds.y0) - std::min(height, (int)(bounds.y1 - bounds.y0))) {
+	yPos = (bounds.y1 - bounds.y0) - std::min(height, (int)(bounds.y1 - bounds.y0));
     }
     
     if (has_colors) {
@@ -133,6 +137,7 @@ void Viewer::drawPage() {
     
     dev = fz_new_draw_device(ctx, pix);
     fz_run_page(doc, page, dev, &transform, nullptr);
+    
     if (dev) {
 	fz_free_device(dev);
 	dev = nullptr;
@@ -161,8 +166,8 @@ void Viewer::next() {
     if (pageNo < fz_count_pages(doc) - 1) {
 	pageNo++;
 	curPageLoaded = false;
-	drawPage();
 	yPos = 0;
+	drawPage();
     }
 }
 
@@ -170,8 +175,8 @@ void Viewer::prev() {
     if (pageNo > 0) {
 	pageNo--;
 	curPageLoaded = false;
-	drawPage();
 	yPos = std::max(0, (int)(bounds.y1 - bounds.y0) - height - 1);
+	drawPage();
     }
 }
 
@@ -213,17 +218,27 @@ void Viewer::unsetFitWidth() {
 }
 
 void Viewer::zoomIn() {
-    fitWidth = false;
-    scale *= zoom;
-    drawPage();
-    xPos *= zoom;
-    yPos *= zoom;
+    // Try to zoom in on the center
+    if (scale * zoom <= maxScale) {
+	fitWidth = false;
+	xPos = (xPos + std::min(width, (int)(bounds.x1 - bounds.x0)) / 2) * zoom;
+	xPos -= std::min(width, (int)((bounds.x1 - bounds.x0) * zoom)) / 2;
+	yPos = (yPos + std::min(height, (int)(bounds.y1 - bounds.y0)) / 2) * zoom;
+	yPos -= std::min(height, (int)((bounds.y1 - bounds.y0) * zoom)) / 2;
+	scale *= zoom;
+	drawPage();
+    }
 }
 
 void Viewer::zoomOut() {
-    fitWidth = false;
-    scale /= zoom;
-    drawPage();
-    xPos /= zoom;
-    yPos /= zoom;
+    // Try to zoom out from the center
+    if (scale / zoom >= minScale) {
+	fitWidth = false;
+	xPos = (xPos + std::min(width, (int)(bounds.x1 - bounds.x0)) / 2) / zoom;
+	xPos -= std::min(width, (int)((bounds.x1 - bounds.x0) / zoom)) / 2;
+	yPos = (yPos + std::min(height, (int)(bounds.y1 - bounds.y0)) / 2) / zoom;
+	yPos -= std::min(height, (int)((bounds.y1 - bounds.y0) / zoom)) / 2;
+	scale /= zoom;
+	drawPage();
+    }
 }

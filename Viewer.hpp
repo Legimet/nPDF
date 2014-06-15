@@ -25,6 +25,11 @@ extern "C" {
 
 class Viewer {
     private:
+	static const int scroll;
+	static const float zoom;
+	static const unsigned char bgColor;
+	static const float maxScale;
+	static const float minScale;
 	fz_context *ctx;
 	fz_document *doc;
 	fz_page *page;
@@ -40,9 +45,6 @@ class Viewer {
 	int width;
 	int height;
     public:
-	static const int scroll;
-	static const float zoom;
-	static const unsigned char bgColor;
 	Viewer();
 	~Viewer();
 	bool init();

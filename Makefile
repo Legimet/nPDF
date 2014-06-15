@@ -15,7 +15,7 @@ all: $(EXE)
 %.o: %.cpp mupdf-$(MUPDF_VERSION)-source
 	$(CXX) $(CFLAGS) -c $<
 
-$(EXE): libs $(OBJS)
+$(EXE): $(OBJS)
 	mkdir -p $(DISTDIR)
 	$(LD) $(OBJS) -o $(DISTDIR)/$@ $(LDFLAGS)
 
