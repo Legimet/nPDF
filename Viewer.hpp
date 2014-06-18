@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _VIEWER_HPP_
-#define _VIEWER_HPP_
+#ifndef VIEWER_HPP
+#define VIEWER_HPP
 
 extern "C" {
 #include <mupdf/fitz.h>

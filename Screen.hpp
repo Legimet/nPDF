@@ -16,8 +16,8 @@
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef _SCREEN_HPP_
-#define _SCREEN_HPP_
+#ifndef SCREEN_HPP
+#define SCREEN_HPP
 
 namespace Screen {
     bool init();
