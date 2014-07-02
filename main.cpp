@@ -2,17 +2,17 @@
 // Copyright (C) 2014  Legimet
 //
 // This file is part of nPDF.
-// 
+//
 // nPDF is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // nPDF is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -24,49 +24,103 @@ extern "C" {
 #include <libndls.h>
 #include "Viewer.hpp"
 #include "Screen.hpp"
+#include "Timer.hpp"
 
-int main(void) {
+enum arrowkey {NONE = 0, DOWN, UP, RIGHT, LEFT};
+const int delay1 = 600;
+const int delay2 = 10;
+
+arrowkey getArrowKey() {
+    if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_2)) {
+	return DOWN;
+    } else if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_8)) {
+	return UP;
+    } else if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_6)) {
+	return RIGHT;
+    } else if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_4)) {
+	return LEFT;
+    } else {
+	return NONE;
+    }
+}
+
+int main(int argc, char **argv) {    
     Viewer v;
-    Screen::init();
-    clrscr();
-    v.init();
 
-    v.openDoc("/documents/ndless/example.pdf.tns");
+    if (argc >= 2) {
+	v.init();
+	v.openDoc(argv[1]);
+    } else if (argc >= 1) {
+	cfg_register_fileext("pdf", "nPDF");
+	cfg_register_fileext("xps", "nPDF");
+	cfg_register_fileext("cbz", "nPDF");
+	show_msgbox("nPDF", "File extensions registered. You can now open a .pdf, .xps, or .cbz file from the Documents screen");
+	return 0;
+    }
+    Screen::init();
+    Timer::init();
     v.drawPage();
     v.display();
 
+    arrowkey lastArrowKey = NONE;
+    arrowkey current = NONE;
+    
     while (true) {
-	if (isKeyPressed(KEY_NSPIRE_ESC)) {
-	    break;
-	}
-	if (isKeyPressed(KEY_NSPIRE_DOWN)) {
-	    v.scrollDown();
-	    v.display();
-	}
-	if (isKeyPressed(KEY_NSPIRE_UP)) {
-	    v.scrollUp();
-	    v.display();
-	}
-	if (isKeyPressed(KEY_NSPIRE_RIGHT)) {
-	    v.scrollRight();
-	    v.display();
-	}
-	if (isKeyPressed(KEY_NSPIRE_LEFT)) {
-	    v.scrollLeft();
-	    v.display();
-	}
-	if (isKeyPressed(KEY_NSPIRE_MULTIPLY)) {
-	    v.zoomIn();
-	    v.display();
-	}
-	if (isKeyPressed(KEY_NSPIRE_DIVIDE)) {
-	    v.zoomOut();
-	    v.display();
+	if ((current = getArrowKey())) {
+	    if (current != lastArrowKey || Timer::done()) {
+		if (current == DOWN) {
+		    if (lastArrowKey != DOWN) {
+			Timer::start(delay1);
+			lastArrowKey = DOWN;
+		    } else if (Timer::done()) {
+			Timer::start(delay2);
+		    }
+		    v.scrollDown();
+		    v.display();
+		} else if (current == UP) {
+		    if (lastArrowKey != UP) {
+			Timer::start(delay1);
+			lastArrowKey = UP;
+		    } else if (Timer::done()) {
+			Timer::start(delay2);
+		    }
+		    v.scrollUp();
+		    v.display();
+		} else if (current == RIGHT) {
+		    if (lastArrowKey != RIGHT) {
+			Timer::start(delay1);
+			lastArrowKey = RIGHT;
+		    } else if (Timer::done()) {
+			Timer::start(delay2);
+		    }
+		    v.scrollRight();
+		    v.display();
+		} else if (current == LEFT) {
+		    if (lastArrowKey != LEFT) {
+			Timer::start(delay1);
+			lastArrowKey = LEFT;
+		    } else if (Timer::done()) {
+			Timer::start(delay2);
+		    }
+		    v.scrollLeft();
+		    v.display();
+		}
+	    }
+	} else {
+	    lastArrowKey = NONE;
+	    Timer::start(0);
+	    if (isKeyPressed(KEY_NSPIRE_ESC)) {
+		break;
+	    } else if (isKeyPressed(KEY_NSPIRE_MULTIPLY)) {
+		v.zoomIn();
+		v.display();
+	    } else if (isKeyPressed(KEY_NSPIRE_DIVIDE)) {
+		v.zoomOut();
+		v.display();
+	    }
 	}
 	sleep(10);
     }
-    
-    Screen::deinit();
     
     return 0;
 }

@@ -2,17 +2,17 @@
 // Copyright (C) 2014  Legimet
 //
 // This file is part of nPDF.
-// 
+//
 // nPDF is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // nPDF is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -83,8 +83,7 @@ fz_context* Viewer::getCtx() const {
 void Viewer::openDoc(const char *path) {
     fz_try(ctx) {
 	doc = fz_open_document(ctx, path);
-    }
-    fz_catch(ctx) {
+    } fz_catch(ctx) {
 	show_msgbox("nPDF", "Can't open document");
 	fz_throw(ctx, 1, "can't open document");
     }
@@ -119,13 +118,13 @@ void Viewer::drawPage() {
     // Make sure we don't go out of bounds
     if (xPos < 0 || bounds.x1 - bounds.x0 <= width) {
 	xPos = 0;
-    } else if (xPos >= (bounds.x1 - bounds.x0) - std::min(width, (int)(bounds.x1 - bounds.x0))) {
-	xPos = (bounds.x1 - bounds.x0) - std::min(width, (int)(bounds.x1 - bounds.x0));
+    } else if (xPos >= (bounds.x1 - bounds.x0) - std::min(width, static_cast<int>(bounds.x1 - bounds.x0))) {
+	xPos = (bounds.x1 - bounds.x0) - std::min(width, static_cast<int>(bounds.x1 - bounds.x0));
     }
     if (yPos < 0 || bounds.y1 - bounds.y0 <= height) {
 	yPos = 0;
-    } else if (yPos >= (bounds.y1 - bounds.y0) - std::min(height, (int)(bounds.y1 - bounds.y0))) {
-	yPos = (bounds.y1 - bounds.y0) - std::min(height, (int)(bounds.y1 - bounds.y0));
+    } else if (yPos >= (bounds.y1 - bounds.y0) - std::min(height, static_cast<int>(bounds.y1 - bounds.y0))) {
+	yPos = (bounds.y1 - bounds.y0) - std::min(height, static_cast<int>(bounds.y1 - bounds.y0));
     }
     
     if (has_colors) {
@@ -175,7 +174,7 @@ void Viewer::prev() {
     if (pageNo > 0) {
 	pageNo--;
 	curPageLoaded = false;
-	yPos = std::max(0, (int)(bounds.y1 - bounds.y0) - height - 1);
+	yPos = std::max(0, static_cast<int>(bounds.y1 - bounds.y0) - height - 1);
 	drawPage();
     }
 }
@@ -221,10 +220,10 @@ void Viewer::zoomIn() {
     // Try to zoom in on the center
     if (scale * zoom <= maxScale) {
 	fitWidth = false;
-	xPos = (xPos + std::min(width, (int)(bounds.x1 - bounds.x0)) / 2) * zoom;
-	xPos -= std::min(width, (int)((bounds.x1 - bounds.x0) * zoom)) / 2;
-	yPos = (yPos + std::min(height, (int)(bounds.y1 - bounds.y0)) / 2) * zoom;
-	yPos -= std::min(height, (int)((bounds.y1 - bounds.y0) * zoom)) / 2;
+	xPos = (xPos + std::min(width, static_cast<int>(bounds.x1 - bounds.x0)) / 2) * zoom;
+	xPos -= std::min(width, static_cast<int>((bounds.x1 - bounds.x0) * zoom)) / 2;
+	yPos = (yPos + std::min(height, static_cast<int>(bounds.y1 - bounds.y0)) / 2) * zoom;
+	yPos -= std::min(height, static_cast<int>((bounds.y1 - bounds.y0) * zoom)) / 2;
 	scale *= zoom;
 	drawPage();
     }
@@ -234,10 +233,10 @@ void Viewer::zoomOut() {
     // Try to zoom out from the center
     if (scale / zoom >= minScale) {
 	fitWidth = false;
-	xPos = (xPos + std::min(width, (int)(bounds.x1 - bounds.x0)) / 2) / zoom;
-	xPos -= std::min(width, (int)((bounds.x1 - bounds.x0) / zoom)) / 2;
-	yPos = (yPos + std::min(height, (int)(bounds.y1 - bounds.y0)) / 2) / zoom;
-	yPos -= std::min(height, (int)((bounds.y1 - bounds.y0) / zoom)) / 2;
+	xPos = (xPos + std::min(width, static_cast<int>(bounds.x1 - bounds.x0)) / 2) / zoom;
+	xPos -= std::min(width, static_cast<int>((bounds.x1 - bounds.x0) / zoom)) / 2;
+	yPos = (yPos + std::min(height, static_cast<int>(bounds.y1 - bounds.y0)) / 2) / zoom;
+	yPos -= std::min(height, static_cast<int>((bounds.y1 - bounds.y0) / zoom)) / 2;
 	scale /= zoom;
 	drawPage();
     }

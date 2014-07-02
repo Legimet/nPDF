@@ -1,10 +1,10 @@
-From 7774fc47c346eb15829c94ddf4bedcc1ee856227 Mon Sep 17 00:00:00 2001
+From bff7a6b4cc6b680b8f6be37cd1112b370a716ab1 Mon Sep 17 00:00:00 2001
 From: Legimet <legimet.calc@gmail.com>
-Date: Fri, 23 May 2014 22:51:58 -0400
+Date: Wed, 2 Jul 2014 16:31:28 -0400
 Subject: [PATCH] Modify for TI-Nspire
 
 ---
- libopenjpeg/opj_malloc.h |    2 +-
+ libopenjpeg/opj_malloc.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/libopenjpeg/opj_malloc.h b/libopenjpeg/opj_malloc.h
@@ -21,5 +21,5 @@ index b279445..378f4e0 100644
  		#include <malloc.h>			
  	#endif
 -- 
-1.7.9.5
+2.0.1
 
