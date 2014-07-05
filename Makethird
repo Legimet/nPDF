@@ -1,0 +1,468 @@
+# GNU Makefile for third party libraries used by MuPDF
+#
+# If thirdparty libraries are supplied, they will be built as
+# static libraries.
+#
+# Use 'git submodule init' and 'git submodule update' to check
+# out the thirdparty libraries from git.
+
+FREETYPE_DIR := thirdparty/freetype
+JBIG2DEC_DIR := thirdparty/jbig2dec
+JPEG_DIR := thirdparty/jpeg
+MUJS_DIR := thirdparty/mujs
+OPENJPEG_DIR := thirdparty/openjpeg/libopenjpeg
+OPENSSL_DIR := thirdparty/openssl
+ZLIB_DIR := thirdparty/zlib
+CURL_DIR := thirdparty/curl
+
+# --- V8 ---
+#
+# V8 is too big to be used as a submodule.
+#
+
+V8_DIR := $(wildcard thirdparty/v8*)
+
+ifneq "$(V8_DIR)" ""
+
+ifeq "$(build)" "release"
+V8_LIB_CHOICE := release
+else ifeq "$(build)" "profile"
+V8_LIB_CHOICE := release
+else
+V8_LIB_CHOICE := debug
+endif
+
+V8_ARCH ?= x64
+
+# If you are building for 32bit linux use V8_ARCH=ia32
+ifeq "$(OS)" "Darwin"
+V8_LIBS := -L$(V8_DIR)/out-mac/$(V8_ARCH).$(V8_LIB_CHOICE)/ -lv8_base -lv8_snapshot -lstdc++
+else
+V8_LIBS := -L$(V8_DIR)/out/$(V8_ARCH).$(V8_LIB_CHOICE)/obj.target/tools/gyp -lv8_base -lv8_snapshot -lpthread -ldl -lstdc++
+endif
+
+V8_CFLAGS := -I$(V8_DIR)/include
+
+HAVE_V8 := yes
+endif
+
+# --- MuJS ---
+
+ifneq "$(wildcard $(MUJS_DIR)/README)" ""
+
+MUJS_LIB := $(OUT)/libmujs.a
+MUJS_OUT := $(OUT)/mujs
+MUJS_SRC := one.c
+
+$(MUJS_LIB): $(addprefix $(MUJS_OUT)/, $(MUJS_SRC:%.c=%.o))
+$(MUJS_OUT):
+	$(MKDIR_CMD)
+$(MUJS_OUT)/%.o: $(MUJS_DIR)/%.c | $(MUJS_OUT)
+	$(CC_CMD)
+
+MUJS_CFLAGS := -I$(MUJS_DIR)
+
+HAVE_MUJS := yes
+endif
+
+# --- FreeType 2 ---
+
+ifneq "$(wildcard $(FREETYPE_DIR)/README)" ""
+
+FREETYPE_LIB := $(OUT)/libfreetype.a
+FREETYPE_OUT := $(OUT)/freetype
+FREETYPE_SRC := \
+	ftbase.c \
+	ftbbox.c \
+	ftbitmap.c \
+	ftdebug.c \
+	ftgasp.c \
+	ftglyph.c \
+	ftinit.c \
+	ftstroke.c \
+	ftsynth.c \
+	ftsystem.c \
+	fttype1.c \
+	ftxf86.c \
+	cff.c \
+	psaux.c \
+	pshinter.c \
+	psnames.c \
+	raster.c \
+	sfnt.c \
+	smooth.c \
+	truetype.c \
+	type1.c \
+	type1cid.c \
+
+
+$(FREETYPE_LIB): $(addprefix $(FREETYPE_OUT)/, $(FREETYPE_SRC:%.c=%.o))
+
+$(FREETYPE_OUT):
+	$(MKDIR_CMD)
+
+FT_CFLAGS := -DFT2_BUILD_LIBRARY -DDARWIN_NO_CARBON \
+	'-DFT_CONFIG_MODULES_H="slimftmodules.h"' \
+	'-DFT_CONFIG_OPTIONS_H="slimftoptions.h"'
+
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/base/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/cff/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/cid/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/psaux/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/pshinter/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/psnames/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/raster/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/smooth/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/sfnt/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/truetype/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+$(FREETYPE_OUT)/%.o: $(FREETYPE_DIR)/src/type1/%.c	| $(FREETYPE_OUT)
+	$(CC_CMD) $(FT_CFLAGS)
+
+FREETYPE_CFLAGS := -Iscripts/freetype -I$(FREETYPE_DIR)/include
+else
+FREETYPE_CFLAGS := $(SYS_FREETYPE_CFLAGS)
+FREETYPE_LIBS := $(SYS_FREETYPE_LIBS)
+endif
+
+# --- JBIG2DEC ---
+
+ifneq "$(wildcard $(JBIG2DEC_DIR)/README)" ""
+
+JBIG2DEC_LIB := $(OUT)/libjbig2dec.a
+JBIG2DEC_OUT := $(OUT)/jbig2dec
+JBIG2DEC_SRC := \
+	jbig2.c \
+	jbig2_arith.c \
+	jbig2_arith_iaid.c \
+	jbig2_arith_int.c \
+	jbig2_generic.c \
+	jbig2_halftone.c \
+	jbig2_huffman.c \
+	jbig2_image.c \
+	jbig2_metadata.c \
+	jbig2_mmr.c \
+	jbig2_page.c \
+	jbig2_refinement.c \
+	jbig2_segment.c \
+	jbig2_symbol_dict.c \
+	jbig2_text.c \
+
+$(JBIG2DEC_LIB): $(addprefix $(JBIG2DEC_OUT)/, $(JBIG2DEC_SRC:%.c=%.o))
+$(JBIG2DEC_OUT):
+	$(MKDIR_CMD)
+$(JBIG2DEC_OUT)/%.o: $(JBIG2DEC_DIR)/%.c | $(JBIG2DEC_OUT)
+	$(CC_CMD) -DHAVE_STDINT_H
+
+JBIG2DEC_CFLAGS := -I$(JBIG2DEC_DIR)
+else
+JBIG2DEC_CFLAGS := $(SYS_JBIG2DEC_CFLAGS)
+JBIG2DEC_LIBS := $(SYS_JBIG2DEC_LIBS)
+endif
+
+# --- JPEG library from IJG ---
+
+ifneq "$(wildcard $(JPEG_DIR)/README)" ""
+
+JPEG_LIB := $(OUT)/libjpeg.a
+JPEG_OUT := $(OUT)/jpeg
+JPEG_SRC := \
+	jaricom.c \
+	jcomapi.c \
+	jdapimin.c \
+	jdapistd.c \
+	jdarith.c \
+	jdatadst.c \
+	jdatasrc.c \
+	jdcoefct.c \
+	jdcolor.c \
+	jddctmgr.c \
+	jdhuff.c \
+	jdinput.c \
+	jdmainct.c \
+	jdmarker.c \
+	jdmaster.c \
+	jdmerge.c \
+	jdpostct.c \
+	jdsample.c \
+	jdtrans.c \
+	jerror.c \
+	jfdctflt.c \
+	jfdctfst.c \
+	jfdctint.c \
+	jidctflt.c \
+	jidctfst.c \
+	jidctint.c \
+	jmemmgr.c \
+	jquant1.c \
+	jquant2.c \
+	jutils.c \
+
+$(JPEG_LIB): $(addprefix $(JPEG_OUT)/, $(JPEG_SRC:%.c=%.o))
+$(JPEG_OUT):
+	$(MKDIR_CMD)
+$(JPEG_OUT)/%.o: $(JPEG_DIR)/%.c | $(JPEG_OUT)
+	$(CC_CMD) -Dmain=xxxmain
+
+JPEG_CFLAGS := -Iscripts/jpeg -I$(JPEG_DIR)
+else
+JPEG_CFLAGS := $(SYS_JPEG_CFLAGS) -DSHARE_JPEG
+JPEG_LIBS := $(SYS_JPEG_LIBS)
+endif
+
+# --- OpenJPEG ---
+
+ifneq "$(wildcard $(OPENJPEG_DIR)/CMakeLists.txt)" ""
+
+OPENJPEG_LIB := $(OUT)/libopenjpeg.a
+OPENJPEG_OUT := $(OUT)/openjpeg
+OPENJPEG_SRC := \
+	bio.c \
+	cidx_manager.c \
+	cio.c \
+	dwt.c \
+	event.c \
+	function_list.c \
+	image.c \
+	invert.c \
+	j2k.c \
+	jp2.c \
+	mct.c \
+	mqc.c \
+	openjpeg.c \
+	opj_clock.c \
+	phix_manager.c \
+	pi.c \
+	ppix_manager.c \
+	raw.c \
+	t1.c \
+	t2.c \
+	tcd.c \
+	tgt.c \
+	thix_manager.c \
+	tpix_manager.c \
+
+$(OPENJPEG_LIB): $(addprefix $(OPENJPEG_OUT)/, $(OPENJPEG_SRC:%.c=%.o))
+$(OPENJPEG_OUT):
+	$(MKDIR_CMD)
+$(OPENJPEG_OUT)/%.o: $(OPENJPEG_DIR)/%.c | $(OPENJPEG_OUT)
+	$(CC_CMD) -DOPJ_STATIC -DOPJ_HAVE_STDINT_H
+
+OPENJPEG_CFLAGS += -Iscripts/openjpeg -I$(OPENJPEG_DIR)
+else
+OPENJPEG_CFLAGS := $(SYS_OPENJPEG_CFLAGS)
+OPENJPEG_LIBS := $(SYS_OPENJPEG_LIBS)
+endif
+
+# --- ZLIB ---
+
+ifneq "$(wildcard $(ZLIB_DIR)/README)" ""
+
+ZLIB_LIB := $(OUT)/libz.a
+ZLIB_OUT := $(OUT)/zlib
+ZLIB_SRC := \
+	adler32.c \
+	compress.c \
+	crc32.c \
+	deflate.c \
+	inffast.c \
+	inflate.c \
+	inftrees.c \
+	trees.c \
+	uncompr.c \
+	zutil.c \
+
+$(ZLIB_LIB): $(addprefix $(ZLIB_OUT)/, $(ZLIB_SRC:%.c=%.o))
+$(ZLIB_OUT):
+	$(MKDIR_CMD)
+$(ZLIB_OUT)/%.o: $(ZLIB_DIR)/%.c | $(ZLIB_OUT)
+	$(CC_CMD) -Dverbose=-1
+
+ZLIB_CFLAGS := -I$(ZLIB_DIR)
+else
+ZLIB_CFLAGS := $(SYS_ZLIB_CFLAGS)
+ZLIB_LIBS := $(SYS_ZLIB_LIBS)
+endif
+
+# --- OpenSSL ---
+
+ifneq "$(wildcard $(OPENSSL_DIR)/README)" ""
+
+OPENSSL_LIB := $(OUT)/libcrypto.a
+
+OPENSSL_DIR_MAK := $(OPENSSL_DIR)/Makefile
+OPENSSL_DIR_LIB := $(OPENSSL_DIR)/libcrypto.a
+
+$(OPENSSL_DIR_MAK):
+	cd $(OPENSSL_DIR) && ./config no-threads no-zlib no-shared no-asm no-dso
+
+$(OPENSSL_DIR_LIB): $(OPENSSL_DIR_MAK)
+	$(MAKE) -C $(OPENSSL_DIR) build_crypto
+
+$(OPENSSL_LIB): $(OPENSSL_DIR_LIB) | $(OUT)
+	cp $(OPENSSL_DIR_LIB) $(OPENSSL_LIB)
+
+openssl-clean:
+	$(MAKE) -C $(OPENSSL_DIR) clean
+	rm -f thirdparty/openssl/Makefile thirdparty/openssl/libcrypto.a
+
+OPENSSL_CFLAGS := -DHAVE_OPENSSL -I$(OPENSSL_DIR)/include
+else
+OPENSSL_CFLAGS := $(SYS_OPENSSL_CFLAGS)
+OPENSSL_LIBS := $(SYS_OPENSSL_LIBS)
+endif
+
+# --- cURL ---
+
+ifneq "$(wildcard $(CURL_DIR)/README)" ""
+
+CURL_LIB := $(OUT)/libcurl.a
+CURL_OUT := $(OUT)/curl
+CURL_SRC := \
+	amigaos.c \
+	asyn-ares.c \
+	asyn-thread.c \
+	axtls.c \
+	base64.c \
+	bundles.c \
+	conncache.c \
+	connect.c \
+	content_encoding.c \
+	cookie.c \
+	curl_addrinfo.c \
+	curl_darwinssl.c \
+	curl_fnmatch.c \
+	curl_gethostname.c \
+	curl_gssapi.c \
+	curl_memrchr.c \
+	curl_multibyte.c \
+	curl_ntlm.c \
+	curl_ntlm_core.c \
+	curl_ntlm_msgs.c \
+	curl_ntlm_wb.c \
+	curl_rand.c \
+	curl_rtmp.c \
+	curl_sasl.c \
+	curl_schannel.c \
+	curl_sspi.c \
+	curl_threads.c \
+	cyassl.c \
+	dict.c \
+	easy.c \
+	escape.c \
+	file.c \
+	fileinfo.c \
+	formdata.c \
+	ftp.c \
+	ftplistparser.c \
+	getenv.c \
+	getinfo.c \
+	gopher.c \
+	gtls.c \
+	hash.c \
+	hmac.c \
+	hostasyn.c \
+	hostcheck.c \
+	hostip.c \
+	hostip4.c \
+	hostip6.c \
+	hostsyn.c \
+	http.c \
+	http_chunks.c \
+	http_digest.c \
+	http_negotiate.c \
+	http_negotiate_sspi.c \
+	http_proxy.c \
+	idn_win32.c \
+	if2ip.c \
+	imap.c \
+	inet_ntop.c \
+	inet_pton.c \
+	krb4.c \
+	krb5.c \
+	ldap.c \
+	llist.c \
+	md4.c \
+	md5.c \
+	memdebug.c \
+	mprintf.c \
+	multi.c \
+	netrc.c \
+	non-ascii.c \
+	nonblock.c \
+	nss.c \
+	openldap.c \
+	parsedate.c \
+	pingpong.c \
+	pipeline.c \
+	polarssl.c \
+	polarssl_threadlock.c \
+	pop3.c \
+	progress.c \
+	qssl.c \
+	rawstr.c \
+	rtsp.c \
+	security.c \
+	select.c \
+	sendf.c \
+	share.c \
+	slist.c \
+	smtp.c \
+	socks.c \
+	socks_gssapi.c \
+	speedcheck.c \
+	splay.c \
+	ssh.c \
+	sslgen.c \
+	ssluse.c \
+	strdup.c \
+	strequal.c \
+	strerror.c \
+	strtok.c \
+	strtoofft.c \
+	telnet.c \
+	tftp.c \
+	timeval.c \
+	transfer.c \
+	url.c \
+	version.c \
+	warnless.c \
+	wildcard.c \
+
+
+$(CURL_LIB): $(addprefix $(CURL_OUT)/, $(CURL_SRC:%.c=%.o))
+
+$(CURL_OUT):
+	$(MKDIR_CMD)
+
+CRL_CFLAGS := -DHAVE_CONFIG_H -DBUILDING_LIBCURL -DCURL_STATICLIB \
+	-DCURL_DISABLE_LDAP -I$(CURL_DIR)/include
+
+$(CURL_OUT)/%.o: $(CURL_DIR)/lib/%.c	| $(CURL_OUT)
+	$(CC_CMD) $(CRL_CFLAGS)
+
+CURL_CFLAGS := -I$(CURL_DIR)/include
+CURL_LIBS := $(SYS_CURL_DEPS)
+
+HAVE_CURL := yes
+
+else ifeq "$(HAVE_CURL)" "yes"
+CURL_CFLAGS := $(SYS_CURL_CFLAGS)
+CURL_LIBS := $(SYS_CURL_LIBS)
+endif
+
+# --- X11 ---
+
+ifeq "$(HAVE_X11)" "yes"
+X11_CFLAGS := $(SYS_X11_CFLAGS)
+X11_LIBS := $(SYS_X11_LIBS)
+endif

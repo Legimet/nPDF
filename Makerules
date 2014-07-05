@@ -1,0 +1,152 @@
+# Configuration for the Makefile
+
+OS ?= $(shell uname)
+OS := $(OS:MINGW%=MINGW)
+OS := $(OS:Windows_NT=MINGW)
+OS := $(OS:Darwin=MACOS)
+
+CFLAGS += -Wall
+
+ifeq "$(build)" "debug"
+CFLAGS += -pipe -g -DDEBUG
+else ifeq "$(build)" "profile"
+CFLAGS += -pipe -O2 -DNDEBUG -pg
+LDFLAGS += -pg
+else ifeq "$(build)" "release"
+CFLAGS += -pipe -O2 -DNDEBUG -fomit-frame-pointer
+else ifeq "$(build)" "coverage"
+CFLAGS += -pipe -g -DDEBUG -pg -fprofile-arcs -ftest-coverage
+LIBS += -lgcov
+else ifeq "$(build)" "native"
+CFLAGS += -pipe -O2 -DNDEBUG -fomit-frame-pointer -march=native -mfpmath=sse
+else ifeq "$(build)" "memento"
+CFLAGS += -pipe -g -DMEMENTO -DDEBUG
+else
+$(error unknown build setting: '$(build)')
+endif
+
+# Windows (MINGW) build doesn't use system libraries.
+ifeq "$(OS)" "MINGW"
+
+# Mac OS X doesn't have pkg-config so we hard code paths.
+else ifeq "$(OS)" "MACOS"
+
+HAVE_X11 ?= yes
+
+SYS_OPENSSL_CFLAGS = -DHAVE_OPENSSL
+SYS_OPENSSL_LIBS = -lcrypto
+
+SYS_CURL_DEPS = -lpthread
+
+SYS_X11_CFLAGS = -I/usr/X11R6/include
+SYS_X11_LIBS = -L/usr/X11R6/lib -lX11 -lXext
+
+SYS_FREETYPE_CFLAGS = -I/usr/X11R6/include/freetype2
+SYS_FREETYPE_LIBS = -lfreetype
+SYS_OPENJPEG_LIBS = -lopenjpeg
+SYS_JBIG2DEC_LIBS = -ljbig2dec
+SYS_JPEG_LIBS = -ljpeg
+SYS_ZLIB_LIBS = -lz
+
+CC = xcrun cc
+AR = xcrun ar
+LD = xcrun ld
+RANLIB_CMD = xcrun ranlib $@
+
+# Linux uses pkg-config for system libraries.
+else ifeq "$(OS)" "Linux"
+
+HAVE_X11 ?= yes
+
+ifeq "$(shell pkg-config --exists libcrypto && echo yes)" "yes"
+SYS_OPENSSL_CFLAGS = -DHAVE_OPENSSL $(shell pkg-config --cflags libcrypto)
+SYS_OPENSSL_LIBS = $(shell pkg-config --libs libcrypto)
+endif
+
+ifeq "$(shell pkg-config --exists libcurl && echo yes)" "yes"
+HAVE_CURL = yes
+SYS_CURL_CFLAGS = $(shell pkg-config --cflags libcurl)
+SYS_CURL_LIBS = $(shell pkg-config --libs libcurl)
+endif
+SYS_CURL_DEPS = -lpthread -lrt
+
+SYS_X11_CFLAGS = $(shell pkg-config --cflags x11 xext)
+SYS_X11_LIBS = $(shell pkg-config --libs x11 xext)
+
+SYS_FREETYPE_CFLAGS = $(shell pkg-config --cflags freetype2)
+SYS_FREETYPE_LIBS = $(shell pkg-config --libs freetype2)
+SYS_OPENJPEG_CFLAGS = $(shell pkg-config --cflags libopenjp2)
+SYS_OPENJPEG_LIBS = $(shell pkg-config --libs libopenjp2)
+SYS_JBIG2DEC_LIBS = -ljbig2dec
+SYS_JPEG_LIBS = -ljpeg
+SYS_ZLIB_LIBS = -lz
+
+endif
+
+# The following section is an example of how to simply do cross-compilation
+# using these Makefiles. It builds for a beagleboard running ARM linux,
+# compiling on windows with the CodeSourcery G++ compilers.
+# Invoke this as:
+#      make OS=beagle-cross build=release
+# This does rely on the generated directory being populated with the cmap
+# files etc first. Either:
+#   1) do 'make generate' first (this relies on you having an appropriate host
+#   base C compiler set up - such as you would have on unix or in windows
+#   cygwin)
+#   2) do a non cross compile build (e.g. windows in MSVC) first.
+#   3) download the generated files from mupdf.com.
+
+ifeq "$(OS)" "beagle-cross"
+CC = arm-none-linux-gnueabi-gcc
+LD = arm-none-linux-gnueabi-gcc
+AR = arm-none-linux-gnueabi-ar
+CFLAGS += -O3 -mfpu=neon -mcpu=cortex-a8 -mfloat-abi=softfp -ftree-vectorize -ffast-math -fsingle-precision-constant
+CROSSCOMPILE=yes
+endif
+
+ifeq "$(OS)" "webos-pre-cross"
+CC = arm-none-linux-gnueabi-gcc
+LD = arm-none-linux-gnueabi-gcc
+AR = arm-none-linux-gnueabi-ar
+CFLAGS += -O3 -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -ftree-vectorize -ffast-math -fsingle-precision-constant
+CROSSCOMPILE=yes
+endif
+
+ifeq "$(OS)" "webos-pixi-cross"
+CC = arm-none-linux-gnueabi-gcc
+LD = arm-none-linux-gnueabi-gcc
+AR = arm-none-linux-gnueabi-ar
+CFLAGS += -O3 -mcpu=arm1136jf-s -mfpu=vfp -mfloat-abi=softfp -ffast-math -fsingle-precision-constant
+CROSSCOMPILE=yes
+endif
+
+ifeq "$(OS)" "w64_x86-cross-mingw32"
+CC = i686-w64-mingw32-gcc
+LD = i686-w64-mingw32-gcc
+AR = i686-w64-mingw32-ar
+CROSSCOMPILE=yes
+endif
+
+ifeq "$(OS)" "w64_amd64-cross-mingw32"
+CC = x86_64-w64-mingw32-gcc
+LD = x86_64-w64-mingw32-gcc
+AR = x86_64-w64-mingw32-ar
+CROSSCOMPILE=yes
+endif
+
+# Most variables when building for iOS are set up in ios/build_libs.sh,
+# which is called from the Xcode project as a "Run Script" build step.
+# The following section works for both device and simulator builds.
+
+ifeq "$(OS)" "ios"
+CC = xcrun cc
+AR = xcrun ar
+LD = xcrun ld
+RANLIB_CMD = xcrun ranlib $@
+CROSSCOMPILE=yes
+endif
+
+# TODO: If crosscompiling, why not just call "make libs" instead of this exception?
+ifeq "$(CROSSCOMPILE)" "yes"
+HAVE_X11 ?= no
+endif
