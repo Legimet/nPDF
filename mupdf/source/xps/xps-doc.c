@@ -541,6 +541,19 @@ xps_recognize(fz_context *doc, const char *magic)
 	{
 		if (!fz_strcasecmp(ext, ".xps") || !fz_strcasecmp(ext, ".rels") || !fz_strcasecmp(ext, ".oxps"))
 			return 100;
+
+#ifdef _TINSPIRE
+		if (!fz_strcasecmp(ext, ".tns"))
+		{
+			while (--ext >= magic)
+			{
+				if (*ext == '.')
+					break;
+			}
+			if (ext >= magic && (!fz_strcasecmp(ext, ".xps.tns") || !fz_strcasecmp(ext, ".rels.tns") || !fz_strcasecmp(ext, ".oxps.tns")))
+				return 100;
+		}
+#endif
 	}
 	if (!strcmp(magic, "xps") || !strcmp(magic, "oxps") ||
 		!strcmp(magic, "application/vnd.ms-xpsdocument") ||

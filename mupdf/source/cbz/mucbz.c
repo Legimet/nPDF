@@ -445,6 +445,19 @@ cbz_recognize(fz_context *doc, const char *magic)
 	{
 		if (!fz_strcasecmp(ext, ".cbz") || !fz_strcasecmp(ext, ".zip"))
 			return 100;
+
+#ifdef _TINSPIRE
+		if (!fz_strcasecmp(ext, ".tns"))
+		{
+			while (--ext >= magic)
+			{
+				if (*ext == '.')
+					break;
+			}
+			if (ext >= magic && (!fz_strcasecmp(ext, ".cbz.tns") || !fz_strcasecmp(ext, ".zip.tns")))
+				return 100;
+		}
+#endif
 	}
 	if (!strcmp(magic, "cbz") || !strcmp(magic, "application/x-cbz"))
 		return 100;

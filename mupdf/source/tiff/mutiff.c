@@ -191,6 +191,19 @@ tiff_recognize(fz_context *doc, const char *magic)
 	{
 		if (!fz_strcasecmp(ext, ".tiff") || !fz_strcasecmp(ext, ".tif"))
 			return 100;
+
+#ifdef _TINSPIRE
+		if (!fz_strcasecmp(ext, ".tns"))
+		{
+			while (--ext >= magic)
+			{
+				if (*ext == '.')
+					break;
+			}
+			if (ext >= magic && (!fz_strcasecmp(ext, ".tiff.tns") || !fz_strcasecmp(ext, ".tif.tns")))
+				return 100;
+		}
+#endif
 	}
 	if (!strcmp(magic, "tif") || !strcmp(magic, "image/tiff") ||
 		!strcmp(magic, "tiff") || !strcmp(magic, "image/x-tiff"))

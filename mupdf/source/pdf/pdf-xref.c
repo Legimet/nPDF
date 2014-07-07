@@ -2454,6 +2454,19 @@ pdf_recognize(fz_context *doc, const char *magic)
 	{
 		if (!fz_strcasecmp(ext, ".pdf"))
 			return 100;
+
+#ifdef _TINSPIRE
+		if (!fz_strcasecmp(ext, ".tns"))
+		{
+			while (--ext >= magic)
+			{
+				if (*ext == '.')
+					break;
+			}
+			if (ext >= magic && !fz_strcasecmp(ext, ".pdf.tns"))
+				return 100;
+		}
+#endif
 	}
 	if (!strcmp(magic, "pdf") || !strcmp(magic, "application/pdf"))
 		return 100;

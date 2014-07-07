@@ -134,6 +134,16 @@ AR = x86_64-w64-mingw32-ar
 CROSSCOMPILE=yes
 endif
 
+ifeq "$(OS)" "ti-nspire"
+CC = nspire-gcc
+LD = nspire-ld
+AR = arm-none-eabi-ar
+ifeq "$(build)" "release"
+CFLAGS += -Os
+endif
+CROSSCOMPILE=yes
+endif
+
 # Most variables when building for iOS are set up in ios/build_libs.sh,
 # which is called from the Xcode project as a "Run Script" build step.
 # The following section works for both device and simulator builds.
