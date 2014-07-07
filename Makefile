@@ -16,16 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
-MUPDF_VERSION = 1.5
 MUPDF_BUILD = release
-MUPDF_DIR = mupdf-$(MUPDF_VERSION)-source
-MUPDF_SRC = http://mupdf.com/downloads/archive/$(MUPDF_DIR).tar.gz
-MUPDF_INC = mupdf-$(MUPDF_VERSION)-source/include
-MUPDF_OUT = mupdf-$(MUPDF_VERSION)-source/build/$(MUPDF_BUILD)
+MUPDF_DIR = mupdf
+MUPDF_INC = $(MUPDF_DIR)/include
+MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
 
 CXX = nspire-g++
 LD = nspire-ld
-CFLAGS = -Os -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
+CXXFLAGS = -Os -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
 MUPDF_XCFLAGS = -DNOCJKFONT -DNODROIDFONT
 LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
 OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
@@ -37,8 +35,8 @@ vpath %.tns $(DISTDIR)
 
 all: $(EXE)
 
-%.o: %.cpp mupdf-$(MUPDF_VERSION)-source
-	$(CXX) $(CFLAGS) -c $<
+%.o: %.cpp $(MUPDF_DIR)
+	$(CXX) $(CXXFLAGS) -c $<
 
 $(MUPDF_OUT)/%.a: $(MUPDF_DIR) generate
 	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) build=release OS=ti-nspire \
@@ -51,21 +49,10 @@ $(EXE): $(LIBS) $(OBJS)
 generate: $(MUPDF_DIR)
 	$(MAKE) -C $< generate build=release
 
-$(MUPDF_DIR): $(MUPDF_DIR).tar.gz patches/mupdf.patch patches/openjpeg.patch
-	tar -xzvf $<
-	patch -d $@ -p1 < patches/mupdf.patch
-	patch -d $@/thirdparty/openjpeg -p1 < patches/openjpeg.patch
-
-$(MUPDF_DIR).tar.gz:
-	wget $(MUPDF_SRC) -O $@
-
-clean:
-	rm -rf $(MUPDF_DIR) $(OBJS) $(EXE) $(EXE).gdb
+clean: cleannolibs
+	$(MAKE) -C $(MUPDF_DIR) clean build=$(MUPDF_BUILD)
 
 cleannolibs:
 	rm -f $(OBJS) $(EXE) $(EXE).gdb
 
-spotless: clean
-	rm -f $(MUPDF_DIR).tar.gz
-
-.PHONY: all generate clean cleannolibs spotless
+.PHONY: all generate clean cleannolibs
