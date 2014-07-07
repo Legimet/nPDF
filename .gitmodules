@@ -1,0 +1,21 @@
+[submodule "mupdf/thirdparty/jbig2dec"]
+	path = mupdf/thirdparty/jbig2dec
+	url = git://git.ghostscript.com/jbig2dec.git
+[submodule "mupdf/thirdparty/mujs"]
+	path = mupdf/thirdparty/mujs
+	url = git://git.ghostscript.com/mujs.git
+[submodule "mupdf/thirdparty/freetype"]
+	path = mupdf/thirdparty/freetype
+	url = git://git.ghostscript.com/thirdparty/freetype.git
+[submodule "mupdf/thirdparty/jpeg"]
+	path = mupdf/thirdparty/jpeg
+	url = git://git.ghostscript.com/thirdparty/jpeg.git
+[submodule "mupdf/thirdparty/openjpeg"]
+	path = mupdf/thirdparty/openjpeg
+	url = https://github.com/Legimet/openjpeg.git
+[submodule "mupdf/thirdparty/zlib"]
+	path = mupdf/thirdparty/zlib
+	url = git://git.ghostscript.com/thirdparty/zlib.git
+[submodule "mupdf/thirdparty/curl"]
+	path = mupdf/thirdparty/curl
+	url = git://git.ghostscript.com/thirdparty/curl.git
