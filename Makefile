@@ -44,7 +44,8 @@ $(MUPDF_OUT)/%.a: $(MUPDF_DIR) generate
 
 $(EXE): $(LIBS) $(OBJS)
 	mkdir -p $(DISTDIR)
-	$(LD) $(OBJS) -o $(DISTDIR)/$@ $(LDFLAGS)
+	$(LD) $(OBJS) -o $@.elf $(LDFLAGS)
+	genzehn --input $@.elf --output $@ --name nPDF --author Legimet
 
 generate: $(MUPDF_DIR)
 	$(MAKE) -C $< generate build=release

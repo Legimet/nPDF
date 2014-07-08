@@ -24,8 +24,7 @@
 // Using double-buffering
 namespace Screen {
     volatile uint8_t* const origBuf = reinterpret_cast<volatile uint8_t*>(SCREEN_BASE_ADDRESS);
-    int curBuf = 0;
-    bool atexitCalled = false;
+    bool curBuf = 0;
     volatile uint8_t *buf[2];
     
     bool init() {
@@ -36,7 +35,6 @@ namespace Screen {
 		deinit();
 		return false;
 	    } else {
-		atexitCalled = true;
 		return true;
 	    }
 	} else {
@@ -45,10 +43,8 @@ namespace Screen {
     }
     
     void deinit() {
-	if (buf[0]) {
-	    delete[] buf[0];
-	    buf[0] = nullptr;
-	}
+	delete[] buf[0];
+	buf[0] = nullptr;
 	SCREEN_BASE_ADDRESS = reinterpret_cast<volatile unsigned>(origBuf);
     }
     
@@ -57,11 +53,11 @@ namespace Screen {
 	curBuf ^= 1;
     }
     
-    void setPixel(unsigned char r, unsigned char g, unsigned char b, int x, int y) {
+    void setPixel(unsigned char r, unsigned char g, unsigned char b, unsigned int x, unsigned int y) {
 	// On color models, each pixel is represented in 16-bit high color
 	// On classic models, each pixel is 4 bits grayscale, 0 is black and 15 is white
-	if (0 <= x && x < SCREEN_WIDTH && 0 <= y && y < SCREEN_HEIGHT) {
-	    int pos = y * SCREEN_WIDTH + x;
+	if (x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
+	    unsigned int pos = y * SCREEN_WIDTH + x;
 	    if (has_colors) {
 		(reinterpret_cast<volatile uint16_t*>(buf[curBuf]))[pos] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 	    } else if (pos % 2 == 0) {
@@ -72,11 +68,11 @@ namespace Screen {
 	}
     }
     
-    void setPixel(unsigned char c, int x, int y) {
+    void setPixel(unsigned char c, unsigned int x, unsigned int y) {
 	// On color models, each pixel is represented in 16-bit high color
 	// On classic models, each pixel is 4 bits grayscale, 0 is black and 15 is white
-	if (0 <= x && x < SCREEN_WIDTH && 0 <= y && y < SCREEN_HEIGHT) {
-	    int pos = y * SCREEN_WIDTH + x;
+	if (x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
+	    unsigned int pos = y * SCREEN_WIDTH + x;
 	    if (has_colors) {
 		(reinterpret_cast<volatile uint16_t*>(buf[curBuf]))[pos] = ((c >> 3) << 11) | ((c >> 2) << 5) | (c >> 3);
 	    } else if (pos % 2 == 0) {
@@ -87,40 +83,44 @@ namespace Screen {
 	}
     }
     
-    void showImgRGB(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal) {
-	int pos;
-	for (int i = x1; i < x1 + w; i++) {
-	    for (int j = y1; j < y1 + h; j++) {
+    void showImgRGB(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal) {
+	unsigned int pos;
+	for (unsigned int i = x1; i < x1 + w; i++) {
+	    for (unsigned int j = y1; j < y1 + h; j++) {
 		pos = 3 * (wTotal * j + i);
 		setPixel(img[pos], img[pos + 1], img[pos + 2], x0 - x1 + i, y0 - y1 + j);
 	    }
 	}
     }
     
-    void showImgRGBA(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal) {
-	int pos;
-	for (int i = x1; i < x1 + w; i++) {
-	    for (int j = y1; j < y1 + h; j++) {
+    void showImgRGBA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal) {
+	unsigned int pos;
+	for (unsigned int i = x1; i < x1 + w; i++) {
+	    for (unsigned int j = y1; j < y1 + h; j++) {
 		pos = 4 * (wTotal * j + i);
 		setPixel(img[pos], img[pos + 1], img[pos + 2], x0 - x1 + i, y0 - y1 + j);
 	    }
 	}
     }
     
-    void showImgGray(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal) {
-	int pos;
-	for (int i = x1; i < x1 + w; i++) {
-	    for (int j = y1; j < y1 + h; j++) {
+    void showImgGray(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal) {
+	unsigned int pos;
+	for (unsigned int i = x1; i < x1 + w; i++) {
+	    for (unsigned int j = y1; j < y1 + h; j++) {
 		pos = wTotal * j + i;
 		setPixel(img[pos], x0 - x1 + i, y0 - y1 + j);
 	    }
 	}
     }
     
-    void showImgGrayA(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal) {
-	int pos;
-	for (int i = x1; i < x1 + w; i++) {
-	    for (int j = y1; j < y1 + h; j++) {
+    void showImgGrayA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal) {
+	unsigned int pos;
+	for (unsigned int i = x1; i < x1 + w; i++) {
+	    for (unsigned int j = y1; j < y1 + h; j++) {
 		pos = 2 * (wTotal * j + i);
 		setPixel(img[pos], x0 - x1 + i, y0 - y1 + j);
 	    }
@@ -128,16 +128,16 @@ namespace Screen {
     }
     
     void fillScreen(unsigned char r, unsigned char g, unsigned char b) {
-	for (int i = 0; i < SCREEN_WIDTH; i++) {
-	    for (int j = 0; j < SCREEN_WIDTH; j++) {
+	for (unsigned int i = 0; i < SCREEN_WIDTH; i++) {
+	    for (unsigned int j = 0; j < SCREEN_WIDTH; j++) {
 		setPixel(r, g, b, i, j);
 	    }
 	}
     }
     
     void fillScreen(unsigned char c) {
-	for (int i = 0; i < SCREEN_WIDTH; i++) {
-	    for (int j = 0; j < SCREEN_WIDTH; j++) {
+	for (unsigned int i = 0; i < SCREEN_WIDTH; i++) {
+	    for (unsigned int j = 0; j < SCREEN_WIDTH; j++) {
 		setPixel(c, i, j);
 	    }
 	}

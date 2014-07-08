@@ -26,17 +26,21 @@ namespace Screen {
     
     void switchBufs();
     
-    void setPixel(unsigned char r, unsigned char g, unsigned char b, int x, int y);
+    void setPixel(unsigned char r, unsigned char g, unsigned char b, unsigned int x, unsigned int y);
 
-    void setPixel(unsigned char c, int x, int y);
+    void setPixel(unsigned char c, unsigned int x, unsigned int y);
     
-    void showImgRGB(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal);
+    void showImgRGB(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void showImgRGBA(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal);
+    void showImgRGBA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void showImgGray(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal);
+    void showImgGray(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void showImgGrayA(unsigned char *img, int x0, int y0, int x1, int y1, int w, int h, int wTotal);
+    void showImgGrayA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+		    unsigned int w, unsigned int h, unsigned int wTotal);
     
     void fillScreen(unsigned char r, unsigned char g, unsigned char b);
     

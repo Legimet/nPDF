@@ -4,6 +4,7 @@ mupdf-1.5-source.tar.gz
 *.kdev4
 *.o
 *.tns
+*.elf
 *.gdb
 *.swp
 *~
