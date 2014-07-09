@@ -19,6 +19,8 @@
 #ifndef SCREEN_HPP
 #define SCREEN_HPP
 
+#include <cstdint>
+
 namespace Screen {
     bool init();
     
@@ -26,25 +28,25 @@ namespace Screen {
     
     void switchBufs();
     
-    void setPixel(unsigned char r, unsigned char g, unsigned char b, unsigned int x, unsigned int y);
+    void setPixel(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y);
 
-    void setPixel(unsigned char c, unsigned int x, unsigned int y);
+    void setPixel(uint8_t c, unsigned int x, unsigned int y);
     
-    void showImgRGB(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgRGB(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void showImgRGBA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgRGBA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void showImgGray(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgGray(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void showImgGrayA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgGrayA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal);
     
-    void fillScreen(unsigned char r, unsigned char g, unsigned char b);
+    void fillScreen(uint8_t r, uint8_t g, uint8_t b);
     
-    void fillScreen(unsigned char c);
+    void fillScreen(uint8_t c);
 }
 
 #endif

@@ -16,6 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstdint>
 #include <libndls.h>
@@ -24,11 +25,15 @@
 // Using double-buffering
 namespace Screen {
     volatile uint8_t* const origBuf = reinterpret_cast<volatile uint8_t*>(SCREEN_BASE_ADDRESS);
-    bool curBuf = 0;
+    int curBuf = 0;
+    bool hasColors = false;
     volatile uint8_t *buf[2];
     
     bool init() {
-	buf[0] = new unsigned char[SCREEN_BYTES_SIZE];
+	if (has_colors) {
+	    hasColors = true;
+	}
+	buf[0] = new uint8_t[SCREEN_BYTES_SIZE];
 	buf[1] = origBuf;
 	if (buf[0]) {
 	    if (std::atexit(deinit)) {
@@ -53,12 +58,12 @@ namespace Screen {
 	curBuf ^= 1;
     }
     
-    void setPixel(unsigned char r, unsigned char g, unsigned char b, unsigned int x, unsigned int y) {
+    void setPixel(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y) {
 	// On color models, each pixel is represented in 16-bit high color
 	// On classic models, each pixel is 4 bits grayscale, 0 is black and 15 is white
 	if (x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
 	    unsigned int pos = y * SCREEN_WIDTH + x;
-	    if (has_colors) {
+	    if (hasColors) {
 		(reinterpret_cast<volatile uint16_t*>(buf[curBuf]))[pos] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 	    } else if (pos % 2 == 0) {
 		buf[curBuf][pos / 2] = (buf[curBuf][pos / 2] & 0x0F) | (((30 * r + 59 * g + 11 * b) / 100) & 0xF0);
@@ -68,12 +73,12 @@ namespace Screen {
 	}
     }
     
-    void setPixel(unsigned char c, unsigned int x, unsigned int y) {
+    void setPixel(uint8_t c, unsigned int x, unsigned int y) {
 	// On color models, each pixel is represented in 16-bit high color
 	// On classic models, each pixel is 4 bits grayscale, 0 is black and 15 is white
 	if (x < SCREEN_WIDTH && y < SCREEN_HEIGHT) {
 	    unsigned int pos = y * SCREEN_WIDTH + x;
-	    if (has_colors) {
+	    if (hasColors) {
 		(reinterpret_cast<volatile uint16_t*>(buf[curBuf]))[pos] = ((c >> 3) << 11) | ((c >> 2) << 5) | (c >> 3);
 	    } else if (pos % 2 == 0) {
 		buf[curBuf][pos / 2] = (buf[curBuf][pos / 2] & 0x0F) | (c & 0xF0);
@@ -83,7 +88,7 @@ namespace Screen {
 	}
     }
     
-    void showImgRGB(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgRGB(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
 	for (unsigned int i = x1; i < x1 + w; i++) {
@@ -94,7 +99,7 @@ namespace Screen {
 	}
     }
     
-    void showImgRGBA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgRGBA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
 	for (unsigned int i = x1; i < x1 + w; i++) {
@@ -105,7 +110,7 @@ namespace Screen {
 	}
     }
     
-    void showImgGray(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgGray(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
 	for (unsigned int i = x1; i < x1 + w; i++) {
@@ -116,7 +121,7 @@ namespace Screen {
 	}
     }
     
-    void showImgGrayA(unsigned char *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+    void showImgGrayA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
 	for (unsigned int i = x1; i < x1 + w; i++) {
@@ -127,19 +132,30 @@ namespace Screen {
 	}
     }
     
-    void fillScreen(unsigned char r, unsigned char g, unsigned char b) {
-	for (unsigned int i = 0; i < SCREEN_WIDTH; i++) {
-	    for (unsigned int j = 0; j < SCREEN_WIDTH; j++) {
-		setPixel(r, g, b, i, j);
-	    }
+    void fillScreen(uint8_t r, uint8_t g, uint8_t b) {
+	uint16_t color;
+	if (hasColors) {
+	    color = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
+	} else {
+	    color = (30 * r + 59 * g + 11 * b) / 100;
+	    color |= (color << 8);
 	}
+
+	std::fill(reinterpret_cast<uint16*>(buf[curBuf]),
+		    reinterpret_cast<uint16_t*>(buf[curBuf] + SCREEN_BYTES_SIZE / 2),
+		    color);
     }
     
-    void fillScreen(unsigned char c) {
-	for (unsigned int i = 0; i < SCREEN_WIDTH; i++) {
-	    for (unsigned int j = 0; j < SCREEN_WIDTH; j++) {
-		setPixel(c, i, j);
-	    }
+    void fillScreen(uint8_t c) {
+	uint16_t color;
+	if (hasColors) {
+	    color = ((c >> 3) << 11) | ((c >> 2) << 5) | (c >> 3);
+	} else {
+	    color = c | (c << 8);
 	}
+
+	std::fill(reinterpret_cast<uint16*>(buf[curBuf]),
+		    reinterpret_cast<uint16_t*>(buf[curBuf] + SCREEN_BYTES_SIZE / 2),
+		    color);
     }
 }
