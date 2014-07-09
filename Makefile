@@ -29,11 +29,11 @@ LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -l
 OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 LIBS = $(MUPDF_OUT)/libmupdf.a $(MUPDF_OUT)/libfreetype.a $(MUPDF_OUT)/libjbig2dec.a \
        $(MUPDF_OUT)/libjpeg.a $(MUPDF_OUT)/libopenjpeg.a $(MUPDF_OUT)/libz.a
-EXE = nPDF.tns
+EXE = nPDF
 DISTDIR = .
 vpath %.tns $(DISTDIR)
 
-all: $(EXE)
+all: $(EXE).tns
 
 %.o: %.cpp $(MUPDF_DIR)
 	$(CXX) $(CXXFLAGS) -c $<
@@ -42,10 +42,12 @@ $(MUPDF_OUT)/%.a: $(MUPDF_DIR) generate
 	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) build=release OS=ti-nspire \
 	XCFLAGS="$(MUPDF_XCFLAGS)"
 
-$(EXE): $(LIBS) $(OBJS)
+$(EXE).elf: $(LIBS) $(OBJS)
+	$(LD) $(OBJS) -o $@ $(LDFLAGS)
+
+$(EXE).tns: $(EXE).elf
 	mkdir -p $(DISTDIR)
-	$(LD) $(OBJS) -o $@.elf $(LDFLAGS)
-	genzehn --input $@.elf --output $@ --name nPDF --author Legimet
+	genzehn --input $^ --output $(DISTDIR)/$@ --name nPDF --author Legimet
 
 generate: $(MUPDF_DIR)
 	$(MAKE) -C $< generate build=release
