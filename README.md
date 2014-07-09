@@ -26,16 +26,16 @@ The following libraries are used by nPDF.
 * OpenJPEG
 * zlib
 
-They can be found, along with their licenses, in the MuPDF tarball.
+MuPDF is included, and the others are submodules.
 
 ## Compiling from source
 
-The source code can be found on [GitHub](https://github.com/Legimet/nPDF/).
+The source code can be found on [GitHub](https://github.com/Legimet/nPDF/) or
+[Gitorious](https://gitorious.org/npdf/npdf). Make sure you get all of the
+submodules.
 
-Use [Fabian Vogt's fork of Ndless](https://github.com/Vogtinator/Ndless/), commit
-`ac7576f9cc2609789178270d86778a8e45b64464`. You also need to add `memory.h` to your
-include directory. It should just `#include string.h`. Then just run `make`. The
-MuPDF tarball will be downloaded automatically.
+You must Use [Fabian Vogt's fork of Ndless](https://github.com/Vogtinator/Ndless/).
+Simply run `make` to compile.
 
 ## License
 
