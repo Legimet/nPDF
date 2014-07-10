@@ -56,6 +56,6 @@ clean: cleannolibs
 	$(MAKE) -C $(MUPDF_DIR) clean build=$(MUPDF_BUILD)
 
 cleannolibs:
-	rm -f $(OBJS) $(EXE) $(EXE).gdb
+	rm -f $(OBJS) $(EXE).elf $(EXE).tns
 
 .PHONY: all generate clean cleannolibs
