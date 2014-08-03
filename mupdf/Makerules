@@ -136,7 +136,7 @@ endif
 
 ifeq "$(OS)" "ti-nspire"
 CC = nspire-gcc
-LD = nspire-ld
+LD = nspire-gcc
 AR = arm-none-eabi-ar
 ifeq "$(build)" "release"
 CFLAGS += -Os

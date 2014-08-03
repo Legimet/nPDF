@@ -22,7 +22,6 @@ MUPDF_INC = $(MUPDF_DIR)/include
 MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
 
 CXX = nspire-g++
-LD = nspire-ld
 CXXFLAGS = -Os -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
 MUPDF_XCFLAGS = -DNOCJKFONT -DNODROIDFONT
 LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
@@ -33,7 +32,7 @@ EXE = nPDF
 DISTDIR = .
 vpath %.tns $(DISTDIR)
 
-all: $(EXE).tns
+all: $(EXE).tns $(EXE).prg.tns
 
 %.o: %.cpp $(MUPDF_DIR)
 	$(CXX) $(CXXFLAGS) -c $<
@@ -43,11 +42,15 @@ $(MUPDF_OUT)/%.a: $(MUPDF_DIR) generate
 	XCFLAGS="$(MUPDF_XCFLAGS)"
 
 $(EXE).elf: $(LIBS) $(OBJS)
-	$(LD) $(OBJS) -o $@ $(LDFLAGS)
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 
 $(EXE).tns: $(EXE).elf
 	mkdir -p $(DISTDIR)
 	genzehn --input $^ --output $(DISTDIR)/$@ --name nPDF --author Legimet
+
+$(EXE).prg.tns: $(EXE).tns
+	mkdir -p $(DISTDIR)
+	make-prg $^ $@
 
 generate: $(MUPDF_DIR)
 	$(MAKE) -C $< generate build=release

@@ -22,6 +22,7 @@ extern "C" {
 #include <stdlib.h>
 #include <keys.h>
 #include <libndls.h>
+#include <string>
 #include "Viewer.hpp"
 #include "Screen.hpp"
 #include "Timer.hpp"
@@ -51,9 +52,17 @@ int main(int argc, char **argv) {
 	v.init();
 	v.openDoc(argv[1]);
     } else if (argc >= 1) {
-	cfg_register_fileext("pdf", "nPDF");
-	cfg_register_fileext("xps", "nPDF");
-	cfg_register_fileext("cbz", "nPDF");
+	std::string s = std::string(argv[0]);
+	size_t pos = s.find_last_of("/");
+	if (pos != std::string::npos) {
+	    s.erase(0, s.find_last_of("/") + 1);
+	}
+	if (s.size() >= 4 && s.substr(s.size() - 4) == ".tns") {
+	    s.erase(s.size() - 4);
+	}
+	cfg_register_fileext("pdf", s.c_str());
+	cfg_register_fileext("xps", s.c_str());
+	cfg_register_fileext("cbz", s.c_str());
 	show_msgbox("nPDF", "File extensions registered. You can now open a .pdf, .xps, or .cbz file from the Documents screen");
 	return 0;
     }

@@ -24,10 +24,10 @@
 
 // Using double-buffering
 namespace Screen {
-    volatile uint8_t* const origBuf = reinterpret_cast<volatile uint8_t*>(SCREEN_BASE_ADDRESS);
+    uint8_t* const origBuf = static_cast<uint8_t*>(SCREEN_BASE_ADDRESS);
     int curBuf = 0;
     bool hasColors = false;
-    volatile uint8_t *buf[2];
+    uint8_t *buf[2];
     
     bool init() {
 	if (has_colors) {
@@ -50,11 +50,11 @@ namespace Screen {
     void deinit() {
 	delete[] buf[0];
 	buf[0] = nullptr;
-	SCREEN_BASE_ADDRESS = reinterpret_cast<volatile unsigned>(origBuf);
+	SCREEN_BASE_ADDRESS = origBuf;
     }
     
     void switchBufs() {
-	SCREEN_BASE_ADDRESS = reinterpret_cast<volatile unsigned>(buf[curBuf]);
+	SCREEN_BASE_ADDRESS = buf[curBuf];
 	curBuf ^= 1;
     }
     
