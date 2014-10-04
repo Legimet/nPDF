@@ -12,7 +12,7 @@
 	url = git://git.ghostscript.com/thirdparty/jpeg.git
 [submodule "mupdf/thirdparty/openjpeg"]
 	path = mupdf/thirdparty/openjpeg
-	url = https://github.com/Legimet/openjpeg.git
+	url = git://gitorious.org/npdf/openjpeg.git
 [submodule "mupdf/thirdparty/zlib"]
 	path = mupdf/thirdparty/zlib
 	url = git://git.ghostscript.com/thirdparty/zlib.git
