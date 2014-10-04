@@ -1,21 +1,21 @@
-[submodule "thirdparty/jbig2dec"]
-	path = thirdparty/jbig2dec
+[submodule "mupdf/thirdparty/jbig2dec"]
+	path = mupdf/thirdparty/jbig2dec
 	url = git://git.ghostscript.com/jbig2dec.git
-[submodule "thirdparty/mujs"]
-	path = thirdparty/mujs
+[submodule "mupdf/thirdparty/mujs"]
+	path = mupdf/thirdparty/mujs
 	url = git://git.ghostscript.com/mujs.git
-[submodule "thirdparty/freetype"]
-	path = thirdparty/freetype
+[submodule "mupdf/thirdparty/freetype"]
+	path = mupdf/thirdparty/freetype
 	url = git://git.ghostscript.com/thirdparty/freetype.git
-[submodule "thirdparty/jpeg"]
-	path = thirdparty/jpeg
+[submodule "mupdf/thirdparty/jpeg"]
+	path = mupdf/thirdparty/jpeg
 	url = git://git.ghostscript.com/thirdparty/jpeg.git
-[submodule "thirdparty/openjpeg"]
-	path = thirdparty/openjpeg
-	url = git://git.ghostscript.com/thirdparty/openjpeg.git
-[submodule "thirdparty/zlib"]
-	path = thirdparty/zlib
+[submodule "mupdf/thirdparty/openjpeg"]
+	path = mupdf/thirdparty/openjpeg
+	url = git://gitorious.org/npdf/openjpeg.git
+[submodule "mupdf/thirdparty/zlib"]
+	path = mupdf/thirdparty/zlib
 	url = git://git.ghostscript.com/thirdparty/zlib.git
-[submodule "thirdparty/curl"]
-	path = thirdparty/curl
+[submodule "mupdf/thirdparty/curl"]
+	path = mupdf/thirdparty/curl
 	url = git://git.ghostscript.com/thirdparty/curl.git
