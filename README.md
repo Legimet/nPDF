@@ -15,19 +15,6 @@ XPS, CBZ, and various image formats. Ndless 3.1 or 3.6 is required.
 
 More controls will be added later.
 
-## Libraries used
-
-The following libraries are used by nPDF.
-
-* MuPDF
-* FreeType
-* jbig2dec
-* libjpeg
-* OpenJPEG
-* zlib
-
-MuPDF is included, and the others are submodules.
-
 ## Compiling from source
 
 The source code can be found on [Gitorious](https://gitorious.org/npdf/npdf) or
@@ -39,6 +26,17 @@ You must have the [Ndless SDK](http://ndlessly.wordpress.com/ndless-for-develope
 installed.
 
 Simply run `make` to compile nPDF.
+
+## Libraries used
+
+The following libraries are used by nPDF.
+
+* [MuPDF](http://mupdf.com/) (modified, October 4, 2014)
+* [FreeType](http://freetype.org/)
+* [jbig2dec](http://git.ghostscript.com/?p=jbig2dec.git)
+* [libjpeg](http://ijg.org/)
+* [OpenJPEG](http://www.openjpeg.org/) (modified, July 5, 2014)
+* [zlib](http://zlib.net/)
 
 ## License
 
@@ -65,5 +63,5 @@ found in their respective directories.
 ## Links
 
 * [Omnimaga thread](http://www.omnimaga.org/ti-nspire-projects/npdf-a-document-viewer-for-the-nspire/)
-* [Ndless](http://ndless.me)
 * [MuPDF](http://mupdf.com)
+* [Ndless](http://ndless.me)
