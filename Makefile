@@ -23,7 +23,7 @@ MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
 
 CXX = nspire-g++
 CXXFLAGS = -Os -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
-MUPDF_XCFLAGS = -DNOCJKFONT -DNODROIDFONT
+MUPDF_XCFLAGS = -DNOCJK -DNODROIDFONT
 LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
 OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 LIBS = $(MUPDF_OUT)/libmupdf.a $(MUPDF_OUT)/libfreetype.a $(MUPDF_OUT)/libjbig2dec.a \
