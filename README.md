@@ -1,7 +1,7 @@
 # nPDF 0.2
 
 nPDF is a document viewer for TI-Nspire handheld calculators. It supports PDF,
-XPS, CBZ, and various image formats. Ndless 3.1 or 3.6 is required.
+XPS, CBZ, and various image formats. [Ndless](https://ndless.me) is required.
 
 ## Controls
 
@@ -17,13 +17,19 @@ More controls will be added later.
 
 ## Compiling from source
 
-The source code can be found on [Gitorious](https://gitorious.org/npdf/npdf) or
-[GitHub](https://github.com/Legimet/nPDF/). Make sure you get only the submodules
-jbig2dec, jpeg, and openjpeg. If you get the freetype or zlib submodules, they
-will conflict with the ones provided in the Ndless SDK, and nPDF won't compile.
-
 You must have the [Ndless SDK](http://ndlessly.wordpress.com/ndless-for-developers/)
 installed.
+
+The source code can be found on [GitHub](https://github.com/Legimet/nPDF/) or
+[Gitorious](https://gitorious.org/npdf/npdf). 
+
+Once you have the code, clone submodules jbig2dec, jpeg, and openjpeg:
+
+    git submodule init
+    git submodule update mupdf/thirdparty/jbig2dec mupdf/thirdparty/jpeg mupdf/thirdparty/openjpeg
+
+(Do **not** get the freetype or zlib modules. They will conflict with the ones
+provided in the Ndless SDK.)
 
 Simply run `make` to compile nPDF.
 
