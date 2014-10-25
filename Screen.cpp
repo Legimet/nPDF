@@ -138,7 +138,7 @@ namespace Screen {
 	    color = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
 	} else {
 	    color = (30 * r + 59 * g + 11 * b) / 100;
-	    color = (color >> 4) * 4369;
+	    color = (color >> 4) * 0x1111;
 	}
 
 	std::fill(reinterpret_cast<volatile uint16_t*>(buf[curBuf]),
@@ -151,11 +151,28 @@ namespace Screen {
 	if (hasColors) {
 	    color = ((c >> 3) << 11) | ((c >> 2) << 5) | (c >> 3);
 	} else {
-	    color = (c >> 4) * 4369;
+	    color = (c >> 4) * 0x1111;
 	}
 
 	std::fill(reinterpret_cast<volatile uint16_t*>(buf[curBuf]),
 		    reinterpret_cast<volatile uint16_t*>(buf[curBuf] + SCREEN_BYTES_SIZE),
 		    color);
+    }
+
+    void fillRect(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w,
+		    unsigned int h) {
+	for (unsigned int i = x; i < x + w; i++) {
+	    for (unsigned int j = y; j < y + h; j++) {
+		setPixel(r, g, b, i, j);
+	    }
+	}
+    }
+
+    void fillRect(uint8_t c, unsigned int x, unsigned int y, unsigned int w, unsigned int h) {
+	for (unsigned int i = x; i < x + w; i++) {
+	    for (unsigned int j = y; j < y + h; j++) {
+		setPixel(c, i, j);
+	    }
+	}
     }
 }

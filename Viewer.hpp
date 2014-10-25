@@ -42,6 +42,7 @@ class Viewer {
 	int yPos;
 	bool curPageLoaded;
 	bool fitWidth;
+	bool needDisplay;
 	int width;
 	int height;
     public:

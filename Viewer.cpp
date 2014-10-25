@@ -43,6 +43,7 @@ Viewer::Viewer() {
     yPos = 0;
     curPageLoaded = false;
     fitWidth = true;
+    needDisplay = false;
     width = SCREEN_WIDTH;
     height = SCREEN_HEIGHT;
 }
@@ -141,24 +142,32 @@ void Viewer::drawPage() {
 	fz_free_device(dev);
 	dev = nullptr;
     }
+
+    needDisplay = true;
 }
 
 void Viewer::display() {
-    Screen::fillScreen(bgColor);
-    // Center it
-    int x = 0, y = 0;
-    if (pix->w < width) {
-	x = (width - pix->w) / 2;
+    if (needDisplay) {
+	// Center it
+	int x = 0, y = 0;
+	if (pix->w < width) {
+	    x = (width - pix->w) / 2;
+	    Screen::fillRect(bgColor, 0, 0, x, height);
+	    Screen::fillRect(bgColor, x + pix->w, 0, width - (x + pix->w), height);
+	}
+	if (pix->h < height) {
+	    y = (height - pix->h) / 2;
+	    Screen::fillRect(bgColor, 0, 0, y, width);
+	    Screen::fillRect(bgColor, y + pix->h, 0, height - (y + pix->h), width);
+	}
+	if (has_colors) {
+	    Screen::showImgRGBA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
+	} else {
+	    Screen::showImgGrayA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
+	}
+	Screen::switchBufs();
     }
-    if (pix->h < height) {
-	y = (height - pix->h) / 2;
-    }
-    if (has_colors) {
-	Screen::showImgRGBA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
-    } else {
-	Screen::showImgGrayA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
-    }
-    Screen::switchBufs();
+    needDisplay = false;
 }
 
 void Viewer::next() {
@@ -167,6 +176,7 @@ void Viewer::next() {
 	curPageLoaded = false;
 	yPos = 0;
 	drawPage();
+	needDisplay = true;
     }
 }
 
@@ -176,12 +186,14 @@ void Viewer::prev() {
 	curPageLoaded = false;
 	yPos = std::max(0, static_cast<int>(bounds.y1 - bounds.y0) - height - 1);
 	drawPage();
+	needDisplay = true;
     }
 }
 
 void Viewer::scrollUp() {
     if (yPos >= scroll) {
 	yPos -= scroll;
+	needDisplay = true;
     } else {
 	prev();
     }
@@ -190,6 +202,7 @@ void Viewer::scrollUp() {
 void Viewer::scrollDown() {
     if (yPos < (bounds.y1 - bounds.y0) - height - scroll) {
 	yPos += scroll;
+	needDisplay = true;
     } else {
 	next();
     }
@@ -198,12 +211,14 @@ void Viewer::scrollDown() {
 void Viewer::scrollLeft() {
     if (xPos >= scroll) {
 	xPos -= scroll;
+	needDisplay = true;
     }
 }
 
 void Viewer::scrollRight() {
     if (xPos < (bounds.x1 - bounds.x0) - width - scroll) {
 	xPos += scroll;
+	needDisplay = true;
     }
 }
 

@@ -47,6 +47,11 @@ namespace Screen {
     void fillScreen(uint8_t r, uint8_t g, uint8_t b);
     
     void fillScreen(uint8_t c);
+
+    void fillRect(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w,
+		    unsigned int h);
+
+    void fillRect(uint8_t c, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 }
 
 #endif
