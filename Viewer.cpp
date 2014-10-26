@@ -189,37 +189,41 @@ void Viewer::prev() {
 }
 
 void Viewer::scrollUp() {
-    if (yPos >= scroll) {
-	yPos -= scroll;
-	needDisplay = true;
-    } else {
-	prev();
-	if (needDisplay) {
-	    yPos = std::max(0, static_cast<int>(bounds.y1 - bounds.y0) - height - 1);
-	}
-    }
+    if (yPos > 0) { // critor
+        yPos -= scroll;
+        yPos = (yPos<0)?0:yPos; // critor
+        needDisplay = true;
+    } /*else { // critor
+        prev();
+        if (needDisplay) {
+            yPos = std::max(0, static_cast<int>(bounds.y1 - bounds.y0) - height - 1);
+        }
+    }*/ // critor
 }
 
 void Viewer::scrollDown() {
-    if (yPos < (bounds.y1 - bounds.y0) - height - scroll) {
-	yPos += scroll;
-	needDisplay = true;
-    } else {
-	next();
-    }
+    if (yPos < (bounds.y1 - bounds.y0) - height) { // critor
+        yPos += scroll;
+        yPos = (xPos > (bounds.y1 - bounds.y0) - height)?(bounds.y1 - bounds.y0) - width:yPos; // critor
+        needDisplay = true;
+    } /*else { // critor
+        next();
+    }*/ // critor
 }
 
 void Viewer::scrollLeft() {
-    if (xPos >= scroll) {
-	xPos -= scroll;
-	needDisplay = true;
+    if (xPos > 0) { // critor
+        xPos -= scroll;
+        xPos = (xPos<0)?0:xPos; // critor
+        needDisplay = true;
     }
 }
 
 void Viewer::scrollRight() {
-    if (xPos < (bounds.x1 - bounds.x0) - width - scroll) {
-	xPos += scroll;
-	needDisplay = true;
+    if (xPos < (bounds.x1 - bounds.x0) - width ) { // critor
+        xPos += scroll;
+        xPos = (xPos > (bounds.x1 - bounds.x0) - width)?(bounds.x1 - bounds.x0) - width:xPos; // critor
+        needDisplay = true;
     }
 }
 
