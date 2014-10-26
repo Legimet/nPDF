@@ -33,8 +33,9 @@ namespace Screen {
 	if (has_colors) {
 	    hasColors = true;
 	}
-	buf[0] = new uint8_t[SCREEN_BYTES_SIZE];
-	buf[1] = origBuf;
+        buf[0] = new uint8_t[SCREEN_BYTES_SIZE+7]; // critor - screen buffer address MUST be divisible by 8
+        if (((int)buf[0])%8) buf[0] += 8-(((int)buf[0])%8); // critor
+ 	buf[1] = origBuf;
 	if (buf[0]) {
 	    if (std::atexit(deinit)) {
 		deinit();
