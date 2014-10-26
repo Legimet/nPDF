@@ -11,6 +11,9 @@ XPS, CBZ, and various image formats. [Ndless](https://ndless.me) is required.
 * Right/6: Scroll right
 * Multiply: Zoom in
 * Divide: Zoom out
+* 9: Previous page
+* 3: Next page
+* Ctrl+G: Go to page
 * Esc: Exit
 
 More controls will be added later.

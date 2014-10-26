@@ -27,11 +27,13 @@ extern "C" {
 #include "Screen.hpp"
 #include "Timer.hpp"
 
-enum arrowkey {NONE = 0, DOWN, UP, RIGHT, LEFT};
-const int delay1 = 600;
-const int delay2 = 10;
+// Keys that, when held down, have a long delay after the first time and a
+// short delay afterwards
+enum scrollkey {NONE = 0, DOWN, UP, RIGHT, LEFT, PGDOWN, PGUP, ZOOMOUT, ZOOMIN};
+const int delay1 = 400;
+const int delay2 = 40;
 
-arrowkey getArrowKey() {
+scrollkey getScrollKey() {
     if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_2)) {
 	return DOWN;
     } else if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_8)) {
@@ -40,8 +42,25 @@ arrowkey getArrowKey() {
 	return RIGHT;
     } else if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_4)) {
 	return LEFT;
+    } else if (isKeyPressed(KEY_NSPIRE_3)) {
+	return PGDOWN;
+    } else if (isKeyPressed(KEY_NSPIRE_9)) {
+	return PGUP;
+    } else if (isKeyPressed(KEY_NSPIRE_DIVIDE)) {
+	return ZOOMOUT;
+    } else if (isKeyPressed(KEY_NSPIRE_MULTIPLY)) {
+	return ZOOMIN;
     } else {
 	return NONE;
+    }
+}
+
+void handleDelays(scrollkey key, scrollkey& lastScrollKey) {
+    if (lastScrollKey != key) {
+	Timer::start(delay1);
+	lastScrollKey = key;
+    } else if (Timer::done()) {
+	Timer::start(delay2);
     }
 }
 
@@ -71,61 +90,58 @@ int main(int argc, char **argv) {
     v.drawPage();
     v.display();
 
-    arrowkey lastArrowKey = NONE;
-    arrowkey current = NONE;
+    scrollkey lastScrollKey = NONE;
+    scrollkey current = NONE;
     
+    int page;
     while (true) {
-	if ((current = getArrowKey())) {
-	    if (current != lastArrowKey || Timer::done()) {
+	if ((current = getScrollKey())) {
+	    if (current != lastScrollKey || Timer::done()) {
 		if (current == DOWN) {
-		    if (lastArrowKey != DOWN) {
-			Timer::start(delay1);
-			lastArrowKey = DOWN;
-		    } else if (Timer::done()) {
-			Timer::start(delay2);
-		    }
+		    handleDelays(DOWN, lastScrollKey);
 		    v.scrollDown();
 		    v.display();
 		} else if (current == UP) {
-		    if (lastArrowKey != UP) {
-			Timer::start(delay1);
-			lastArrowKey = UP;
-		    } else if (Timer::done()) {
-			Timer::start(delay2);
-		    }
+		    handleDelays(UP, lastScrollKey);
 		    v.scrollUp();
 		    v.display();
 		} else if (current == RIGHT) {
-		    if (lastArrowKey != RIGHT) {
-			Timer::start(delay1);
-			lastArrowKey = RIGHT;
-		    } else if (Timer::done()) {
-			Timer::start(delay2);
-		    }
+		    handleDelays(RIGHT, lastScrollKey);
 		    v.scrollRight();
 		    v.display();
 		} else if (current == LEFT) {
-		    if (lastArrowKey != LEFT) {
-			Timer::start(delay1);
-			lastArrowKey = LEFT;
-		    } else if (Timer::done()) {
-			Timer::start(delay2);
-		    }
+		    handleDelays(LEFT, lastScrollKey);
 		    v.scrollLeft();
+		    v.display();
+		} else if (current == PGDOWN) {
+		    handleDelays(PGDOWN, lastScrollKey);
+		    v.next();
+		    v.display();
+		} else if (current == PGUP) {
+		    handleDelays(PGUP, lastScrollKey);
+		    v.prev();
+		    v.display();
+		} else if (current == ZOOMOUT) {
+		    handleDelays(ZOOMOUT, lastScrollKey);
+		    v.zoomOut();
+		    v.display();
+		} else if (current == ZOOMIN) {
+		    handleDelays(ZOOMIN, lastScrollKey);
+		    v.zoomIn();
 		    v.display();
 		}
 	    }
 	} else {
-	    lastArrowKey = NONE;
-	    Timer::start(0);
+	    lastScrollKey = NONE;
+	    Timer::stop();
 	    if (isKeyPressed(KEY_NSPIRE_ESC)) {
 		break;
-	    } else if (isKeyPressed(KEY_NSPIRE_MULTIPLY)) {
-		v.zoomIn();
-		v.display();
-	    } else if (isKeyPressed(KEY_NSPIRE_DIVIDE)) {
-		v.zoomOut();
-		v.display();
+	    }
+	    if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
+		if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, 50)) {
+		    v.gotoPage(page - 1);
+		    v.display();
+		}
 	    }
 	}
 	sleep(10);

@@ -176,7 +176,6 @@ void Viewer::next() {
 	curPageLoaded = false;
 	yPos = 0;
 	drawPage();
-	needDisplay = true;
     }
 }
 
@@ -184,9 +183,8 @@ void Viewer::prev() {
     if (pageNo > 0) {
 	pageNo--;
 	curPageLoaded = false;
-	yPos = std::max(0, static_cast<int>(bounds.y1 - bounds.y0) - height - 1);
+	yPos = 0;
 	drawPage();
-	needDisplay = true;
     }
 }
 
@@ -196,6 +194,9 @@ void Viewer::scrollUp() {
 	needDisplay = true;
     } else {
 	prev();
+	if (needDisplay) {
+	    yPos = std::max(0, static_cast<int>(bounds.y1 - bounds.y0) - height - 1);
+	}
     }
 }
 
@@ -255,4 +256,14 @@ void Viewer::zoomOut() {
 	scale /= zoom;
 	drawPage();
     }
+}
+
+void Viewer::gotoPage(unsigned int page) {
+    if (static_cast<int>(page) < fz_count_pages(doc)) {
+	pageNo = page;
+	curPageLoaded = false;
+	drawPage();
+    }
+    yPos = 0;
+    needDisplay = true;
 }

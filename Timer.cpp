@@ -61,6 +61,10 @@ namespace Timer {
 	    *control = 0;
 	}
     }
+
+    void stop() {
+	start(0);
+    }
     
     bool done() {
 	return !(*value);

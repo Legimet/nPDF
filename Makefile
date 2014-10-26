@@ -38,8 +38,7 @@ all: $(EXE).tns $(EXE).prg.tns
 	$(CXX) $(CXXFLAGS) -c $<
 
 $(MUPDF_OUT)/%.a: $(MUPDF_DIR) generate
-	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) build=release OS=ti-nspire \
-	XCFLAGS="$(MUPDF_XCFLAGS)"
+	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) build=release OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
 
 $(EXE).elf: $(LIBS) $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)

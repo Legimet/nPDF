@@ -63,6 +63,7 @@ class Viewer {
 	void unsetFitWidth();
 	void zoomIn();
 	void zoomOut();
+	void gotoPage(unsigned int page);
 };
 
 #endif
