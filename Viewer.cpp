@@ -90,6 +90,20 @@ void Viewer::openDoc(const char *path) {
     }
 }
 
+void Viewer::fixBounds() {
+    // Make sure we don't go out of bounds
+    if (xPos < 0 || bounds.x1 - bounds.x0 <= width) {
+        xPos = 0;
+    } else if (xPos >= (bounds.x1 - bounds.x0) - std::min(width, static_cast<int>(bounds.x1 - bounds.x0))) {
+        xPos = (bounds.x1 - bounds.x0) - std::min(width, static_cast<int>(bounds.x1 - bounds.x0));
+    }
+    if (yPos < 0 || bounds.y1 - bounds.y0 <= height) {
+        yPos = 0;
+    } else if (yPos >= (bounds.y1 - bounds.y0) - std::min(height, static_cast<int>(bounds.y1 - bounds.y0))) {
+        yPos = (bounds.y1 - bounds.y0) - std::min(height, static_cast<int>(bounds.y1 - bounds.y0));
+    }
+}
+
 void Viewer::drawPage() {
     if (pix) {
 	fz_drop_pixmap(ctx, pix);
@@ -116,18 +130,8 @@ void Viewer::drawPage() {
     fz_irect bbox;
     fz_round_rect(&bbox, &bounds);
     
-    // Make sure we don't go out of bounds
-    if (xPos < 0 || bounds.x1 - bounds.x0 <= width) {
-	xPos = 0;
-    } else if (xPos >= (bounds.x1 - bounds.x0) - std::min(width, static_cast<int>(bounds.x1 - bounds.x0))) {
-	xPos = (bounds.x1 - bounds.x0) - std::min(width, static_cast<int>(bounds.x1 - bounds.x0));
-    }
-    if (yPos < 0 || bounds.y1 - bounds.y0 <= height) {
-	yPos = 0;
-    } else if (yPos >= (bounds.y1 - bounds.y0) - std::min(height, static_cast<int>(bounds.y1 - bounds.y0))) {
-	yPos = (bounds.y1 - bounds.y0) - std::min(height, static_cast<int>(bounds.y1 - bounds.y0));
-    }
-    
+    fixBounds();
+
     if (has_colors) {
 	pix = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), &bbox);
     } else {
@@ -148,6 +152,7 @@ void Viewer::drawPage() {
 
 void Viewer::display() {
     if (needDisplay) {
+	fixBounds();
 	// Center it
 	int x = 0, y = 0;
 	if (pix->w < width) {
@@ -157,8 +162,8 @@ void Viewer::display() {
 	}
 	if (pix->h < height) {
 	    y = (height - pix->h) / 2;
-	    Screen::fillRect(bgColor, 0, 0, y, width);
-	    Screen::fillRect(bgColor, y + pix->h, 0, height - (y + pix->h), width);
+	    Screen::fillRect(bgColor, 0, 0, width, y);
+	    Screen::fillRect(bgColor, y + pix->h, 0, width, height - (y + pix->h));
 	}
 	if (has_colors) {
 	    Screen::showImgRGBA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
@@ -172,7 +177,7 @@ void Viewer::display() {
                 Screen::drawHoriz(0,0,0,width-4,0,3);
                 Screen::drawHoriz(0,0,0,width-4,height-5,3);
                 Screen::fillRect(255,255,255,width-4, 1, 3, height-6);
-                Screen::drawVert(0,0,0,width-3,2+yPos*(height-9)/(bounds.y1-bounds.y0),height*(height-9)/(bounds.y1-bounds.y0));
+                Screen::drawVert(0,0,0,width-3,2+yPos*(height-8)/(bounds.y1-bounds.y0),height*(height-7)/(bounds.y1-bounds.y0));
         }
 
         if ((bounds.x1-bounds.x0)>width) {
@@ -181,7 +186,7 @@ void Viewer::display() {
                 Screen::drawVert(0,0,0,0,height-4,3);
                 Screen::drawVert(0,0,0,width-5,height-4,3);
                 Screen::fillRect(255,255,255,1,height-4, width-6, 3);
-                Screen::drawHoriz(0,0,0,2+xPos*(width-9)/(bounds.x1-bounds.x0),height-3,width*(width-9)/(bounds.x1-bounds.x0));
+                Screen::drawHoriz(0,0,0,2+xPos*(width-8)/(bounds.x1-bounds.x0),height-3,width*(width-7)/(bounds.x1-bounds.x0));
         }
 	
 	Screen::switchBufs();
@@ -210,7 +215,6 @@ void Viewer::prev() {
 void Viewer::scrollUp() {
     if (yPos > 0) { // critor
         yPos -= scroll;
-        yPos = (yPos<0)?0:yPos; // critor
         needDisplay = true;
     } /*else { // critor
         prev();
@@ -223,7 +227,6 @@ void Viewer::scrollUp() {
 void Viewer::scrollDown() {
     if (yPos < (bounds.y1 - bounds.y0) - height) { // critor
         yPos += scroll;
-        yPos = (xPos > (bounds.y1 - bounds.y0) - height)?(bounds.y1 - bounds.y0) - width:yPos; // critor
         needDisplay = true;
     } /*else { // critor
         next();
@@ -233,7 +236,6 @@ void Viewer::scrollDown() {
 void Viewer::scrollLeft() {
     if (xPos > 0) { // critor
         xPos -= scroll;
-        xPos = (xPos<0)?0:xPos; // critor
         needDisplay = true;
     }
 }
@@ -241,7 +243,6 @@ void Viewer::scrollLeft() {
 void Viewer::scrollRight() {
     if (xPos < (bounds.x1 - bounds.x0) - width ) { // critor
         xPos += scroll;
-        xPos = (xPos > (bounds.x1 - bounds.x0) - width)?(bounds.x1 - bounds.x0) - width:xPos; // critor
         needDisplay = true;
     }
 }
