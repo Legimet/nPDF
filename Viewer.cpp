@@ -165,6 +165,25 @@ void Viewer::display() {
 	} else {
 	    Screen::showImgGrayA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
 	}
+	
+	if ((bounds.y1-bounds.y0)>height) {
+                Screen::drawVert(0,0,0,width-1,0,height-4);
+                Screen::drawVert(0,0,0,width-5,0,height-4);
+                Screen::drawHoriz(0,0,0,width-4,0,3);
+                Screen::drawHoriz(0,0,0,width-4,height-5,3);
+                Screen::fillRect(255,255,255,width-4, 1, 3, height-6);
+                Screen::drawVert(0,0,0,width-3,2+yPos*(height-9)/(bounds.y1-bounds.y0),height*(height-9)/(bounds.y1-bounds.y0));
+        }
+
+        if ((bounds.x1-bounds.x0)>width) {
+                Screen::drawHoriz(0,0,0,0,height-1,width-4);
+                Screen::drawHoriz(0,0,0,0,height-5,width-4);
+                Screen::drawVert(0,0,0,0,height-4,3);
+                Screen::drawVert(0,0,0,width-5,height-4,3);
+                Screen::fillRect(255,255,255,1,height-4, width-6, 3);
+                Screen::drawHoriz(0,0,0,2+xPos*(width-9)/(bounds.x1-bounds.x0),height-3,width*(width-9)/(bounds.x1-bounds.x0));
+        }
+	
 	Screen::switchBufs();
     }
     needDisplay = false;
