@@ -29,42 +29,42 @@ extern "C" {
 
 // Keys that, when held down, have a long delay after the first time and a
 // short delay afterwards
-#define NONE    0 // critor
-#define DOWN    1 // critor
-#define UP      2 // critor
-#define RIGHT   4 // critor
-#define LEFT    8 // critor
-#define PGDOWN  16 // critor
-#define PGUP    32 // critor
-#define ZOOMOUT 64 // critor
-#define ZOOMIN  128 // critor
-typedef int scrollkey; // critor
+#define NONE    0
+#define DOWN    1
+#define UP      2
+#define RIGHT   4
+#define LEFT    8
+#define PGDOWN  16
+#define PGUP    32
+#define ZOOMOUT 64
+#define ZOOMIN  128
+typedef int scrollkey;
 const int delay1 = 400;
 const int delay2 = 40;
 
-scrollkey getScrollKey() { // critor
-    scrollkey action=NONE; // critor
+scrollkey getScrollKey() {
+    scrollkey action=NONE;
     if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) ||
 	    isKeyPressed(KEY_NSPIRE_2) || isKeyPressed(KEY_NSPIRE_3) || isKeyPressed(KEY_NSPIRE_1))
-        action |= DOWN; // critor
+        action |= DOWN;
     if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_LEFTUP) ||
 	    isKeyPressed(KEY_NSPIRE_8) || isKeyPressed(KEY_NSPIRE_7) || isKeyPressed(KEY_NSPIRE_9))
-        action |= UP; // critor
+        action |= UP;
     if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) ||
 	    isKeyPressed(KEY_NSPIRE_6) || isKeyPressed(KEY_NSPIRE_9) || isKeyPressed(KEY_NSPIRE_3))
-        action |= RIGHT; // critor
+        action |= RIGHT;
     if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) || isKeyPressed(KEY_NSPIRE_LEFTUP) ||
 	    isKeyPressed(KEY_NSPIRE_4) || isKeyPressed(KEY_NSPIRE_7) || isKeyPressed(KEY_NSPIRE_3))
-        action |= LEFT; // critor
-    if (isKeyPressed(KEY_NSPIRE_PLUS)) // critor
-        action |= PGDOWN; // critor
-    if (isKeyPressed(KEY_NSPIRE_MINUS)) // critor
-        action |= PGUP; // critor
-    if (isKeyPressed(KEY_NSPIRE_DIVIDE)) // critor
-        action |= ZOOMOUT; // critor
-    if (isKeyPressed(KEY_NSPIRE_MULTIPLY)) // critor
-        action |= ZOOMIN; // critor
-    return action; // critor
+        action |= LEFT;
+    if (isKeyPressed(KEY_NSPIRE_PLUS))
+        action |= PGDOWN;
+    if (isKeyPressed(KEY_NSPIRE_MINUS))
+        action |= PGUP;
+    if (isKeyPressed(KEY_NSPIRE_DIVIDE))
+        action |= ZOOMOUT;
+    if (isKeyPressed(KEY_NSPIRE_MULTIPLY))
+        action |= ZOOMIN;
+    return action;
 }
 
 void handleDelays(scrollkey key, scrollkey& lastScrollKey) {
@@ -109,39 +109,39 @@ int main(int argc, char **argv) {
     while (true) {
 	if ((current = getScrollKey())) {
 	    if (current != lastScrollKey || Timer::done()) {
-                int torefresh = 0; // critor
-                if (current & DOWN) { // critor
+                int torefresh = 0;
+                if (current & DOWN) {
                     v.scrollDown();
-                    torefresh = 1; // critor
-                } else if (current & UP) { // critor
+                    torefresh = 1;
+                } else if (current & UP) {
                     v.scrollUp();
-                    torefresh = 1; // critor
-                } // critor
-                if (current & RIGHT) { // critor
-                    v.scrollRight();
-                    torefresh = 1; // critor
-                } else if (current & LEFT) { // critor
-                    v.scrollLeft();
-                    torefresh = 1; // critor
-                } // critor
-                if (current & PGDOWN) { // critor
-                    v.next();
-                    torefresh = 1; // critor
-                } else if (current & PGUP) { // critor
-                    v.prev();
-                    torefresh = 1; // critor
-                } // critor
-                if (current & ZOOMOUT) { // critor
-                    v.zoomOut();
-                    torefresh = 1; // critor
-                } else if (current & ZOOMIN) { // critor
-                    v.zoomIn();
-                    torefresh = 1; // critor
+                    torefresh = 1;
                 }
-                if (torefresh) { // critor
-                        handleDelays(current, lastScrollKey); // critor
-                        v.display(); // critor
-                } // critor
+                if (current & RIGHT) {
+                    v.scrollRight();
+                    torefresh = 1;
+                } else if (current & LEFT) {
+                    v.scrollLeft();
+                    torefresh = 1;
+                }
+                if (current & PGDOWN) {
+                    v.next();
+                    torefresh = 1;
+                } else if (current & PGUP) {
+                    v.prev();
+                    torefresh = 1;
+                }
+                if (current & ZOOMOUT) {
+                    v.zoomOut();
+                    torefresh = 1;
+                } else if (current & ZOOMIN) {
+                    v.zoomIn();
+                    torefresh = 1;
+                }
+                if (torefresh) {
+                        handleDelays(current, lastScrollKey);
+                        v.display();
+                }
             }
 	} else {
 	    lastScrollKey = NONE;
