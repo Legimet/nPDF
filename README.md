@@ -74,3 +74,15 @@ found in their respective directories.
 * [Omnimaga thread](http://www.omnimaga.org/ti-nspire-projects/npdf-a-document-viewer-for-the-nspire/)
 * [MuPDF](http://mupdf.com)
 * [Ndless](http://ndless.me)
+
+## Credits
+
+Thanks to the following people:
+
+* Xavier Andréani ([critor](https://github.com/critor)) - improvements in the
+display, scrolling, and controls
+* blauemauritius - feature requests
+* Adrien Bertrand ([adriweb](https://github.com/adriweb)) - feature requests
+
+And thanks to everyone else who reported bugs or requested features, along with
+the developers of Ndless for making this possible!
