@@ -52,6 +52,11 @@ namespace Screen {
 		    unsigned int h);
 
     void fillRect(uint8_t c, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
+    
+    void drawVert(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int h);
+
+    void drawHoriz(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w);
+
 }
 
 #endif
