@@ -176,4 +176,16 @@ namespace Screen {
 	    }
 	}
     }
+
+    void drawVert(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int h) {
+        for (unsigned int j = y; j < y + h; j++) {
+            setPixel(r, g, b, x, j);
+        }
+    }
+
+    void drawHoriz(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w) {
+        for (unsigned int i = x; i < x + w; i++) {
+            setPixel(r, g, b, i, y);
+        }
+    }
 }
