@@ -44,13 +44,17 @@ const int delay2 = 40;
 
 scrollkey getScrollKey() { // critor
     scrollkey action=NONE; // critor
-    if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) || isKeyPressed(KEY_NSPIRE_2) || isKeyPressed(KEY_NSPI$
+    if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) ||
+	    isKeyPressed(KEY_NSPIRE_2) || isKeyPressed(KEY_NSPIRE_3) || isKeyPressed(KEY_NSPIRE_1))
         action |= DOWN; // critor
-    if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_LEFTUP) || isKeyPressed(KEY_NSPIRE_8) || isKeyPressed(KEY_NSPIRE_7) $
+    if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_LEFTUP) ||
+	    isKeyPressed(KEY_NSPIRE_8) || isKeyPressed(KEY_NSPIRE_7) || isKeyPressed(KEY_NSPIRE_9))
         action |= UP; // critor
-    if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) || isKeyPressed(KEY_NSPIRE_6) || isKeyPressed(KEY_NSPI$
+    if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) ||
+	    isKeyPressed(KEY_NSPIRE_6) || isKeyPressed(KEY_NSPIRE_9) || isKeyPressed(KEY_NSPIRE_3))
         action |= RIGHT; // critor
-    if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) || isKeyPressed(KEY_NSPIRE_LEFTUP) || isKeyPressed(KEY_NSPIRE_4) || isKeyPressed(KEY_NSPIRE_$
+    if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) || isKeyPressed(KEY_NSPIRE_LEFTUP) ||
+	    isKeyPressed(KEY_NSPIRE_4) || isKeyPressed(KEY_NSPIRE_7) || isKeyPressed(KEY_NSPIRE_3))
         action |= LEFT; // critor
     if (isKeyPressed(KEY_NSPIRE_PLUS)) // critor
         action |= PGDOWN; // critor
