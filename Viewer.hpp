@@ -64,7 +64,7 @@ class Viewer {
 	void zoomIn();
 	void zoomOut();
 	void gotoPage(unsigned int page);
-	void fixBounds(); // critor
+	void fixBounds();
 };
 
 #endif
