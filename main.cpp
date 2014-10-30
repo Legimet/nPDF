@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 		break;
 	    }
 	    if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
-		if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, 50)) {
+		if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, v.getPages())) {
 		    v.gotoPage(page - 1);
 		    v.display();
 		}

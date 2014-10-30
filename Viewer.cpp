@@ -90,6 +90,10 @@ void Viewer::openDoc(const char *path) {
     }
 }
 
+int Viewer::getPages() {
+    return fz_count_pages(doc);
+}
+
 void Viewer::fixBounds() {
     // Make sure we don't go out of bounds
     if (xPos < 0 || bounds.x1 - bounds.x0 <= width) {

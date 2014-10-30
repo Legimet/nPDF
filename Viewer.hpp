@@ -51,6 +51,7 @@ class Viewer {
 	bool init();
 	fz_context* getCtx() const;
 	void openDoc(const char *path);
+	int getPages();
 	void drawPage();
 	void display();
 	void next();
