@@ -21,11 +21,11 @@ MUPDF_VERBOSE ?= no
 MUPDF_DIR = mupdf
 MUPDF_INC = $(MUPDF_DIR)/include
 MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
+MUPDF_XCFLAGS = -DNOCJK -DNODROIDFONT
 
 CXX = nspire-g++
 CXXFLAGS = -Os -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
-MUPDF_XCFLAGS = -DNOCJK -DNODROIDFONT
-LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
+NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
 OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 LIBS = $(MUPDF_OUT)/libmupdf.a $(MUPDF_OUT)/libfreetype.a $(MUPDF_OUT)/libjbig2dec.a \
        $(MUPDF_OUT)/libjpeg.a $(MUPDF_OUT)/libopenjpeg.a $(MUPDF_OUT)/libz.a
@@ -45,7 +45,7 @@ $(MUPDF_OUT)/%.a: $(MUPDF_DIR)
 	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD) OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
 
 $(EXE).elf: $(LIBS) $(OBJS)
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+	$(CXX) $(OBJS) -o $@ $(NPDF_LDFLAGS)
 
 $(EXE).tns: $(EXE).elf
 	mkdir -p $(DISTDIR)
