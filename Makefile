@@ -16,7 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
-MUPDF_BUILD = release
+MUPDF_BUILD ?= release
+MUPDF_VERBOSE ?= no
 MUPDF_DIR = mupdf
 MUPDF_INC = $(MUPDF_DIR)/include
 MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
@@ -37,8 +38,11 @@ all: $(EXE).tns $(EXE).prg.tns
 %.o: %.cpp $(MUPDF_DIR)
 	$(CXX) $(CXXFLAGS) -c $<
 
-$(MUPDF_OUT)/%.a: $(MUPDF_DIR) generate
-	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) build=release OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
+$(MUPDF_OUT)/libmupdf.a: $(MUPDF_DIR) generate
+	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD) OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
+
+$(MUPDF_OUT)/%.a: $(MUPDF_DIR)
+	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD) OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
 
 $(EXE).elf: $(LIBS) $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
@@ -52,12 +56,12 @@ $(EXE).prg.tns: $(EXE).tns
 	make-prg $^ $@
 
 generate: $(MUPDF_DIR)
-	$(MAKE) -C $< generate build=release
+	$(MAKE) -C $< generate verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD)
 
 clean: cleannolibs
 	$(MAKE) -C $(MUPDF_DIR) clean build=$(MUPDF_BUILD)
 
 cleannolibs:
-	rm -f $(OBJS) $(EXE).elf $(EXE).tns
+	rm -f $(OBJS) $(EXE).elf $(EXE).tns $(EXE).prg.tns
 
 .PHONY: all generate clean cleannolibs
