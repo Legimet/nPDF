@@ -19,7 +19,7 @@
 extern "C" {
 #include <mupdf/fitz.h>
 }
-#include <stdlib.h>
+#include <cstdlib>
 #include <keys.h>
 #include <libndls.h>
 #include <string>
