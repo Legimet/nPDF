@@ -1,7 +1,7 @@
 # nPDF 0.2
 
 nPDF is a document viewer for TI-Nspire handheld calculators. It supports PDF,
-XPS, CBZ, and various image formats. [Ndless](https://ndless.me) is required.
+XPS, CBZ, and various image formats. [Ndless](http://ndless.me) is required.
 
 ## Controls
 
