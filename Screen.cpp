@@ -25,6 +25,7 @@
 // Using double-buffering
 namespace Screen {
     uint8_t* const origBuf = static_cast<uint8_t*>(SCREEN_BASE_ADDRESS);
+    uint8_t* allocBuf;
     int curBuf = 0;
     bool hasColors = false;
     uint8_t *buf[2];
@@ -33,8 +34,9 @@ namespace Screen {
 	if (has_colors) {
 	    hasColors = true;
 	}
-        buf[0] = new uint8_t[SCREEN_BYTES_SIZE+7]; // screen buffer must be divisible by 8
-        if (((int)buf[0])%8) buf[0] += 8-(((int)buf[0])%8);
+        allocBuf = new uint8_t[SCREEN_BYTES_SIZE+7]; // screen buffer must be divisible by 8
+	buf[0] = allocBuf;
+        if ((reinterpret_cast<int>(allocBuf))%8) buf[0] = allocBuf + (8-((reinterpret_cast<int>(allocBuf))%8));
  	buf[1] = origBuf;
 	if (buf[0]) {
 	    if (std::atexit(deinit)) {
@@ -49,7 +51,7 @@ namespace Screen {
     }
     
     void deinit() {
-	delete[] buf[0];
+	delete[] allocBuf;
 	buf[0] = nullptr;
 	SCREEN_BASE_ADDRESS = origBuf;
     }
