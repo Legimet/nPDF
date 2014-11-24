@@ -27,56 +27,65 @@ extern "C" {
 #include "Screen.hpp"
 #include "Timer.hpp"
 
-// Keys that, when held down, have a long delay after the first time and a
-// short delay afterwards
-#define NONE    0
-#define DOWN    1
-#define UP      2
-#define RIGHT   4
-#define LEFT    8
-#define PGDOWN  16
-#define PGUP    32
-#define ZOOMOUT 64
-#define ZOOMIN  128
-typedef int scrollkey;
-const int delay1 = 400;
-const int delay2 = 40;
+// Actions that, when held down, result in a long delay initially and a short delay afterwards
+enum ScrollAction {
+    none = 0,
+    down = 1,
+    up = 2,
+    right = 4,
+    left = 8,
+    pgdown = 16,
+    pgup = 32,
+    zoomout = 64,
+    zoomin = 128
+};
 
-scrollkey getScrollKey() {
-    scrollkey action=NONE;
+ScrollAction operator|(ScrollAction a, ScrollAction b) {
+    return static_cast<ScrollAction>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+ScrollAction& operator|=(ScrollAction& a, ScrollAction b) {
+    return (a = a | b);
+}
+
+const int longDelay = 400;
+const int shortDelay = 40;
+
+ScrollAction getScrollKey() {
+    ScrollAction action=none;
     if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) ||
 	    isKeyPressed(KEY_NSPIRE_2) || isKeyPressed(KEY_NSPIRE_3) || isKeyPressed(KEY_NSPIRE_1))
-        action |= DOWN;
+	action |= down;
     if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_LEFTUP) ||
 	    isKeyPressed(KEY_NSPIRE_8) || isKeyPressed(KEY_NSPIRE_7) || isKeyPressed(KEY_NSPIRE_9))
-        action |= UP;
+	action |= up;
     if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_RIGHTDOWN) ||
 	    isKeyPressed(KEY_NSPIRE_6) || isKeyPressed(KEY_NSPIRE_9) || isKeyPressed(KEY_NSPIRE_3))
-        action |= RIGHT;
+	action |= right;
     if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_DOWNLEFT) || isKeyPressed(KEY_NSPIRE_LEFTUP) ||
 	    isKeyPressed(KEY_NSPIRE_4) || isKeyPressed(KEY_NSPIRE_7) || isKeyPressed(KEY_NSPIRE_3))
-        action |= LEFT;
+	action |= left;
     if (isKeyPressed(KEY_NSPIRE_PLUS))
-        action |= PGDOWN;
+	action |= pgdown;
     if (isKeyPressed(KEY_NSPIRE_MINUS))
-        action |= PGUP;
+	action |= pgup;
     if (isKeyPressed(KEY_NSPIRE_DIVIDE))
-        action |= ZOOMOUT;
+	action |= zoomout;
     if (isKeyPressed(KEY_NSPIRE_MULTIPLY))
-        action |= ZOOMIN;
+	action |= zoomin;
     return action;
 }
 
-void handleDelays(scrollkey key, scrollkey& lastScrollKey) {
+void handleDelays(ScrollAction key, ScrollAction& lastScrollKey) {
     if (lastScrollKey != key) {
-	Timer::start(delay1);
+	Timer::start(longDelay);
 	lastScrollKey = key;
     } else if (Timer::done()) {
-	Timer::start(delay2);
+	Timer::start(shortDelay);
     }
 }
 
-int main(int argc, char **argv) {    
+int main(int argc, char **argv) {
     Viewer v;
 
     if (argc >= 2) {
@@ -97,54 +106,56 @@ int main(int argc, char **argv) {
 	show_msgbox("nPDF", "File extensions registered. You can now open a .pdf, .xps, or .cbz file from the Documents screen");
 	return 0;
     }
+
     Screen::init();
     Timer::init();
     v.drawPage();
     v.display();
 
-    scrollkey lastScrollKey = NONE;
-    scrollkey current = NONE;
-    
+    ScrollAction lastScrollKey = none;
+    ScrollAction current = none;
+
     int page;
+    bool toRefresh;
     while (true) {
 	if ((current = getScrollKey())) {
 	    if (current != lastScrollKey || Timer::done()) {
-                int torefresh = 0;
-                if (current & DOWN) {
-                    v.scrollDown();
-                    torefresh = 1;
-                } else if (current & UP) {
-                    v.scrollUp();
-                    torefresh = 1;
-                }
-                if (current & RIGHT) {
-                    v.scrollRight();
-                    torefresh = 1;
-                } else if (current & LEFT) {
-                    v.scrollLeft();
-                    torefresh = 1;
-                }
-                if (current & PGDOWN) {
-                    v.next();
-                    torefresh = 1;
-                } else if (current & PGUP) {
-                    v.prev();
-                    torefresh = 1;
-                }
-                if (current & ZOOMOUT) {
-                    v.zoomOut();
-                    torefresh = 1;
-                } else if (current & ZOOMIN) {
-                    v.zoomIn();
-                    torefresh = 1;
-                }
-                if (torefresh) {
-                        handleDelays(current, lastScrollKey);
-                        v.display();
-                }
-            }
+		toRefresh = false;
+		if (current & down) {
+		    v.scrollDown();
+		    toRefresh = 1;
+		} else if (current & up) {
+		    v.scrollUp();
+		    toRefresh = 1;
+		}
+		if (current & right) {
+		    v.scrollRight();
+		    toRefresh = 1;
+		} else if (current & left) {
+		    v.scrollLeft();
+		    toRefresh = 1;
+		}
+		if (current & pgdown) {
+		    v.next();
+		    toRefresh = 1;
+		} else if (current & pgup) {
+		    v.prev();
+		    toRefresh = 1;
+		}
+		if (current & zoomout) {
+		    v.zoomOut();
+		    toRefresh = 1;
+		} else if (current & zoomin) {
+		    v.zoomIn();
+		    toRefresh = 1;
+		}
+		if (toRefresh) {
+		    handleDelays(current, lastScrollKey);
+		    v.display();
+		}
+	    }
 	} else {
-	    lastScrollKey = NONE;
+	    lastScrollKey = none;
 	    Timer::stop();
 	    if (isKeyPressed(KEY_NSPIRE_ESC)) {
 		break;
@@ -158,6 +169,6 @@ int main(int argc, char **argv) {
 	}
 	sleep(10);
     }
-    
+
     return 0;
 }
