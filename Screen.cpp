@@ -34,9 +34,8 @@ namespace Screen {
 	if (has_colors) {
 	    hasColors = true;
 	}
-        allocBuf = new uint8_t[SCREEN_BYTES_SIZE+7]; // screen buffer must be divisible by 8
+        allocBuf = new uint8_t[SCREEN_BYTES_SIZE];
 	buf[0] = allocBuf;
-        if ((reinterpret_cast<int>(allocBuf))%8) buf[0] = allocBuf + (8-((reinterpret_cast<int>(allocBuf))%8));
  	buf[1] = origBuf;
 	if (buf[0]) {
 	    if (std::atexit(deinit)) {
