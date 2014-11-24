@@ -24,7 +24,7 @@ You must have the [Ndless SDK](http://ndlessly.wordpress.com/ndless-for-develope
 installed.
 
 The source code can be found on [GitHub](https://github.com/Legimet/nPDF/) or
-[Gitorious](https://gitorious.org/npdf/npdf). 
+[Gitorious](https://gitorious.org/npdf/npdf).
 
 Once you have the code, clone submodules jbig2dec, jpeg, and openjpeg:
 
@@ -52,7 +52,7 @@ The following libraries are used by nPDF.
 nPDF is licensed under the GNU GPL, version 3 or above:
 
 > nPDF is Copyright (C) 2014 Legimet.
-> 
+>
 > nPDF is free software: you can redistribute it and/or modify
 > it under the terms of the GNU General Public License as published by
 > the Free Software Foundation, either version 3 of the License, or
@@ -62,7 +62,7 @@ nPDF is licensed under the GNU GPL, version 3 or above:
 > but WITHOUT ANY WARRANTY; without even the implied warranty of
 > MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 > GNU General Public License for more details.
-> 
+>
 > You should have received a copy of the GNU General Public License
 > along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 

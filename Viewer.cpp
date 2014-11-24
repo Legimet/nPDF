@@ -113,7 +113,7 @@ void Viewer::drawPage() {
 	fz_drop_pixmap(ctx, pix);
 	pix = nullptr;
     }
-    
+
     if (!curPageLoaded) {
 	if (page) {
 	    fz_free_page(doc, page);
@@ -122,18 +122,18 @@ void Viewer::drawPage() {
 	page = fz_load_page(doc, pageNo);
 	curPageLoaded = true;
     }
-    
+
     fz_matrix transform;
     fz_bound_page(doc, page, &bounds);
     if (fitWidth) {
 	scale = width / (bounds.x1 - bounds.x0);
     }
-    
+
     fz_scale(&transform, scale, scale);
     fz_transform_rect(&bounds, &transform);
     fz_irect bbox;
     fz_round_rect(&bbox, &bounds);
-    
+
     fixBounds();
 
     if (has_colors) {
@@ -142,10 +142,10 @@ void Viewer::drawPage() {
 	pix = fz_new_pixmap_with_bbox(ctx, fz_device_gray(ctx), &bbox);
     }
     fz_clear_pixmap_with_value(ctx, pix, 0xff);
-    
+
     dev = fz_new_draw_device(ctx, pix);
     fz_run_page(doc, page, dev, &transform, nullptr);
-    
+
     if (dev) {
 	fz_free_device(dev);
 	dev = nullptr;
@@ -174,7 +174,7 @@ void Viewer::display() {
 	} else {
 	    Screen::showImgGrayA(pix->samples, x, y, xPos, yPos, std::min(width, pix->w), std::min(height, pix->h), pix->w);
 	}
-	
+
 	if ((bounds.y1-bounds.y0)>height) {
                 Screen::drawVert(0,0,0,width-1,0,height-4);
                 Screen::drawVert(0,0,0,width-5,0,height-4);
@@ -192,7 +192,7 @@ void Viewer::display() {
                 Screen::fillRect(255,255,255,1,height-4, width-6, 3);
                 Screen::drawHoriz(0,0,0,2+xPos*(width-8)/(bounds.x1-bounds.x0),height-3,width*(width-7)/(bounds.x1-bounds.x0));
         }
-	
+
 	Screen::switchBufs();
     }
     needDisplay = false;

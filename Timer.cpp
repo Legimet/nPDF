@@ -36,7 +36,7 @@ namespace Timer {
     volatile uint32_t* const cxLoad = reinterpret_cast<volatile uint32_t*>(0x900C0000);
     volatile uint16_t* const classicDivider = reinterpret_cast<volatile uint16_t*>(0x900C0010);
     volatile uint32_t* value = nullptr;
-    
+
     // See the nSDL timer code
     void init() {
 	*busAccess &= ~(1 << 11); // Enable bus access
@@ -52,7 +52,7 @@ namespace Timer {
 	    *value = 0xFFFFFFFF;
 	}
     }
-    
+
     void start(uint32_t startVal) {
 	if (has_colors) {
 	    *cxLoad = 33 * startVal;
@@ -65,7 +65,7 @@ namespace Timer {
     void stop() {
 	start(0);
     }
-    
+
     bool done() {
 	return !(*value);
     }

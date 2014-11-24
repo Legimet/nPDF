@@ -29,7 +29,7 @@ namespace Screen {
     int curBuf = 0;
     bool hasColors = false;
     uint8_t *buf[2];
-    
+
     bool init() {
 	if (has_colors) {
 	    hasColors = true;
@@ -49,18 +49,18 @@ namespace Screen {
 	    return false;
 	}
     }
-    
+
     void deinit() {
 	delete[] allocBuf;
 	buf[0] = nullptr;
 	SCREEN_BASE_ADDRESS = origBuf;
     }
-    
+
     void switchBufs() {
 	SCREEN_BASE_ADDRESS = buf[curBuf];
 	curBuf ^= 1;
     }
-    
+
     void setPixel(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y) {
 	// On color models, each pixel is represented in 16-bit high color
 	// On classic models, each pixel is 4 bits grayscale, 0 is black and 15 is white
@@ -75,7 +75,7 @@ namespace Screen {
 	    }
 	}
     }
-    
+
     void setPixel(uint8_t c, unsigned int x, unsigned int y) {
 	// On color models, each pixel is represented in 16-bit high color
 	// On classic models, each pixel is 4 bits grayscale, 0 is black and 15 is white
@@ -90,7 +90,7 @@ namespace Screen {
 	    }
 	}
     }
-    
+
     void showImgRGB(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
@@ -101,7 +101,7 @@ namespace Screen {
 	    }
 	}
     }
-    
+
     void showImgRGBA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
@@ -112,7 +112,7 @@ namespace Screen {
 	    }
 	}
     }
-    
+
     void showImgGray(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
@@ -123,7 +123,7 @@ namespace Screen {
 	    }
 	}
     }
-    
+
     void showImgGrayA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
 		    unsigned int w, unsigned int h, unsigned int wTotal) {
 	unsigned int pos;
@@ -134,7 +134,7 @@ namespace Screen {
 	    }
 	}
     }
-    
+
     void fillScreen(uint8_t r, uint8_t g, uint8_t b) {
 	uint16_t color;
 	if (hasColors) {
@@ -148,7 +148,7 @@ namespace Screen {
 		    reinterpret_cast<volatile uint16_t*>(buf[curBuf] + SCREEN_BYTES_SIZE),
 		    color);
     }
-    
+
     void fillScreen(uint8_t c) {
 	uint16_t color;
 	if (hasColors) {
