@@ -1,18 +1,16 @@
-# nPDF 0.2
+# nPDF 0.3
 
-nPDF is a document viewer for TI-Nspire handheld calculators. It supports PDF,
-XPS, CBZ, and various image formats. [Ndless](http://ndless.me) is required.
+nPDF is a document viewer for TI-Nspire handheld calculators using MuPDF 1.6.
+It supports PDF, XPS, CBZ, and various image formats. [Ndless](http://ndless.me)
+is required.
 
 ## Controls
 
-* Up/8: Scroll up
-* Down/2: Scroll down
-* Left/4: Scroll left
-* Right/6: Scroll right
-* Multiply: Zoom in
-* Divide: Zoom out
-* 9: Previous page
-* 3: Next page
+* Touchpad/Numpad: Scrolling
+* ×: Zoom in
+* ÷: Zoom out
+* -: Previous page
+* +: Next page
 * Ctrl+G: Go to page
 * Esc: Exit
 
@@ -31,7 +29,7 @@ Once you have the code, clone submodules jbig2dec, jpeg, and openjpeg:
     git submodule init
     git submodule update mupdf/thirdparty/jbig2dec mupdf/thirdparty/jpeg mupdf/thirdparty/openjpeg
 
-(Do **not** get the freetype or zlib modules. They will conflict with the ones
+(Do **not** clone the freetype or zlib modules. They will conflict with the ones
 provided in the Ndless SDK.)
 
 Simply run `make` to compile nPDF.
