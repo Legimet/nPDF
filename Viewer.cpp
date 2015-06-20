@@ -50,19 +50,19 @@ Viewer::Viewer() {
 
 Viewer::~Viewer() {
     if (dev) {
-	fz_free_device(dev);
+	fz_drop_device(ctx, dev);
     }
     if (pix) {
 	fz_drop_pixmap(ctx, pix);
     }
     if (page) {
-	fz_free_page(doc, page);
+	fz_drop_page(ctx, page);
     }
     if (doc) {
-	fz_close_document(doc);
+	fz_drop_document(ctx, doc);
     }
     if (ctx) {
-	fz_free_context(ctx);
+	fz_drop_context(ctx);
     }
 }
 
@@ -91,7 +91,7 @@ void Viewer::openDoc(const char *path) {
 }
 
 int Viewer::getPages() {
-    return fz_count_pages(doc);
+    return fz_count_pages(ctx, doc);
 }
 
 void Viewer::fixBounds() {
@@ -116,15 +116,15 @@ void Viewer::drawPage() {
 
     if (!curPageLoaded) {
 	if (page) {
-	    fz_free_page(doc, page);
+	    fz_drop_page(ctx, page);
 	    page = nullptr;
 	}
-	page = fz_load_page(doc, pageNo);
+	page = fz_load_page(ctx, doc, pageNo);
 	curPageLoaded = true;
     }
 
     fz_matrix transform;
-    fz_bound_page(doc, page, &bounds);
+    fz_bound_page(ctx, page, &bounds);
     if (fitWidth) {
 	scale = width / (bounds.x1 - bounds.x0);
     }
@@ -144,10 +144,10 @@ void Viewer::drawPage() {
     fz_clear_pixmap_with_value(ctx, pix, 0xff);
 
     dev = fz_new_draw_device(ctx, pix);
-    fz_run_page(doc, page, dev, &transform, nullptr);
+    fz_run_page(ctx, page, dev, &transform, nullptr);
 
     if (dev) {
-	fz_free_device(dev);
+	fz_drop_device(ctx, dev);
 	dev = nullptr;
     }
 
@@ -199,7 +199,7 @@ void Viewer::display() {
 }
 
 void Viewer::next() {
-    if (pageNo < fz_count_pages(doc) - 1) {
+    if (pageNo < fz_count_pages(ctx, doc) - 1) {
 	pageNo++;
 	curPageLoaded = false;
 	yPos = 0;
@@ -284,7 +284,7 @@ void Viewer::zoomOut() {
 }
 
 void Viewer::gotoPage(unsigned int page) {
-    if (static_cast<int>(page) < fz_count_pages(doc)) {
+    if (static_cast<int>(page) < fz_count_pages(ctx, doc)) {
 	pageNo = page;
 	curPageLoaded = false;
 	drawPage();
