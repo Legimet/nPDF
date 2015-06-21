@@ -139,7 +139,7 @@ CC = nspire-gcc
 LD = nspire-gcc
 AR = arm-none-eabi-ar
 ifeq "$(build)" "release"
-CFLAGS += -Os
+CFLAGS += -O3
 endif
 CROSSCOMPILE=yes
 endif

@@ -24,8 +24,9 @@ MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
 MUPDF_XCFLAGS = -DNOCJK -DNODROIDFONT
 
 CXX = nspire-g++
-CXXFLAGS = -Os -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
+CXXFLAGS = -O3 -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
 NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
+ZEHNFLAGS = --compress --name "nPDF" --author "Legimet" --notice "Document viewer"
 OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 LIBS = $(MUPDF_OUT)/libmupdf.a $(MUPDF_OUT)/libfreetype.a $(MUPDF_OUT)/libjbig2dec.a \
        $(MUPDF_OUT)/libjpeg.a $(MUPDF_OUT)/libopenjpeg.a $(MUPDF_OUT)/libz.a
@@ -49,7 +50,7 @@ $(EXE).elf: $(LIBS) $(OBJS)
 
 $(EXE).tns: $(EXE).elf
 	mkdir -p $(DISTDIR)
-	genzehn --input $^ --output $(DISTDIR)/$@ --name nPDF --author Legimet
+	genzehn --input $^ --output $(DISTDIR)/$@ $(ZEHNFLAGS)
 
 $(EXE).prg.tns: $(EXE).tns
 	mkdir -p $(DISTDIR)
