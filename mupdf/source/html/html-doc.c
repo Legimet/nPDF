@@ -153,7 +153,8 @@ htdoc_recognize(fz_context *doc, const char *magic)
 
 	if (ext)
 	{
-		if (!fz_strcasecmp(ext, ".xml") || !fz_strcasecmp(ext, ".xhtml") || !fz_strcasecmp(ext, ".html"))
+		if (!fz_strcasecmp(ext, ".xml") || !fz_strcasecmp(ext, ".xhtml") ||
+				!fz_strcasecmp(ext, ".html") || !fz_strcasecmp(ext, ".htm"))
 			return 100;
 
 #ifdef _TINSPIRE
