@@ -84,9 +84,23 @@ fz_context* Viewer::getCtx() const {
 void Viewer::openDoc(const char *path) {
     fz_try(ctx) {
 	doc = fz_open_document(ctx, path);
+	if (fz_needs_password(ctx, doc)) {
+	    int okay = 0;
+	    char *password;
+	    char defaultValue = '\0';
+	    while (!okay) {
+		if (show_msg_user_input("nPDF", "This document requires a password:", &defaultValue, &password) == -1 ) {
+		    break;
+		}
+		okay = fz_authenticate_password(ctx, doc, password);
+	    }
+	    if (!okay) {
+		fz_throw(ctx, FZ_ERROR_GENERIC, "password not provided");
+	    }
+	}
     } fz_catch(ctx) {
 	show_msgbox("nPDF", "Can't open document");
-	fz_throw(ctx, 1, "can't open document");
+	fz_throw(ctx, FZ_ERROR_GENERIC, "can't open document");
     }
 }
 
