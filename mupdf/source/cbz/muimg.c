@@ -171,8 +171,8 @@ img_recognize(fz_context *doc, const char *magic)
 			}
 			if (ext >= magic &&
 				(!fz_strcasecmp(ext, ".png.tns") || !fz_strcasecmp(ext, ".jpg.tns") ||
-				 !fz_strcasecmp(ext, ".jpeg.tns") || !fz_strcasecmp(ext, ".jfif.tns") ||
-				 !fz_strcasecmp(ext, ".jfif-tbnl.tns") || !fz_strcasecmp(ext, ".jpe.tns")))
+				!fz_strcasecmp(ext, ".jpeg.tns") || !fz_strcasecmp(ext, ".jfif.tns") ||
+				!fz_strcasecmp(ext, ".jfif-tbnl.tns") || !fz_strcasecmp(ext, ".jpe.tns")))
 				return 100;
 		}
 #endif

@@ -165,7 +165,8 @@ htdoc_recognize(fz_context *doc, const char *magic)
 				if (*ext == '.')
 					break;
 			}
-			if (ext >= magic && (!fz_strcasecmp(ext, ".xml.tns") || !fz_strcasecmp(ext, ".xhtml.tns") || !fz_strcasecmp(ext, ".html.tns")))
+			if (ext >= magic && (!fz_strcasecmp(ext, ".xml.tns") || !fz_strcasecmp(ext, ".xhtml.tns") ||
+				!fz_strcasecmp(ext, ".html.tns") || !fz_strcasecmp(ext, ".htm.tns")))
 				return 100;
 		}
 #endif
