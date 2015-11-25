@@ -1,8 +1,6 @@
 #include "pdfapp.h"
 #include "curl_stream.h"
 
-#include <ctype.h> /* for tolower() */
-
 #define BEYOND_THRESHHOLD 40
 #ifndef PATH_MAX
 #define PATH_MAX (1024)
@@ -85,6 +83,8 @@ char *pdfapp_usage(pdfapp_t *app)
 		"W\t\t-- zoom to fit window width\n"
 		"H\t\t-- zoom to fit window height\n"
 		"Z\t\t-- zoom to fit page\n"
+		"[\t\t-- decrease font size (EPUB only)\n"
+		"]\t\t-- increase font size (EPUB only)\n"
 		"w\t\t-- shrinkwrap\n"
 		"f\t\t-- fullscreen\n"
 		"r\t\t-- reload file\n"
@@ -130,6 +130,11 @@ void pdfapp_init(fz_context *ctx, pdfapp_t *app)
 	app->tint_r = 255;
 	app->tint_g = 250;
 	app->tint_b = 240;
+}
+
+void pdfapp_setresolution(pdfapp_t *app, int res)
+{
+	app->resolution = res;
 }
 
 void pdfapp_invert(pdfapp_t *app, const fz_rect *rect)
@@ -301,6 +306,14 @@ void pdfapp_open_progressive(pdfapp_t *app, char *filename, int reload, int bps)
 	fz_try(ctx)
 	{
 		fz_register_document_handlers(ctx);
+
+		if (app->layout_css)
+		{
+			fz_buffer *buf = fz_read_file(ctx, app->layout_css);
+			fz_write_buffer_byte(ctx, buf, 0);
+			fz_set_user_css(ctx, (char*)buf->data);
+			fz_drop_buffer(ctx, buf);
+		}
 
 #ifdef HAVE_CURL
 		if (!strncmp(filename, "http://", 7))
@@ -1183,6 +1196,29 @@ void pdfapp_onkey(pdfapp_t *app, int c, int modifiers)
 		winclose(app);
 		break;
 
+	case '[':
+		if (app->layout_em > 8)
+		{
+			float percent = (float)app->pageno / app->pagecount;
+			app->layout_em -= 2;
+			fz_layout_document(app->ctx, app->doc, app->layout_w, app->layout_h, app->layout_em);
+			app->pagecount = fz_count_pages(app->ctx, app->doc);
+			app->pageno = app->pagecount * percent + 0.1;
+			pdfapp_showpage(app, 1, 1, 1, 0, 0);
+		}
+		break;
+	case ']':
+		if (app->layout_em < 36)
+		{
+			float percent = (float)app->pageno / app->pagecount;
+			app->layout_em += 2;
+			fz_layout_document(app->ctx, app->doc, app->layout_w, app->layout_h, app->layout_em);
+			app->pagecount = fz_count_pages(app->ctx, app->doc);
+			app->pageno = app->pagecount * percent + 0.1;
+			pdfapp_showpage(app, 1, 1, 1, 0, 0);
+		}
+		break;
+
 	/*
 	 * Zoom and rotate
 	 */
@@ -1629,9 +1665,9 @@ void pdfapp_onmouse(pdfapp_t *app, int x, int y, int btn, int modifiers, int sta
 
 						fz_try(ctx)
 						{
-							nopts = pdf_choice_widget_options(ctx, idoc, widget, NULL);
+							nopts = pdf_choice_widget_options(ctx, idoc, widget, 0, NULL);
 							opts = fz_malloc(ctx, nopts * sizeof(*opts));
-							(void)pdf_choice_widget_options(ctx, idoc, widget, opts);
+							(void)pdf_choice_widget_options(ctx, idoc, widget, 0, opts);
 
 							nvals = pdf_choice_widget_value(ctx, idoc, widget, NULL);
 							vals = fz_malloc(ctx, MAX(nvals,nopts) * sizeof(*vals));

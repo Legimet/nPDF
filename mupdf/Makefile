@@ -67,9 +67,11 @@ ALL_DIR += $(OUT)/cbz
 ALL_DIR += $(OUT)/img
 ALL_DIR += $(OUT)/tiff
 ALL_DIR += $(OUT)/html
+ALL_DIR += $(OUT)/gprf
 ALL_DIR += $(OUT)/tools
 ALL_DIR += $(OUT)/platform/x11
 ALL_DIR += $(OUT)/platform/x11/curl
+ALL_DIR += $(OUT)/platform/gl
 
 FITZ_HDR := include/mupdf/fitz.h $(wildcard include/mupdf/fitz/*.h)
 PDF_HDR := include/mupdf/pdf.h $(wildcard include/mupdf/pdf/*.h)
@@ -81,17 +83,20 @@ PDF_SRC := $(wildcard source/pdf/*.c)
 XPS_SRC := $(wildcard source/xps/*.c)
 CBZ_SRC := $(wildcard source/cbz/*.c)
 HTML_SRC := $(wildcard source/html/*.c)
+GPRF_SRC := $(wildcard source/gprf/*.c)
 
 FITZ_SRC_HDR := $(wildcard source/fitz/*.h)
 PDF_SRC_HDR := $(wildcard source/pdf/*.h) source/pdf/pdf-name-table.h
 XPS_SRC_HDR := $(wildcard source/xps/*.h)
 HTML_SRC_HDR := $(wildcard source/html/*.h)
+GPRF_SRC_HDR := $(wildcard source/gprf/*.h)
 
 FITZ_OBJ := $(subst source/, $(OUT)/, $(addsuffix .o, $(basename $(FITZ_SRC))))
 PDF_OBJ := $(subst source/, $(OUT)/, $(addsuffix .o, $(basename $(PDF_SRC))))
 XPS_OBJ := $(subst source/, $(OUT)/, $(addsuffix .o, $(basename $(XPS_SRC))))
 CBZ_OBJ := $(subst source/, $(OUT)/, $(addsuffix .o, $(basename $(CBZ_SRC))))
 HTML_OBJ := $(subst source/, $(OUT)/, $(addsuffix .o, $(basename $(HTML_SRC))))
+GPRF_OBJ := $(subst source/, $(OUT)/, $(addsuffix .o, $(basename $(GPRF_SRC))))
 
 # --- Choice of Javascript library ---
 
@@ -120,12 +125,13 @@ $(PDF_OBJ) : $(FITZ_HDR) $(PDF_HDR) $(PDF_SRC_HDR)
 $(XPS_OBJ) : $(FITZ_HDR) $(XPS_HDR) $(XPS_SRC_HDR)
 $(CBZ_OBJ) : $(FITZ_HDR)
 $(HTML_OBJ) : $(FITZ_HDR) $(HTML_HDR) $(HTML_SRC_HDR)
+$(GPRF_OBJ) : $(FITZ_HDR) $(GPRF_HDR) $(GPRF_SRC_HDR)
 
 # --- Library ---
 
 MUPDF_LIB := $(OUT)/libmupdf.a
 
-$(MUPDF_LIB) : $(FITZ_OBJ) $(PDF_OBJ) $(XPS_OBJ) $(CBZ_OBJ) $(HTML_OBJ)
+$(MUPDF_LIB) : $(FITZ_OBJ) $(PDF_OBJ) $(XPS_OBJ) $(CBZ_OBJ) $(HTML_OBJ) $(GPRF_OBJ)
 
 INSTALL_LIBS := $(MUPDF_LIB)
 
@@ -159,6 +165,9 @@ $(OUT)/platform/x11/%.o: platform/x11/%.rc | $(OUT)
 
 $(OUT)/platform/x11/curl/%.o : platform/x11/%.c | $(ALL_DIR)
 	$(CC_CMD) $(X11_CFLAGS) $(CURL_CFLAGS) -DHAVE_CURL
+
+$(OUT)/platform/gl/%.o : platform/gl/%.c | $(ALL_DIR)
+	$(CC_CMD) $(GLFW_CFLAGS)
 
 .PRECIOUS : $(OUT)/%.o # Keep intermediates from chained rules
 
@@ -233,15 +242,8 @@ $(OUT)/cmapdump.o : include/mupdf/pdf/cmap.h source/pdf/pdf-cmap.c source/pdf/pd
 
 # --- Tools and Apps ---
 
-MUDRAW := $(addprefix $(OUT)/, mudraw)
-MUDRAW_OBJ := $(addprefix $(OUT)/tools/, mudraw.o)
-$(MUDRAW_OBJ) : $(FITZ_HDR) $(PDF_HDR)
-$(MUDRAW) : $(MUPDF_LIB) $(THIRD_LIBS)
-$(MUDRAW) : $(MUDRAW_OBJ)
-	$(LINK_CMD)
-
 MUTOOL := $(addprefix $(OUT)/, mutool)
-MUTOOL_OBJ := $(addprefix $(OUT)/tools/, mutool.o pdfclean.o pdfextract.o pdfinfo.o pdfposter.o pdfshow.o pdfpages.o)
+MUTOOL_OBJ := $(addprefix $(OUT)/tools/, mutool.o mudraw.o pdfclean.o pdfextract.o pdfinfo.o pdfposter.o pdfshow.o pdfpages.o)
 $(MUTOOL_OBJ): $(FITZ_HDR) $(PDF_HDR)
 $(MUTOOL) : $(MUPDF_LIB) $(THIRD_LIBS)
 $(MUTOOL) : $(MUTOOL_OBJ)
@@ -267,6 +269,15 @@ $(MUVIEW_X11) : $(MUPDF_LIB) $(THIRD_LIBS)
 $(MUVIEW_X11) : $(MUVIEW_X11_OBJ)
 	$(LINK_CMD) $(X11_LIBS)
 
+ifeq "$(HAVE_GLFW)" "yes"
+MUVIEW_GLFW := $(OUT)/mupdf-gl
+MUVIEW_GLFW_OBJ := $(addprefix $(OUT)/platform/gl/, gl-font.o gl-input.o gl-main.o)
+$(MUVIEW_GLFW_OBJ) : $(FITZ_HDR) $(PDF_HDR) platform/gl/gl-app.h
+$(MUVIEW_GLFW) : $(MUPDF_LIB) $(THIRD_LIBS) $(GLFW_LIB)
+$(MUVIEW_GLFW) : $(MUVIEW_GLFW_OBJ)
+	$(LINK_CMD) $(GLFW_LIBS)
+endif
+
 ifeq "$(HAVE_CURL)" "yes"
 MUVIEW_X11_CURL := $(OUT)/mupdf-x11-curl
 MUVIEW_X11_CURL_OBJ := $(addprefix $(OUT)/platform/x11/curl/, x11_main.o x11_image.o pdfapp.o curl_stream.o)
@@ -286,10 +297,10 @@ $(MUVIEW_WIN32) : $(MUVIEW_WIN32_OBJ)
 	$(LINK_CMD) $(WIN32_LIBS)
 endif
 
-MUVIEW := $(MUVIEW_X11) $(MUVIEW_WIN32)
+MUVIEW := $(MUVIEW_X11) $(MUVIEW_WIN32) $(MUVIEW_GLFW)
 MUVIEW_CURL := $(MUVIEW_X11_CURL) $(MUVIEW_WIN32_CURL)
 
-INSTALL_APPS := $(MUDRAW) $(MUTOOL) $(MUVIEW) $(MUJSTEST) $(MUVIEW_CURL)
+INSTALL_APPS := $(MUTOOL) $(MUVIEW) $(MUJSTEST) $(MUVIEW_CURL)
 
 # --- Examples ---
 
@@ -326,7 +337,8 @@ incdir ?= $(prefix)/include
 mandir ?= $(prefix)/share/man
 docdir ?= $(prefix)/share/doc/mupdf
 
-third: $(THIRD_LIBS) $(CURL_LIB)
+third: $(THIRD_LIBS)
+extra: $(CURL_LIB) $(GLFW_LIB)
 libs: $(INSTALL_LIBS)
 apps: $(INSTALL_APPS)
 

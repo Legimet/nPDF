@@ -158,29 +158,15 @@ img_recognize(fz_context *doc, const char *magic)
 	{
 		if (!fz_strcasecmp(ext, ".png") || !fz_strcasecmp(ext, ".jpg") ||
 			!fz_strcasecmp(ext, ".jpeg") || !fz_strcasecmp(ext, ".jfif") ||
-			!fz_strcasecmp(ext, ".jfif-tbnl") || !fz_strcasecmp(ext, ".jpe"))
+			!fz_strcasecmp(ext, ".jfif-tbnl") || !fz_strcasecmp(ext, ".jpe") ||
+			!fz_strcasecmp(ext, ".gif"))
 			return 100;
-
-#ifdef _TINSPIRE
-		if (!fz_strcasecmp(ext, ".tns"))
-		{
-			while (--ext >= magic)
-			{
-				if (*ext == '.')
-					break;
-			}
-			if (ext >= magic &&
-				(!fz_strcasecmp(ext, ".png.tns") || !fz_strcasecmp(ext, ".jpg.tns") ||
-				!fz_strcasecmp(ext, ".jpeg.tns") || !fz_strcasecmp(ext, ".jfif.tns") ||
-				!fz_strcasecmp(ext, ".jfif-tbnl.tns") || !fz_strcasecmp(ext, ".jpe.tns")))
-				return 100;
-		}
-#endif
 	}
 	if (!strcmp(magic, "png") || !strcmp(magic, "image/png") ||
 		!strcmp(magic, "jpg") || !strcmp(magic, "image/jpeg") ||
 		!strcmp(magic, "jpeg") || !strcmp(magic, "image/pjpeg") ||
-		!strcmp(magic, "jpe") || !strcmp(magic, "jfif"))
+		!strcmp(magic, "jpe") || !strcmp(magic, "jfif") ||
+		!strcmp(magic, "gif") || !strcmp(magic, "image/gif"))
 		return 100;
 
 	return 0;
