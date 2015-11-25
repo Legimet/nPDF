@@ -31,6 +31,17 @@
 				android:textAppearance="?android:attr/textAppearanceMedium" />
 
 			<ImageButton
+				android:id="@+id/sepsButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_alignParentRight="true"
+				android:contentDescription="Separations"
+				android:background="@drawable/button"
+				android:onClick="OnSepsButtonClick"
+				android:src="@drawable/ic_sep" />
+
+			<ImageButton
 				android:id="@+id/linkButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
@@ -259,6 +270,17 @@
 				android:src="@drawable/ic_cancel" />
 
 			<ImageButton
+				android:id="@+id/proofButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerVertical="true"
+				android:layout_toLeftOf="@+id/printButton"
+				android:contentDescription="@string/proof"
+				android:background="@drawable/button"
+				android:onClick="OnProofButtonClick"
+				android:src="@drawable/ic_proof" />
+
+			<ImageButton
 				android:id="@+id/printButton"
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
@@ -382,4 +404,5 @@
 		android:background="@drawable/page_num"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		android:textColor="#FFFFFF" />
+
 </RelativeLayout>

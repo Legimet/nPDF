@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name">MuPDF</string>
-	<string name="version">1.7a (git build)</string>
+	<string name="version">1.8 (git build)</string>
 	<string name="no_media_warning">Storage media not present</string>
 	<string name="no_media_hint">Sharing the storage media with a PC can make it inaccessible</string>
 	<string name="cancel">Cancel</string>
@@ -25,6 +25,8 @@
 	<string name="edit_annotations">Edit annotations</string>
 	<string name="ink">Ink</string>
 	<string name="save">Save</string>
+	<string name="proof">Proof</string>
+	<string name="separation">Separation</string>
 	<string name="print">Print</string>
 	<string name="dismiss">Dismiss</string>
 	<string name="parent_directory">[Up one level]</string>

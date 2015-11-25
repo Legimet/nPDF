@@ -28,7 +28,8 @@ typedef enum fz_display_command_e
 	FZ_CMD_BEGIN_GROUP,
 	FZ_CMD_END_GROUP,
 	FZ_CMD_BEGIN_TILE,
-	FZ_CMD_END_TILE
+	FZ_CMD_END_TILE,
+	FZ_CMD_RENDER_FLAGS
 } fz_display_command;
 
 /* The display list is a list of nodes.
@@ -114,6 +115,7 @@ struct fz_display_list_s
 {
 	fz_storable storable;
 	fz_display_node *list;
+	fz_rect mediabox;
 	int max;
 	int len;
 };
@@ -636,9 +638,14 @@ fz_append_display_node(
 static void
 fz_list_begin_page(fz_context *ctx, fz_device *dev, const fz_rect *mediabox, const fz_matrix *ctm)
 {
+	fz_list_device *writer = (fz_list_device *)dev;
+	fz_display_list *list = writer->list;
 	fz_rect rect = *mediabox;
 
 	fz_transform_rect(&rect, ctm);
+
+	fz_union_rect(&list->mediabox, &rect);
+
 	fz_append_display_node(
 		ctx,
 		dev,
@@ -1212,6 +1219,37 @@ fz_list_end_tile(fz_context *ctx, fz_device *dev)
 }
 
 static void
+fz_list_render_flags(fz_context *ctx, fz_device *dev, int set, int clear)
+{
+	int flags;
+
+	/* Pack the options down */
+	if (set == FZ_DEVFLAG_GRIDFIT_AS_TILED && clear == 0)
+		flags = 1;
+	else if (set == 0 && clear == FZ_DEVFLAG_GRIDFIT_AS_TILED)
+		flags = 0;
+	else
+	{
+		assert("Unsupported flags combination" == NULL);
+		return;
+	}
+	fz_append_display_node(
+		ctx,
+		dev,
+		FZ_CMD_RENDER_FLAGS,
+		flags, /* flags */
+		NULL,
+		NULL, /* path */
+		NULL, /* color */
+		NULL, /* colorspace */
+		NULL, /* alpha */
+		NULL, /* ctm */
+		NULL, /* stroke */
+		NULL, /* private_data */
+		0); /* private_data_len */
+}
+
+static void
 drop_writer(fz_context *ctx, fz_device *dev)
 {
 	fz_list_device *writer = (fz_list_device *)dev;
@@ -1256,6 +1294,8 @@ fz_new_list_device(fz_context *ctx, fz_display_list *list)
 
 	dev->super.begin_tile = fz_list_begin_tile;
 	dev->super.end_tile = fz_list_end_tile;
+
+	dev->super.render_flags = fz_list_render_flags;
 
 	dev->super.drop_imp = drop_writer;
 
@@ -1371,6 +1411,7 @@ fz_new_display_list(fz_context *ctx)
 	fz_display_list *list = fz_malloc_struct(ctx, fz_display_list);
 	FZ_INIT_STORABLE(list, 1, fz_drop_display_list_imp);
 	list->list = NULL;
+	list->mediabox = fz_empty_rect;
 	list->max = 0;
 	list->len = 0;
 	return list;
@@ -1386,6 +1427,13 @@ void
 fz_drop_display_list(fz_context *ctx, fz_display_list *list)
 {
 	fz_drop_storable(ctx, &list->storable);
+}
+
+fz_rect *
+fz_bound_display_list(fz_context *ctx, fz_display_list *list, fz_rect *bounds)
+{
+	*bounds = list->mediabox;
+	return bounds;
 }
 
 void
@@ -1570,7 +1618,8 @@ fz_run_display_list(fz_context *ctx, fz_display_list *list, fz_device *dev, cons
 
 		if (tiled ||
 			n.cmd == FZ_CMD_BEGIN_TILE || n.cmd == FZ_CMD_END_TILE ||
-			n.cmd == FZ_CMD_BEGIN_PAGE || n.cmd == FZ_CMD_END_PAGE)
+			n.cmd == FZ_CMD_BEGIN_PAGE || n.cmd == FZ_CMD_END_PAGE ||
+			n.cmd == FZ_CMD_RENDER_FLAGS)
 		{
 			empty = 0;
 		}
@@ -1699,6 +1748,12 @@ visible:
 			case FZ_CMD_END_TILE:
 				tiled--;
 				fz_end_tile(ctx, dev);
+				break;
+			case FZ_CMD_RENDER_FLAGS:
+				if (n.flags == 0)
+					fz_render_flags(ctx, dev, 0, FZ_DEVFLAG_GRIDFIT_AS_TILED);
+				else if (n.flags == 1)
+					fz_render_flags(ctx, dev, FZ_DEVFLAG_GRIDFIT_AS_TILED, 0);
 				break;
 			}
 		}

@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\mujs"
-				PreprocessorDefinitions="DEBUG=1;USE_OUTPUT_DEBUG_STRING"
+				PreprocessorDefinitions="FZ_LARGEFILE;DEBUG=1;USE_OUTPUT_DEBUG_STRING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -107,7 +107,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\mujs"
-				PreprocessorDefinitions="DEBUG=1;USE_OUTPUT_DEBUG_STRING"
+				PreprocessorDefinitions="FZ_LARGEFILE;DEBUG=1;USE_OUTPUT_DEBUG_STRING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -171,6 +171,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\mujs"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -296,7 +297,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\mujs"
-				PreprocessorDefinitions="MEMENTO=1;DEBUG=1;USE_OUTPUT_DEBUG_STRING"
+				PreprocessorDefinitions="FZ_LARGEFILE;MEMENTO=1;DEBUG=1;USE_OUTPUT_DEBUG_STRING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -359,7 +360,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\mujs"
-				PreprocessorDefinitions="MEMENTO=1;DEBUG=1;USE_OUTPUT_DEBUG_STRING"
+				PreprocessorDefinitions="FZ_LARGEFILE;MEMENTO=1;DEBUG=1;USE_OUTPUT_DEBUG_STRING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -421,7 +422,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\openssl\include;..\..\thirdparty\mujs"
-				PreprocessorDefinitions="DEBUG=1;HAVE_OPENSSL;USE_OUTPUT_DEBUG_STRING"
+				PreprocessorDefinitions="FZ_LARGEFILE;DEBUG=1;HAVE_OPENSSL;USE_OUTPUT_DEBUG_STRING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -484,7 +485,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\scripts\openjpeg;..\..\include;..\..\ucdn;..\..\generated;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\libopenjpeg;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\openssl\include;..\..\thirdparty\mujs"
-				PreprocessorDefinitions="DEBUG=1;HAVE_OPENSSL;USE_OUTPUT_DEBUG_STRING"
+				PreprocessorDefinitions="FZ_LARGEFILE;DEBUG=1;HAVE_OPENSSL;USE_OUTPUT_DEBUG_STRING"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -687,6 +688,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\xps\xps-image.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\xps\xps-link.c"
 				>
 			</File>
 			<File
@@ -902,6 +907,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\fitz\load-gif.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\fitz\load-jpeg.c"
 				>
 			</File>
@@ -958,6 +967,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\fitz\separation.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\fitz\shade.c"
 				>
 			</File>
@@ -1006,6 +1019,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\fitz\tempfile.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\fitz\test-device.c"
 				>
 			</File>
@@ -1043,6 +1060,10 @@
 			</File>
 			<File
 				RelativePath="..\..\source\fitz\unzip.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\fitz\util.c"
 				>
 			</File>
 			<File
@@ -1485,6 +1506,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\include\mupdf\fitz\separation.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\include\mupdf\fitz\shade.h"
 					>
 				</File>
@@ -1522,6 +1547,10 @@
 				</File>
 				<File
 					RelativePath="..\..\include\mupdf\fitz\unzip.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\mupdf\fitz\util.h"
 					>
 				</File>
 				<File
@@ -1563,6 +1592,18 @@
 			</File>
 			<File
 				RelativePath="..\..\source\html\html-layout.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="gprf"
+			>
+			<File
+				RelativePath="..\..\source\gprf\gprf-doc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\gprf\gprf-skeleton.c"
 				>
 			</File>
 		</Filter>

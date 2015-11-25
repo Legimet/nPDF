@@ -722,6 +722,7 @@ pdf_flush_text(fz_context *ctx, pdf_run_processor *pr)
 	int doclip;
 	int doinvisible;
 	softmask_save softmask = { NULL };
+	int knockout_group = 0;
 
 	if (!pr->text)
 		return gstate;
@@ -749,12 +750,33 @@ pdf_flush_text(fz_context *ctx, pdf_run_processor *pr)
 		fz_rect tb = pr->text_bbox;
 
 		fz_transform_rect(&tb, &gstate->ctm);
+		if (dostroke)
+			fz_adjust_rect_for_stroke(ctx, &tb, gstate->stroke_state, &gstate->ctm);
 
 		/* Don't bother sending a text group with nothing in it */
 		if (text->len == 0)
 			break;
 
-		gstate = pdf_begin_group(ctx, pr, &tb, &softmask);
+		if (dofill || dostroke)
+			gstate = pdf_begin_group(ctx, pr, &tb, &softmask);
+
+		if (dofill && dostroke)
+		{
+			/* We may need to push a knockout group */
+			if (gstate->stroke.alpha == 0)
+			{
+				/* No need for group, as stroke won't do anything */
+			}
+			else if (gstate->stroke.alpha == 1.0f && gstate->blendmode == FZ_BLEND_NORMAL)
+			{
+				/* No need for group, as stroke won't show up */
+			}
+			else
+			{
+				knockout_group = 1;
+				fz_begin_group(ctx, pr->dev, &tb, 0, 1, FZ_BLEND_NORMAL, 1);
+			}
+		}
 
 		if (doinvisible)
 			fz_ignore_text(ctx, pr->dev, text, &gstate->ctm);
@@ -818,6 +840,12 @@ pdf_flush_text(fz_context *ctx, pdf_run_processor *pr)
 			}
 		}
 
+		if (knockout_group)
+			fz_end_group(ctx, pr->dev);
+
+		if (dofill || dostroke)
+			pdf_end_group(ctx, pr, &softmask);
+
 		if (doclip)
 		{
 			if (pr->accumulate < 2)
@@ -825,8 +853,6 @@ pdf_flush_text(fz_context *ctx, pdf_run_processor *pr)
 			fz_clip_text(ctx, pr->dev, text, &gstate->ctm, pr->accumulate);
 			pr->accumulate = 2;
 		}
-
-		pdf_end_group(ctx, pr, &softmask);
 	}
 	fz_always(ctx)
 	{
@@ -1945,6 +1971,12 @@ static void pdf_run_EX(fz_context *ctx, pdf_processor *proc)
 {
 }
 
+static void pdf_run_END(fz_context *ctx, pdf_processor *proc)
+{
+	pdf_run_processor *pr = (pdf_run_processor *)proc;
+	pdf_flush_text(ctx, pr);
+}
+
 static void
 pdf_run_drop_imp(fz_context *ctx, pdf_processor *proc)
 {
@@ -2088,6 +2120,8 @@ pdf_new_run_processor(fz_context *ctx, fz_device *dev, const fz_matrix *ctm, con
 		/* compatibility */
 		proc->super.op_BX = pdf_run_BX;
 		proc->super.op_EX = pdf_run_EX;
+
+		proc->super.op_END = pdf_run_END;
 	}
 
 	proc->dev = dev;

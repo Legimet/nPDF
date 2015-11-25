@@ -21,6 +21,7 @@ typedef struct fz_css_color_s fz_css_color;
 struct fz_html_font_set_s
 {
 	fz_font *fonts[16];
+	fz_font *fallback;
 };
 
 enum
@@ -64,7 +65,8 @@ struct fz_css_property_s
 {
 	char *name;
 	fz_css_value *value;
-	int spec;
+	short spec;
+	short important;
 	fz_css_property *next;
 };
 
@@ -89,10 +91,21 @@ struct fz_css_match_s
 
 enum { DIS_NONE, DIS_BLOCK, DIS_INLINE, DIS_LIST_ITEM, DIS_INLINE_BLOCK };
 enum { POS_STATIC, POS_RELATIVE, POS_ABSOLUTE, POS_FIXED };
-enum { WS_NORMAL, WS_PRE, WS_NOWRAP, WS_PRE_WRAP, WS_PRE_LINE };
 enum { TA_LEFT, TA_RIGHT, TA_CENTER, TA_JUSTIFY };
 enum { VA_BASELINE, VA_SUB, VA_SUPER, VA_TOP, VA_BOTTOM };
 enum { BS_NONE, BS_SOLID };
+enum { V_VISIBLE, V_HIDDEN, V_COLLAPSE };
+
+enum {
+	WS_COLLAPSE = 1,
+	WS_ALLOW_BREAK_SPACE = 2,
+	WS_FORCE_BREAK_NEWLINE = 4,
+	WS_NORMAL = WS_COLLAPSE | WS_ALLOW_BREAK_SPACE,
+	WS_PRE = WS_FORCE_BREAK_NEWLINE,
+	WS_NOWRAP = WS_COLLAPSE,
+	WS_PRE_WRAP = WS_ALLOW_BREAK_SPACE | WS_FORCE_BREAK_NEWLINE,
+	WS_PRE_LINE = WS_COLLAPSE | WS_ALLOW_BREAK_SPACE | WS_FORCE_BREAK_NEWLINE
+};
 
 enum {
 	LST_NONE,
@@ -126,6 +139,7 @@ struct fz_css_style_s
 	fz_css_number padding[4];
 	fz_css_number border_width[4];
 	fz_css_number text_indent;
+	char visibility;
 	char white_space;
 	char text_align;
 	char vertical_align;
@@ -135,7 +149,7 @@ struct fz_css_style_s
 	fz_css_color background_color;
 	fz_css_color border_color[4];
 	fz_css_color color;
-	fz_font *font;
+	fz_font *font, *fallback;
 };
 
 enum
@@ -165,6 +179,7 @@ enum
 {
 	FLOW_WORD,
 	FLOW_GLUE,
+	FLOW_BREAK,
 	FLOW_IMAGE,
 };
 
@@ -173,7 +188,8 @@ struct fz_html_flow_s
 	int type;
 	float x, y, w, h, em;
 	fz_css_style *style;
-	char *text, *broken_text;
+	char *text;
+	int expand;
 	fz_image *image;
 	fz_html_flow *next;
 };
@@ -183,6 +199,7 @@ fz_css_property *fz_parse_css_properties(fz_context *ctx, const char *source);
 void fz_drop_css(fz_context *ctx, fz_css_rule *rule);
 
 void fz_match_css(fz_context *ctx, fz_css_match *match, fz_css_rule *rule, fz_xml *node);
+void fz_match_css_at_page(fz_context *ctx, fz_css_match *match, fz_css_rule *css);
 
 int fz_get_css_match_display(fz_css_match *node);
 void fz_default_css_style(fz_context *ctx, fz_css_style *style);
@@ -194,6 +211,7 @@ float fz_from_css_number_scale(fz_css_number number, float scale, float em, floa
 fz_html_font_set *fz_new_html_font_set(fz_context *ctx);
 fz_font *fz_load_html_font(fz_context *ctx, fz_html_font_set *set,
 	const char *family, const char *variant, const char *style, const char *weight);
+fz_font *fz_load_html_fallback_font(fz_context *ctx, fz_html_font_set *set);
 void fz_drop_html_font_set(fz_context *ctx, fz_html_font_set *htx);
 
 fz_html *fz_parse_html(fz_context *ctx, fz_html_font_set *htx, fz_archive *zip, const char *base_uri, fz_buffer *buf, const char *user_css);

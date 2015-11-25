@@ -7,7 +7,7 @@ fz_new_pixmap_from_image(fz_context *ctx, fz_image *image, int w, int h)
 {
 	if (image == NULL)
 		return NULL;
-	return image->get_pixmap(ctx, image, w, h);
+	return fz_image_get_pixmap(ctx, image, w, h);
 }
 
 fz_image *
@@ -108,7 +108,7 @@ fz_mask_color_key(fz_pixmap *pix, int n, int *colorkey)
 static void
 fz_unblend_masked_tile(fz_context *ctx, fz_pixmap *tile, fz_image *image)
 {
-	fz_pixmap *mask = image->mask->get_pixmap(ctx, image->mask, tile->w, tile->h);
+	fz_pixmap *mask = fz_image_get_pixmap(ctx, image->mask, tile->w, tile->h);
 	unsigned char *s = mask->samples, *end = s + mask->w * mask->h;
 	unsigned char *d = tile->samples;
 	int k;
@@ -134,14 +134,14 @@ fz_unblend_masked_tile(fz_context *ctx, fz_pixmap *tile, fz_image *image)
 }
 
 fz_pixmap *
-fz_decomp_image_from_stream(fz_context *ctx, fz_stream *stm, fz_image *image, int indexed, int l2factor, int native_l2factor)
+fz_decomp_image_from_stream(fz_context *ctx, fz_stream *stm, fz_image *image, int indexed, int l2factor)
 {
 	fz_pixmap *tile = NULL;
 	int stride, len, i;
 	unsigned char *samples = NULL;
-	int f = 1<<native_l2factor;
-	int w = (image->w + f-1) >> native_l2factor;
-	int h = (image->h + f-1) >> native_l2factor;
+	int f = 1<<l2factor;
+	int w = (image->w + f-1) >> l2factor;
+	int h = (image->h + f-1) >> l2factor;
 
 	fz_var(tile);
 	fz_var(samples);
@@ -213,14 +213,6 @@ fz_decomp_image_from_stream(fz_context *ctx, fz_stream *stm, fz_image *image, in
 		fz_rethrow(ctx);
 	}
 
-	/* Now apply any extra subsampling required */
-	if (l2factor - native_l2factor > 0)
-	{
-		if (l2factor - native_l2factor > 8)
-			l2factor = native_l2factor + 8;
-		fz_subsample_pixmap(ctx, tile, l2factor - native_l2factor);
-	}
-
 	return tile;
 }
 
@@ -238,25 +230,90 @@ fz_drop_image_imp(fz_context *ctx, fz_storable *image_)
 	fz_free(ctx, image);
 }
 
+static fz_pixmap *
+standard_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h, int *l2factor)
+{
+	int native_l2factor;
+	fz_stream *stm;
+	int indexed;
+	fz_pixmap *tile;
+
+	/* We need to make a new one. */
+	/* First check for ones that we can't decode using streams */
+	switch (image->buffer->params.type)
+	{
+	case FZ_IMAGE_PNG:
+		tile = fz_load_png(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
+		break;
+	case FZ_IMAGE_GIF:
+		tile = fz_load_gif(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
+		break;
+	case FZ_IMAGE_TIFF:
+		tile = fz_load_tiff(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
+		break;
+	case FZ_IMAGE_JXR:
+		tile = fz_load_jxr(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
+		break;
+	case FZ_IMAGE_JPEG:
+		/* Scan JPEG stream and patch missing height values in header */
+		{
+			unsigned char *s = image->buffer->buffer->data;
+			unsigned char *e = s + image->buffer->buffer->len;
+			unsigned char *d;
+			for (d = s + 2; s < d && d < e - 9 && d[0] == 0xFF; d += (d[2] << 8 | d[3]) + 2)
+			{
+				if (d[1] < 0xC0 || (0xC3 < d[1] && d[1] < 0xC9) || 0xCB < d[1])
+					continue;
+				if ((d[5] == 0 && d[6] == 0) || ((d[5] << 8) | d[6]) > image->h)
+				{
+					d[5] = (image->h >> 8) & 0xFF;
+					d[6] = image->h & 0xFF;
+				}
+			}
+		}
+		/* fall through */
+
+	default:
+		native_l2factor = l2factor ? *l2factor : 0;
+		stm = fz_open_image_decomp_stream_from_buffer(ctx, image->buffer, l2factor);
+		if (l2factor)
+			native_l2factor -= *l2factor;
+
+		indexed = fz_colorspace_is_indexed(ctx, image->colorspace);
+		tile = fz_decomp_image_from_stream(ctx, stm, image, indexed, native_l2factor);
+
+		/* CMYK JPEGs in XPS documents have to be inverted */
+		if (image->invert_cmyk_jpeg &&
+			image->buffer->params.type == FZ_IMAGE_JPEG &&
+			image->colorspace == fz_device_cmyk(ctx) &&
+			image->buffer->params.u.jpeg.color_transform)
+		{
+			fz_invert_pixmap(ctx, tile);
+		}
+
+		break;
+	}
+
+	return tile;
+}
+
 fz_pixmap *
 fz_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h)
 {
 	fz_pixmap *tile;
-	fz_stream *stm;
-	int l2factor;
+	int l2factor, l2factor_remaining;
 	fz_image_key key;
-	int native_l2factor;
-	int indexed;
 	fz_image_key *keyp;
 
-	/* Check for 'simple' images which are just pixmaps */
-	if (image->buffer == NULL)
-	{
-		tile = image->tile;
-		if (!tile)
-			return NULL;
-		return fz_keep_pixmap(ctx, tile); /* That's all we can give you! */
-	}
+	/* 'Simple' images created direct from pixmaps will have no buffer
+	 * of compressed data. We cannot do any better than just returning
+	 * a pointer to the original 'tile'.
+	 *
+	 * Note, that we can get image->tile != NULL for jpeg 2000 images
+	 * with masks applied, so we need both parts of the following test.
+	 */
+	if (image->buffer == NULL && image->tile != NULL)
+		return fz_keep_pixmap(ctx, image->tile); /* That's all we can give you! */
 
 	/* Ensure our expectations for tile size are reasonable */
 	if (w < 0 || w > image->w)
@@ -286,55 +343,16 @@ fz_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h)
 	}
 	while (key.l2factor >= 0);
 
-	/* We need to make a new one. */
-	/* First check for ones that we can't decode using streams */
-	switch (image->buffer->params.type)
+	/* We'll have to decode the image; request the correct amount of
+	 * downscaling. */
+	l2factor_remaining = l2factor;
+	tile = image->get_pixmap(ctx, image, w, h, &l2factor_remaining);
+
+	/* l2factor_remaining is updated to the amount of subscaling left to do */
+	assert(l2factor_remaining >= 0 && l2factor_remaining < 8);
+	if (l2factor_remaining)
 	{
-	case FZ_IMAGE_PNG:
-		tile = fz_load_png(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
-		break;
-	case FZ_IMAGE_TIFF:
-		tile = fz_load_tiff(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
-		break;
-	case FZ_IMAGE_JXR:
-		tile = fz_load_jxr(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
-		break;
-	case FZ_IMAGE_JPEG:
-		/* Scan JPEG stream and patch missing height values in header */
-		{
-			unsigned char *s = image->buffer->buffer->data;
-			unsigned char *e = s + image->buffer->buffer->len;
-			unsigned char *d;
-			for (d = s + 2; s < d && d < e - 9 && d[0] == 0xFF; d += (d[2] << 8 | d[3]) + 2)
-			{
-				if (d[1] < 0xC0 || (0xC3 < d[1] && d[1] < 0xC9) || 0xCB < d[1])
-					continue;
-				if ((d[5] == 0 && d[6] == 0) || ((d[5] << 8) | d[6]) > image->h)
-				{
-					d[5] = (image->h >> 8) & 0xFF;
-					d[6] = image->h & 0xFF;
-				}
-			}
-		}
-		/* fall through */
-
-	default:
-		native_l2factor = l2factor;
-		stm = fz_open_image_decomp_stream_from_buffer(ctx, image->buffer, &native_l2factor);
-
-		indexed = fz_colorspace_is_indexed(ctx, image->colorspace);
-		tile = fz_decomp_image_from_stream(ctx, stm, image, indexed, l2factor, native_l2factor);
-
-		/* CMYK JPEGs in XPS documents have to be inverted */
-		if (image->invert_cmyk_jpeg &&
-			image->buffer->params.type == FZ_IMAGE_JPEG &&
-			image->colorspace == fz_device_cmyk(ctx) &&
-			image->buffer->params.u.jpeg.color_transform)
-		{
-			fz_invert_pixmap(ctx, tile);
-		}
-
-		break;
+		fz_subsample_pixmap(ctx, tile, l2factor_remaining);
 	}
 
 	/* Now we try to cache the pixmap. Any failure here will just result
@@ -384,9 +402,10 @@ fz_new_image_from_pixmap(fz_context *ctx, fz_pixmap *pixmap, fz_image *mask)
 		image->h = pixmap->h;
 		image->n = pixmap->n;
 		image->colorspace = fz_keep_colorspace(ctx, pixmap->colorspace);
+		image->invert_cmyk_jpeg = 1;
 		image->bpc = 8;
 		image->buffer = NULL;
-		image->get_pixmap = fz_image_get_pixmap;
+		image->get_pixmap = NULL;
 		image->xres = pixmap->xres;
 		image->yres = pixmap->yres;
 		image->tile = fz_keep_pixmap(ctx, pixmap);
@@ -413,7 +432,7 @@ fz_new_image(fz_context *ctx, int w, int h, int bpc, fz_colorspace *colorspace,
 	{
 		image = fz_malloc_struct(ctx, fz_image);
 		FZ_INIT_STORABLE(image, 1, fz_drop_image_imp);
-		image->get_pixmap = fz_image_get_pixmap;
+		image->get_pixmap = standard_image_get_pixmap;
 		image->w = w;
 		image->h = h;
 		image->xres = xres;
@@ -421,6 +440,7 @@ fz_new_image(fz_context *ctx, int w, int h, int bpc, fz_colorspace *colorspace,
 		image->bpc = bpc;
 		image->n = (colorspace ? colorspace->n : 1);
 		image->colorspace = colorspace;
+		image->invert_cmyk_jpeg = 1;
 		image->interpolate = interpolate;
 		image->imagemask = imagemask;
 		image->usecolorkey = (colorkey != NULL);
@@ -517,6 +537,11 @@ fz_new_image_from_buffer(fz_context *ctx, fz_buffer *buffer)
 		{
 			bc->params.type = FZ_IMAGE_TIFF;
 			fz_load_tiff_info(ctx, buf, len, &w, &h, &xres, &yres, &cspace);
+		}
+		else if (memcmp(buf, "GIF", 3) == 0)
+		{
+			bc->params.type = FZ_IMAGE_GIF;
+			fz_load_gif_info(ctx, buf, len, &w, &h, &xres, &yres, &cspace);
 		}
 		else
 			fz_throw(ctx, FZ_ERROR_GENERIC, "unknown image file format");
