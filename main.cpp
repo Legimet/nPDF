@@ -103,7 +103,12 @@ int main(int argc, char **argv) {
 	cfg_register_fileext("pdf", s.c_str());
 	cfg_register_fileext("xps", s.c_str());
 	cfg_register_fileext("cbz", s.c_str());
-	show_msgbox("nPDF", "File extensions registered. You can now open a .pdf, .xps, or .cbz file from the Documents screen");
+	cfg_register_fileext("xml", s.c_str());
+	cfg_register_fileext("xhtml", s.c_str());
+	cfg_register_fileext("html", s.c_str());
+	cfg_register_fileext("htm", s.c_str());
+	cfg_register_fileext("epub", s.c_str());
+	show_msgbox("nPDF", "File extensions registered. You can now open a .pdf, .xps, .cbz, .xml, .xhtml, .html, .htm and .epub files from the Documents screen");
 	return 0;
     }
 
