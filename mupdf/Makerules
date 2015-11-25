@@ -170,6 +170,15 @@ install-nacl-libs: $(OUT)/libmupdf.a $(OUT)/libmujs.a $(OUT)/libjbig2dec.a $(OUT
 	install $(OUT)/libmupdf.a $(OUT)/libmujs.a $(OUT)/libjbig2dec.a $(OUT)/libopenjpeg.a $(LIBDIR)/$(TOOLCHAIN)/$(CONFIG)/
 endif
 
+ifeq "$(OS)" "ti-nspire"
+CC = nspire-gcc
+LD = nspire-gcc
+AR = arm-none-eabi-ar
+ifeq "$(build)" "release"
+CFLAGS += -O3
+endif
+CROSSCOMPILE=yes
+endif
 
 # Most variables when building for iOS are set up in ios/build_libs.sh,
 # which is called from the Xcode project as a "Run Script" build step.
