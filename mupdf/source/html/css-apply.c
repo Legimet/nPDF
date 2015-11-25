@@ -4,7 +4,6 @@ static const char *inherit_list[] = {
 	"color",
 	"direction",
 	"font-family",
-	"font-size",
 	"font-style",
 	"font-variant",
 	"font-weight",
@@ -190,15 +189,15 @@ count_selector_names(fz_css_selector *sel)
 	return n;
 }
 
-#define INLINE_SPECIFICITY 1000
+#define INLINE_SPECIFICITY 10000
 
 static int
-selector_specificity(fz_css_selector *sel)
+selector_specificity(fz_css_selector *sel, int important)
 {
 	int b = count_selector_ids(sel);
 	int c = count_selector_atts(sel);
 	int d = count_selector_names(sel);
-	return b * 100 + c * 10 + d;
+	return important * 1000 + b * 100 + c * 10 + d;
 }
 
 /*
@@ -593,7 +592,7 @@ fz_match_css(fz_context *ctx, fz_css_match *match, fz_css_rule *css, fz_xml *nod
 			if (match_selector(sel, node))
 			{
 				for (prop = rule->declaration; prop; prop = prop->next)
-					add_property(match, prop->name, prop->value, selector_specificity(sel));
+					add_property(match, prop->name, prop->value, selector_specificity(sel, prop->important));
 				break;
 			}
 			sel = sel->next;
@@ -623,6 +622,29 @@ fz_match_css(fz_context *ctx, fz_css_match *match, fz_css_rule *css, fz_xml *nod
 	}
 }
 
+void
+fz_match_css_at_page(fz_context *ctx, fz_css_match *match, fz_css_rule *css)
+{
+	fz_css_rule *rule;
+	fz_css_selector *sel;
+	fz_css_property *prop;
+
+	for (rule = css; rule; rule = rule->next)
+	{
+		sel = rule->selector;
+		while (sel)
+		{
+			if (sel->name && !strcmp(sel->name, "@page"))
+			{
+				for (prop = rule->declaration; prop; prop = prop->next)
+					add_property(match, prop->name, prop->value, selector_specificity(sel, prop->important));
+				break;
+			}
+			sel = sel->next;
+		}
+	}
+}
+
 static fz_css_value *
 value_from_raw_property(fz_css_match *match, const char *name)
 {
@@ -642,7 +664,8 @@ value_from_property(fz_css_match *match, const char *name)
 	if (match->up)
 	{
 		if (value && !strcmp(value->data, "inherit"))
-			return value_from_property(match->up, name);
+			if (strcmp(name, "font-size") != 0) /* never inherit 'font-size' textually */
+				return value_from_property(match->up, name);
 		if (!value && keyword_in_list(name, inherit_list, nelem(inherit_list)))
 			return value_from_property(match->up, name);
 	}
@@ -921,10 +944,24 @@ white_space_from_property(fz_css_match *match)
 	return WS_NORMAL;
 }
 
+static int
+visibility_from_property(fz_css_match *match)
+{
+	fz_css_value *value = value_from_property(match, "visibility");
+	if (value)
+	{
+		if (!strcmp(value->data, "visible")) return V_VISIBLE;
+		else if (!strcmp(value->data, "hidden")) return V_HIDDEN;
+		else if (!strcmp(value->data, "collapse")) return V_COLLAPSE;
+	}
+	return V_VISIBLE;
+}
+
 void
 fz_default_css_style(fz_context *ctx, fz_css_style *style)
 {
 	memset(style, 0, sizeof *style);
+	style->visibility = V_VISIBLE;
 	style->text_align = TA_LEFT;
 	style->vertical_align = VA_BASELINE;
 	style->white_space = WS_NORMAL;
@@ -944,6 +981,7 @@ fz_apply_css_style(fz_context *ctx, fz_html_font_set *set, fz_css_style *style, 
 
 	fz_default_css_style(ctx, style);
 
+	style->visibility = visibility_from_property(match);
 	style->white_space = white_space_from_property(match);
 
 	value = value_from_property(match, "text-align");
@@ -1046,6 +1084,7 @@ fz_apply_css_style(fz_context *ctx, fz_html_font_set *set, fz_css_style *style, 
 		const char *font_style = string_from_property(match, "font-style", "normal");
 		const char *font_weight = string_from_property(match, "font-weight", "normal");
 		style->font = fz_load_html_font(ctx, set, font_family, font_variant, font_style, font_weight);
+		style->fallback = fz_load_html_fallback_font(ctx, set);
 	}
 }
 
@@ -1075,7 +1114,9 @@ print_property(fz_css_property *prop)
 {
 	printf("\t%s: ", prop->name);
 	print_value(prop->value);
-	printf(" !%d;\n", prop->spec);
+	if (prop->important)
+		printf(" !important");
+	printf(";\n");
 }
 
 void
@@ -1124,7 +1165,7 @@ print_rule(fz_css_rule *rule)
 	for (sel = rule->selector; sel; sel = sel->next)
 	{
 		print_selector(sel);
-		printf(" !%d", selector_specificity(sel));
+		printf(" /* %d */", selector_specificity(sel, 0));
 		if (sel->next)
 			printf(", ");
 	}

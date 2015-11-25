@@ -51,6 +51,11 @@ typedef fz_annot *(fz_page_next_annot_fn)(fz_context *ctx, fz_page *page, fz_ann
 typedef fz_rect *(fz_page_bound_annot_fn)(fz_context *ctx, fz_page *page, fz_annot *annot, fz_rect *rect);
 typedef void (fz_page_run_annot_fn)(fz_context *ctx, fz_page *page, fz_annot *annot, fz_device *dev, const fz_matrix *transform, fz_cookie *cookie);
 
+typedef void (fz_page_control_separation_fn)(fz_context *ctx, fz_page *page, int separation, int disable);
+typedef int (fz_page_separation_disabled_fn)(fz_context *ctx, fz_page *page, int separation);
+typedef int (fz_page_count_separations_fn)(fz_context *ctx, fz_page *page);
+typedef const char *(fz_page_get_separation_fn)(fz_context *ctx, fz_page *page, int separation, uint32_t *rgb, uint32_t *cmyk);
+
 struct fz_page_s
 {
 	int refs;
@@ -63,6 +68,10 @@ struct fz_page_s
 	fz_page_bound_annot_fn *bound_annot;
 	fz_page_run_annot_fn *run_annot;
 	fz_page_page_presentation_fn *page_presentation;
+	fz_page_control_separation_fn *control_separation;
+	fz_page_separation_disabled_fn *separation_disabled;
+	fz_page_count_separations_fn *count_separations;
+	fz_page_get_separation_fn *get_separation;
 };
 
 struct fz_document_s
@@ -99,6 +108,7 @@ extern fz_document_handler img_document_handler;
 extern fz_document_handler tiff_document_handler;
 extern fz_document_handler html_document_handler;
 extern fz_document_handler epub_document_handler;
+extern fz_document_handler gprf_document_handler;
 
 void fz_register_document_handler(fz_context *ctx, const fz_document_handler *handler);
 
@@ -292,6 +302,13 @@ void fz_run_page_contents(fz_context *ctx, fz_page *page, fz_device *dev, const 
 void fz_run_annot(fz_context *ctx, fz_page *page, fz_annot *annot, fz_device *dev, const fz_matrix *transform, fz_cookie *cookie);
 
 /*
+	fz_keep_page: Keep a reference to a loaded page.
+
+	Does not throw exceptions.
+*/
+fz_page *fz_keep_page(fz_context *ctx, fz_page *page);
+
+/*
 	fz_drop_page: Free a loaded page.
 
 	Does not throw exceptions.
@@ -351,5 +368,51 @@ int fz_lookup_metadata(fz_context *ctx, fz_document *doc, const char *key, char 
 
 #define FZ_META_INFO_AUTHOR "info:Author"
 #define FZ_META_INFO_TITLE "info:Title"
+
+/*
+	Get the number of separations on a page (including CMYK). This will
+	be 0, unless the format specifically supports separations (such as
+	gproof files).
+*/
+int fz_count_separations_on_page(fz_context *ctx, fz_page *page);
+
+/*
+	Enable/Disable a given separation on a given page. This will only
+	affect future renderings of pages from a format that supports
+	separations (such as gproof files).
+*/
+void fz_control_separation_on_page(fz_context *ctx, fz_page *page, int sep, int disable);
+
+/*
+	Returns whether a given separation on a given page is disabled. This will only
+	work from a format that supports separations (such as gproof files).
+ */
+int fz_separation_disabled_on_page (fz_context *ctx, fz_page *, int sep);
+
+/*
+	Get the name and equivalent RGBA, CMYK colors of a given separation
+	on a given page. This will only work for formats that support
+	gproof files.
+*/
+const char *fz_get_separation_on_page(fz_context *ctx, fz_page *page, int sep, uint32_t *rgba, uint32_t *cmyk);
+
+/*
+	fz_write_gproof_file: Given a currently open document, create a
+	gproof skeleton file from that document.
+
+	doc_filename: The name of the currently opened document file.
+
+	doc: The currently opened document.
+
+	filename: The filename of the desired gproof file.
+
+	res: The resolution at which proofing should be done.
+
+	print_profile: The filename of the ICC profile for the printer we are proofing
+
+	display_profile: The filename of the ICC profile for our display device
+*/
+void fz_write_gproof_file(fz_context *ctx, const char *doc_filename, fz_document *doc, const char *filename, int res,
+	const char *print_profile, const char *display_profile);
 
 #endif

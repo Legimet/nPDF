@@ -80,44 +80,35 @@ void fz_warn(fz_context *ctx, const char *fmt, ...)
  *             catch region entered with code = 1.
  */
 
-FZ_NORETURN static void throw(fz_error_context *ex);
-
-static void throw(fz_error_context *ex)
+FZ_NORETURN static void throw(fz_context *ctx)
 {
-	if (ex->top >= 0)
+	if (ctx->error->top >= 0)
 	{
-		fz_longjmp(ex->stack[ex->top].buffer, ex->stack[ex->top].code + 2);
+		ctx->error->stack[ctx->error->top].code += 2;
+		fz_longjmp(ctx->error->stack[ctx->error->top].buffer, ctx->error->stack[ctx->error->top].code);
 	}
 	else
 	{
-		fprintf(stderr, "uncaught exception: %s\n", ex->message);
-		LOGE("uncaught exception: %s\n", ex->message);
+		fprintf(stderr, "uncaught exception: %s\n", ctx->error->message);
+		LOGE("uncaught exception: %s\n", ctx->error->message);
 #ifdef USE_OUTPUT_DEBUG_STRING
 		OutputDebugStringA("uncaught exception: ");
-		OutputDebugStringA(ex->message);
+		OutputDebugStringA(ctx->error->message);
 		OutputDebugStringA("\n");
 #endif
 		exit(EXIT_FAILURE);
 	}
 }
 
-int fz_push_try(fz_error_context *ex)
+void fz_push_try(fz_context *ctx)
 {
-	assert(ex);
-	ex->top++;
-	/* Normal case, get out of here quick */
-	if (ex->top < nelem(ex->stack)-1)
-		return 1; /* We exit here, and the setjmp sets the code to 0 */
-	/* We reserve the top slot on the exception stack purely to cope with
-	 * the case when we overflow. If we DO hit this, then we 'throw'
-	 * immediately - returning 0 stops the setjmp happening and takes us
-	 * direct to the always/catch clauses. */
-	assert(ex->top == nelem(ex->stack)-1);
-	strcpy(ex->message, "exception stack overflow!");
-	ex->stack[ex->top].code = 2;
-	fprintf(stderr, "error: %s\n", ex->message);
-	LOGE("error: %s\n", ex->message);
-	return 0;
+	/* If we would overflow the exception stack, throw an exception instead
+	 * of entering the try block. */
+	if (ctx->error->top + 1 >= nelem(ctx->error->stack))
+		fz_throw(ctx, FZ_ERROR_GENERIC, "exception stack overflow!");
+
+	ctx->error->top++;
+	ctx->error->stack[ctx->error->top].code = 0;
 }
 
 int fz_caught(fz_context *ctx)
@@ -152,13 +143,13 @@ void fz_throw(fz_context *ctx, int code, const char *fmt, ...)
 #endif
 	}
 
-	throw(ctx->error);
+	throw(ctx);
 }
 
 void fz_rethrow(fz_context *ctx)
 {
 	assert(ctx && ctx->error && ctx->error->errcode >= FZ_ERROR_NONE);
-	throw(ctx->error);
+	throw(ctx);
 }
 
 void fz_rethrow_message(fz_context *ctx, const char *fmt, ...)
@@ -183,7 +174,7 @@ void fz_rethrow_message(fz_context *ctx, const char *fmt, ...)
 #endif
 	}
 
-	throw(ctx->error);
+	throw(ctx);
 }
 
 void fz_rethrow_if(fz_context *ctx, int err)

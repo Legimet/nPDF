@@ -235,6 +235,8 @@ void Viewer::scrollUp() {
         yPos -= scroll;
         yPos = (yPos<0)?0:yPos;
         needDisplay = true;
+    } else {
+	prev();
     }
 }
 
@@ -243,6 +245,8 @@ void Viewer::scrollDown() {
         yPos += scroll;
         yPos = (xPos > (bounds.y1 - bounds.y0) - height)?(bounds.y1 - bounds.y0) - width:yPos;
         needDisplay = true;
+    } else {
+	next();
     }
 }
 

@@ -71,6 +71,18 @@ static inline int fz_write_int32be(fz_context *ctx, fz_output *out, int x)
 	return fz_write(ctx, out, data, 4);
 }
 
+static inline int fz_write_int32le(fz_context *ctx, fz_output *out, int x)
+{
+	char data[4];
+
+	data[0] = x;
+	data[1] = x>>8;
+	data[2] = x>>16;
+	data[3] = x>>24;
+
+	return fz_write(ctx, out, data, 4);
+}
+
 static inline void
 fz_write_byte(fz_context *ctx, fz_output *out, int x)
 {
@@ -100,5 +112,16 @@ int fz_fprintf(fz_context *ctx, FILE *file, const char *fmt, ...);
 */
 int fz_vsnprintf(char *buffer, int space, const char *fmt, va_list args);
 int fz_snprintf(char *buffer, int space, const char *fmt, ...);
+
+/*
+	fz_tempfilename: Get a temporary filename based upon 'base'.
+
+	'hint' is the path of a file (normally the existing document file)
+	supplied to give the function an idea of what directory to use. This
+	may or may not be used depending on the implementations whim.
+
+	The returned path must be freed.
+*/
+char *fz_tempfilename(fz_context *ctx, const char *base, const char *hint);
 
 #endif

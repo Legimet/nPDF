@@ -638,11 +638,11 @@ void pdf_write_digest(fz_context *ctx, pdf_document *doc, char *filename, pdf_ob
 		if (p7_len*2 + 2 > digest_length)
 			fz_throw(ctx, FZ_ERROR_GENERIC, "Insufficient space for digest");
 
-		f = fopen(filename, "rb+");
+		f = fz_fopen(filename, "rb+");
 		if (f == NULL)
 			fz_throw(ctx, FZ_ERROR_GENERIC, "Failed to write digest");
 
-		fseek(f, digest_offset+1, SEEK_SET);
+		fz_fseek(f, digest_offset+1, SEEK_SET);
 
 		for (i = 0; i < p7_len; i++)
 			fprintf(f, "%02x", p7_ptr[i]);
@@ -670,17 +670,13 @@ int pdf_check_signature(fz_context *ctx, pdf_document *doc, pdf_widget *widget, 
 	char *contents = NULL;
 	int contents_len;
 	int res = 0;
-	pdf_unsaved_sig *usig;
 
-	for (usig = doc->unsaved_sigs; usig; usig = usig->next)
+	if (pdf_xref_obj_is_unsaved_signature(doc, ((pdf_annot *)widget)->obj))
 	{
-		if (usig->field == ((pdf_annot *)widget)->obj)
-		{
-			fz_strlcpy(ebuf, "Signed but document yet to be saved", ebufsize);
-			if (ebufsize > 0)
-				ebuf[ebufsize-1] = 0;
-			return 0;
-		}
+		fz_strlcpy(ebuf, "Signed but document yet to be saved", ebufsize);
+		if (ebufsize > 0)
+			ebuf[ebufsize-1] = 0;
+		return 0;
 	}
 
 	fz_var(byte_range);

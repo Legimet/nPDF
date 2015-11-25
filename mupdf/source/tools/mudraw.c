@@ -7,7 +7,6 @@
 
 #ifdef _MSC_VER
 #include <winsock2.h>
-#define main main_utf8
 #else
 #include <sys/time.h>
 #endif
@@ -18,6 +17,7 @@ enum {
 	OUT_PBM, OUT_PWG, OUT_PCL,
 	OUT_TEXT, OUT_HTML, OUT_STEXT,
 	OUT_TRACE, OUT_SVG, OUT_PDF,
+	OUT_GPROOF
 };
 
 enum { CS_INVALID, CS_UNSET, CS_MONO, CS_GRAY, CS_GRAY_ALPHA, CS_RGB, CS_RGB_ALPHA, CS_CMYK, CS_CMYK_ALPHA };
@@ -48,6 +48,7 @@ static const suffix_t suffix_table[] =
 	{ ".stext", OUT_STEXT },
 
 	{ ".trace", OUT_TRACE },
+	{ ".gproof", OUT_GPROOF },
 };
 
 typedef struct
@@ -96,6 +97,7 @@ static const format_cs_table_t format_cs_table[] =
 	{ OUT_TRACE, CS_RGB, { CS_RGB } },
 	{ OUT_SVG, CS_RGB, { CS_RGB } },
 	{ OUT_PDF, CS_RGB, { CS_RGB } },
+	{ OUT_GPROOF, CS_RGB, { CS_RGB } },
 
 	{ OUT_TEXT, CS_RGB, { CS_RGB } },
 	{ OUT_HTML, CS_RGB, { CS_RGB } },
@@ -116,6 +118,7 @@ static int fit = 0;
 static float layout_w = 450;
 static float layout_h = 600;
 static float layout_em = 12;
+static char *layout_css = NULL;
 
 static int showfeatures = 0;
 static int showtime = 0;
@@ -181,6 +184,7 @@ static void usage(void)
 		"\t-W -\tpage width for EPUB layout\n"
 		"\t-H -\tpage height for EPUB layout\n"
 		"\t-S -\tfont size for EPUB layout\n"
+		"\t-U -\tfile name of user stylesheet for EPUB layout\n"
 		"\n"
 		"\t-c -\tcolorspace (mono, gray, grayalpha, rgb, rgba, cmyk, cmykalpha)\n"
 		"\t-G -\tapply gamma correction\n"
@@ -424,7 +428,7 @@ static void drawpage(fz_context *ctx, fz_document *doc, int pagenum)
 		else
 		{
 			sprintf(buf, output, pagenum);
-			file = fopen(buf, "wb");
+			file = fz_fopen(buf, "wb");
 			if (file == NULL)
 				fz_throw(ctx, FZ_ERROR_GENERIC, "cannot open file '%s': %s", buf, strerror(errno));
 		}
@@ -845,17 +849,22 @@ trace_realloc(void *arg, void *p_, unsigned int size)
 	return &p[1];
 }
 
+#ifdef MUDRAW_STANDALONE
 int main(int argc, char **argv)
+#else
+int mudraw_main(int argc, char **argv)
+#endif
 {
 	char *password = "";
 	fz_document *doc = NULL;
 	int c;
 	fz_context *ctx;
 	fz_alloc_context alloc_ctx = { NULL, trace_malloc, trace_realloc, trace_free };
+	FILE *my_output = NULL;
 
 	fz_var(doc);
 
-	while ((c = fz_getopt(argc, argv, "po:F:R:r:w:h:fB:c:G:I:s:A:DiW:H:S:v")) != -1)
+	while ((c = fz_getopt(argc, argv, "p:o:F:R:r:w:h:fB:c:G:I:s:A:DiW:H:S:U:v")) != -1)
 	{
 		switch (c)
 		{
@@ -880,6 +889,7 @@ int main(int argc, char **argv)
 		case 'W': layout_w = atof(fz_optarg); break;
 		case 'H': layout_h = atof(fz_optarg); break;
 		case 'S': layout_em = atof(fz_optarg); break;
+		case 'U': layout_css = fz_optarg; break;
 
 		case 's':
 			if (strchr(fz_optarg, 't')) ++showtime;
@@ -907,6 +917,14 @@ int main(int argc, char **argv)
 	}
 
 	fz_set_aa_level(ctx, alphabits);
+
+	if (layout_css)
+	{
+		fz_buffer *buf = fz_read_file(ctx, layout_css);
+		fz_write_buffer_byte(ctx, buf, 0);
+		fz_set_user_css(ctx, (char*)buf->data);
+		fz_drop_buffer(ctx, buf);
+	}
 
 	/* Determine output type */
 	if (bandheight < 0)
@@ -1025,7 +1043,20 @@ int main(int argc, char **argv)
 	timing.maxfilename = "";
 
 	if (output_format == OUT_TEXT || output_format == OUT_HTML || output_format == OUT_STEXT || output_format == OUT_TRACE)
-		out = fz_new_output_with_file(ctx, stdout, 0);
+	{
+		if (output && output[0] != '-' && *output != 0)
+		{
+			my_output = fopen(output, "w");
+			if (my_output == NULL)
+			{
+				fprintf(stderr, "Failed to open file '%s' for output\n", output);
+				exit(1);
+			}
+		}
+		else
+			my_output = stdout;
+		out = fz_new_output_with_file(ctx, my_output, 0);
+	}
 
 	if (output_format == OUT_STEXT || output_format == OUT_TRACE)
 		fz_printf(ctx, out, "<?xml version=\"1.0\"?>\n");
@@ -1077,11 +1108,17 @@ int main(int argc, char **argv)
 
 				if (output_format == OUT_STEXT || output_format == OUT_TRACE)
 					fz_printf(ctx, out, "<document name=\"%s\">\n", filename);
-
-				if (fz_optind == argc || !isrange(argv[fz_optind]))
-					drawrange(ctx, doc, "1-");
-				if (fz_optind < argc && isrange(argv[fz_optind]))
-					drawrange(ctx, doc, argv[fz_optind++]);
+				if (output_format == OUT_GPROOF)
+				{
+					fz_write_gproof_file(ctx, filename, doc, output, resolution, "", "");
+				}
+				else
+				{
+					if (fz_optind == argc || !isrange(argv[fz_optind]))
+						drawrange(ctx, doc, "1-");
+					if (fz_optind < argc && isrange(argv[fz_optind]))
+						drawrange(ctx, doc, argv[fz_optind++]);
+				}
 
 				if (output_format == OUT_STEXT || output_format == OUT_TRACE)
 					fz_printf(ctx, out, "</document>\n");
@@ -1127,6 +1164,9 @@ int main(int argc, char **argv)
 	fz_drop_output(ctx, out);
 	out = NULL;
 
+	if (my_output != NULL && my_output != stdout)
+		fclose(my_output);
+
 	if (showtime && timing.count > 0)
 	{
 		if (files == 1)
@@ -1163,13 +1203,3 @@ int main(int argc, char **argv)
 
 	return (errored != 0);
 }
-
-#ifdef _MSC_VER
-int wmain(int argc, wchar_t *wargv[])
-{
-	char **argv = fz_argv_from_wargv(argc, wargv);
-	int ret = main(argc, argv);
-	fz_free_argv(argc, argv);
-	return ret;
-}
-#endif
