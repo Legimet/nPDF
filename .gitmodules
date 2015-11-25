@@ -16,6 +16,9 @@
 [submodule "mupdf/thirdparty/zlib"]
 	path = mupdf/thirdparty/zlib
 	url = git://git.ghostscript.com/thirdparty/zlib.git
+[submodule "mupdf/thirdparty/glfw"]
+	path = mupdf/thirdparty/glfw
+	url = git://git.ghostscript.com/thirdparty/glfw.git
 [submodule "mupdf/thirdparty/curl"]
 	path = mupdf/thirdparty/curl
 	url = git://git.ghostscript.com/thirdparty/curl.git
