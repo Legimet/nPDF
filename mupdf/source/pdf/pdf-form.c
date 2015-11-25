@@ -1276,26 +1276,35 @@ int pdf_text_widget_set_text(fz_context *ctx, pdf_document *doc, pdf_widget *tw,
 	return accepted;
 }
 
-int pdf_choice_widget_options(fz_context *ctx, pdf_document *doc, pdf_widget *tw, char *opts[])
+/* Get either the listed value or the export value. */
+int pdf_choice_widget_options(fz_context *ctx, pdf_document *doc, pdf_widget *tw, int exportval, char *opts[])
 {
 	pdf_annot *annot = (pdf_annot *)tw;
 	pdf_obj *optarr;
-	int i, n;
+	int i, n, m;
 
 	if (!annot)
 		return 0;
 
 	optarr = pdf_dict_get(ctx, annot->obj, PDF_NAME_Opt);
 	n = pdf_array_len(ctx, optarr);
-
+	
 	if (opts)
 	{
 		for (i = 0; i < n; i++)
 		{
-			opts[i] = pdf_to_str_buf(ctx, pdf_array_get(ctx, optarr, i));
+			m = pdf_array_len(ctx, pdf_array_get(ctx, optarr, i));
+			/* If it is a two element array, the second item is the one that we want
+			   if we want the listing value */
+			if (m == 2)
+				if (exportval)
+					opts[i] = pdf_to_str_buf(ctx, pdf_array_get(ctx, pdf_array_get(ctx, optarr, i), 0));
+				else
+					opts[i] = pdf_to_str_buf(ctx, pdf_array_get(ctx, pdf_array_get(ctx, optarr, i), 1));
+			else
+				opts[i] = pdf_to_str_buf(ctx, pdf_array_get(ctx, optarr, i));
 		}
 	}
-
 	return n;
 }
 
@@ -1439,7 +1448,6 @@ void pdf_signature_set_value(fz_context *ctx, pdf_document *doc, pdf_obj *field,
 	pdf_obj *byte_range;
 	pdf_obj *contents;
 	char buf[2048];
-	pdf_unsaved_sig *unsaved_sig;
 
 	memset(buf, 0, sizeof(buf));
 
@@ -1474,9 +1482,5 @@ void pdf_signature_set_value(fz_context *ctx, pdf_document *doc, pdf_obj *field,
 	/* Record details within the document structure so that contents
 	 * and byte_range can be updated with their correct values at
 	 * saving time */
-	unsaved_sig = fz_malloc_struct(ctx, pdf_unsaved_sig);
-	unsaved_sig->field = pdf_keep_obj(ctx, field);
-	unsaved_sig->signer = pdf_keep_signer(ctx, signer);
-	unsaved_sig->next = doc->unsaved_sigs;
-	doc->unsaved_sigs = unsaved_sig;
+	pdf_xref_store_unsaved_signature(ctx, doc, field, signer);
 }

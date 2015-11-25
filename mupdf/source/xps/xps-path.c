@@ -214,7 +214,7 @@ xps_draw_arc(fz_context *ctx, xps_document *doc, fz_path *path,
  * build up a path.
  */
 
-static fz_path *
+fz_path *
 xps_parse_abbreviated_geometry(fz_context *ctx, xps_document *doc, char *geom, int *fill_rule)
 {
 	fz_path *path;
@@ -716,11 +716,7 @@ xps_parse_path_geometry(fz_context *ctx, xps_document *doc, xps_resource *dict, 
 			*fill_rule = 0;
 	}
 
-	transform = fz_identity;
-	if (transform_att)
-		xps_parse_render_transform(ctx, doc, transform_att, &transform);
-	if (transform_tag)
-		xps_parse_matrix_transform(ctx, doc, transform_tag, &transform);
+	xps_parse_transform(ctx, doc, transform_att, transform_tag, &transform, &fz_identity);
 
 	if (figures_att)
 		path = xps_parse_abbreviated_geometry(ctx, doc, figures_att, fill_rule);
@@ -814,10 +810,8 @@ xps_parse_path(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, char *b
 	char *stroke_line_join_att;
 	char *stroke_miter_limit_att;
 	char *stroke_thickness_att;
-	char *navigate_uri_att;
 
 	fz_stroke_state *stroke = NULL;
-	fz_matrix transform;
 	float samples[FZ_MAX_COLORS];
 	fz_colorspace *colorspace;
 	fz_path *path = NULL;
@@ -847,7 +841,6 @@ xps_parse_path(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, char *b
 	stroke_line_join_att = fz_xml_att(root, "StrokeLineJoin");
 	stroke_miter_limit_att = fz_xml_att(root, "StrokeMiterLimit");
 	stroke_thickness_att = fz_xml_att(root, "StrokeThickness");
-	navigate_uri_att = fz_xml_att(root, "FixedPage.NavigateUri");
 
 	for (node = fz_xml_down(root); node; node = fz_xml_next(node))
 	{
@@ -967,12 +960,7 @@ xps_parse_path(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, char *b
 		}
 	}
 
-	transform = fz_identity;
-	if (transform_att)
-		xps_parse_render_transform(ctx, doc, transform_att, &transform);
-	if (transform_tag)
-		xps_parse_matrix_transform(ctx, doc, transform_tag, &transform);
-	fz_concat(&local_ctm, &transform, ctm);
+	xps_parse_transform(ctx, doc, transform_att, transform_tag, &local_ctm, ctm);
 
 	if (clip_att || clip_tag)
 		xps_clip(ctx, doc, &local_ctm, dict, clip_att, clip_tag);
@@ -1000,9 +988,6 @@ xps_parse_path(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, char *b
 	}
 	else
 		fz_bound_path(ctx, path, NULL, &local_ctm, &area);
-
-	if (navigate_uri_att)
-		xps_add_link(ctx, doc, &area, base_uri, navigate_uri_att);
 
 	xps_begin_opacity(ctx, doc, &local_ctm, &area, opacity_mask_uri, dict, opacity_att, opacity_mask_tag);
 

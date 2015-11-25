@@ -10,9 +10,9 @@
  * uses a number of callbacks to the GUI app.
  */
 
-/* 25% .. 400% */
+/* 25% .. 1600% */
 #define MINRES 18
-#define MAXRES 288
+#define MAXRES 1152
 
 typedef struct pdfapp_s pdfapp_t;
 
@@ -57,6 +57,7 @@ struct pdfapp_s
 	float layout_w;
 	float layout_h;
 	float layout_em;
+	char *layout_css;
 
 	int pagecount;
 
@@ -140,6 +141,7 @@ struct pdfapp_s
 };
 
 void pdfapp_init(fz_context *ctx, pdfapp_t *app);
+void pdfapp_setresolution(pdfapp_t *app, int res);
 void pdfapp_open(pdfapp_t *app, char *filename, int reload);
 void pdfapp_open_progressive(pdfapp_t *app, char *filename, int reload, int bps);
 void pdfapp_close(pdfapp_t *app);
