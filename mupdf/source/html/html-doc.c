@@ -171,6 +171,20 @@ htdoc_recognize(fz_context *doc, const char *magic)
 		if (!fz_strcasecmp(ext, ".xml") || !fz_strcasecmp(ext, ".xhtml") ||
 				!fz_strcasecmp(ext, ".html") || !fz_strcasecmp(ext, ".htm"))
 			return 100;
+
+#ifdef _TINSPIRE
+		if (!fz_strcasecmp(ext, ".tns"))
+		{
+			while (--ext >= magic)
+			{
+				if (*ext == '.')
+					break;
+			}
+			if (ext >= magic && (!fz_strcasecmp(ext, ".xml.tns") || !fz_strcasecmp(ext, ".xhtml.tns") ||
+				!fz_strcasecmp(ext, ".html.tns") || !fz_strcasecmp(ext, ".htm.tns")))
+				return 100;
+		}
+#endif
 	}
 	if (!strcmp(magic, "application/html+xml") || !strcmp(magic, "application/xml") || !strcmp(magic, "text/xml"))
 		return 100;

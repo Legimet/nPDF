@@ -475,8 +475,23 @@ epub_recognize(fz_context *doc, const char *magic)
 {
 	char *ext = strrchr(magic, '.');
 	if (ext)
+	{
 		if (!fz_strcasecmp(ext, ".epub"))
 			return 100;
+
+#ifdef _TINSPIRE
+		if (!fz_strcasecmp(ext, ".tns"))
+		{
+			while (--ext >= magic)
+			{
+				if (*ext == '.')
+					break;
+			}
+			if (ext >= magic && !fz_strcasecmp(ext, ".epub.tns"))
+				return 100;
+		}
+#endif
+	}
 	if (strstr(magic, "META-INF/container.xml") || strstr(magic, "META-INF\\container.xml"))
 		return 200;
 	if (!strcmp(magic, "application/epub+zip"))
