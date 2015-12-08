@@ -1,4 +1,4 @@
-# nPDF 0.3
+# nPDF 0.4 beta
 
 nPDF is a document viewer for TI-Nspire handheld calculators using MuPDF 1.6.
 It supports PDF, XPS, CBZ, and various image formats. [Ndless](http://ndless.me)
@@ -21,8 +21,7 @@ More controls will be added later.
 You must have the [Ndless SDK](http://ndlessly.wordpress.com/ndless-for-developers/)
 installed.
 
-The source code can be found on [GitHub](https://github.com/Legimet/nPDF/) or
-[Gitorious](https://gitorious.org/npdf/npdf).
+The source code can be found on [GitHub](https://github.com/Legimet/nPDF/).
 
 Once you have the code, clone submodules jbig2dec, jpeg, and openjpeg:
 
@@ -33,6 +32,12 @@ Once you have the code, clone submodules jbig2dec, jpeg, and openjpeg:
 provided in the Ndless SDK.)
 
 Simply run `make` to compile nPDF.
+
+For EPUB and HTML support, the CJK fonts will have to be included in the MuPDF
+build because of a [bug in MuPDF](http://bugs.ghostscript.com/show_bug.cgi?id=696326).
+This will increase the size of the executable significantly, but if you want
+to do this, simply change `MUPDF_XCFLAGS` in `Makefile` to `-DNOCJKFULL` (larger
+size) or remove it (even larger size).
 
 ## Libraries used
 
