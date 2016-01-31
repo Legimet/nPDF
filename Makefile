@@ -1,46 +1,34 @@
-# nPDF makefile
-# Copyright (C) 2014  Legimet
-#
-# This file is part of nPDF.
-#
-# nPDF is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# nPDF is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
+DEBUG ?= no
+ifeq ($(DEBUG),no)
+	MUPDF_BUILD ?= release
+	OPTIMIZE ?= 3
+else
+	MUPDF_BUILD ?= debug
+	OPTIMIZE ?= g
+endif
 
-MUPDF_BUILD ?= release
 MUPDF_VERBOSE ?= no
-MUPDF_DIR = mupdf
-MUPDF_INC = $(MUPDF_DIR)/include
-MUPDF_OUT = $(MUPDF_DIR)/build/$(MUPDF_BUILD)
-MUPDF_XCFLAGS = -DNOCJK
+MUPDF_DIR := mupdf
+MUPDF_INC := $(MUPDF_DIR)/include
+MUPDF_OUT := $(MUPDF_DIR)/build/$(MUPDF_BUILD)
+MUPDF_XCFLAGS := -DNOCJK
 
-CXX = nspire-g++
-CXXFLAGS = -O3 -Wall -W -std=gnu++11 -marm -I $(MUPDF_INC)
+CXX := nspire-g++
+CXXFLAGS := -O$(OPTIMIZE) -Wall -Wextra -std=gnu++11 -marm -I $(MUPDF_INC)
+ifeq ($(OPTIMIZE),g)
+	CXXFLAGS += -g
+endif
 NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
-ZEHNFLAGS = --compress --name "nPDF" --author "Legimet" --notice "Document viewer"
-OBJS = $(patsubst %.cpp,%.o,$(wildcard *.cpp))
-LIBS = $(MUPDF_OUT)/libmupdf.a $(MUPDF_OUT)/libfreetype.a $(MUPDF_OUT)/libjbig2dec.a \
-       $(MUPDF_OUT)/libjpeg.a $(MUPDF_OUT)/libopenjpeg.a $(MUPDF_OUT)/libz.a
-EXE = nPDF
-DISTDIR = .
-vpath %.tns $(DISTDIR)
+ZEHNFLAGS := --compress --name "nPDF" --author "Legimet" --notice "Document viewer"
+OBJS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+LIBS := $(patsubst %,$(MUPDF_OUT)/lib%.a,mupdf jbig2dec jpeg openjpeg)
+EXE := nPDF
 
-all: $(EXE).tns $(EXE).prg.tns
+all: $(EXE).tns
 
 %.o: %.cpp $(MUPDF_DIR)
-	$(CXX) $(CXXFLAGS) -c $<
 
 $(MUPDF_OUT)/libmupdf.a: $(MUPDF_DIR) generate
-	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD) OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
 
 $(MUPDF_OUT)/%.a: $(MUPDF_DIR)
 	$(MAKE) -C $< build/$(MUPDF_BUILD)/$(notdir $@) verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD) OS=ti-nspire XCFLAGS="$(MUPDF_XCFLAGS)"
@@ -48,21 +36,19 @@ $(MUPDF_OUT)/%.a: $(MUPDF_DIR)
 $(EXE).elf: $(LIBS) $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(NPDF_LDFLAGS)
 
-$(EXE).tns: $(EXE).elf
-	mkdir -p $(DISTDIR)
-	genzehn --input $^ --output $(DISTDIR)/$@ $(ZEHNFLAGS)
+$(EXE).zehn.tns: $(EXE).elf
+	genzehn --input $^ --output $@ $(ZEHNFLAGS)
 
-$(EXE).prg.tns: $(EXE).tns
-	mkdir -p $(DISTDIR)
+$(EXE).tns: $(EXE).zehn.tns
 	make-prg $^ $@
 
 generate: $(MUPDF_DIR)
 	$(MAKE) -C $< generate verbose=$(MUPDF_VERBOSE) build=$(MUPDF_BUILD)
 
 clean: cleannolibs
-	$(MAKE) -C $(MUPDF_DIR) clean build=$(MUPDF_BUILD)
+	-$(MAKE) -C $(MUPDF_DIR) clean build=$(MUPDF_BUILD)
 
 cleannolibs:
-	rm -f $(OBJS) $(EXE).elf $(EXE).tns $(EXE).prg.tns
+	$(RM) $(OBJS) $(EXE).elf $(EXE).zehn.tns $(EXE).tns
 
 .PHONY: all generate clean cleannolibs

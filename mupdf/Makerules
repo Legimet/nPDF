@@ -173,7 +173,7 @@ endif
 ifeq "$(OS)" "ti-nspire"
 CC = nspire-gcc
 LD = nspire-gcc
-AR = arm-none-eabi-ar
+AR := "$(shell (which arm-elf-ar arm-none-eabi-ar arm-linux-gnueabi-ar | head -1) 2>/dev/null)"
 ifeq "$(build)" "release"
 CFLAGS += -O3
 endif
