@@ -20,10 +20,10 @@
 #define TIMER_HPP
 
 namespace Timer {
-    void init();
-    void start(uint32_t startVal);
-    void stop();
-    bool done();
+	void init();
+	void start(uint32_t startVal);
+	void stop();
+	bool done();
 }
 
 #endif

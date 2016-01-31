@@ -22,40 +22,40 @@
 #include <cstdint>
 
 namespace Screen {
-    bool init();
+	bool init();
 
-    void deinit();
+	void deinit();
 
-    void switchBufs();
+	void switchBufs();
 
-    void setPixel(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y);
+	void setPixel(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y);
 
-    void setPixel(uint8_t c, unsigned int x, unsigned int y);
+	void setPixel(uint8_t c, unsigned int x, unsigned int y);
 
-    void showImgRGB(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
-		    unsigned int w, unsigned int h, unsigned int wTotal);
+	void showImgRGB(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+			unsigned int w, unsigned int h, unsigned int wTotal);
 
-    void showImgRGBA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
-		    unsigned int w, unsigned int h, unsigned int wTotal);
+	void showImgRGBA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+			unsigned int w, unsigned int h, unsigned int wTotal);
 
-    void showImgGray(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
-		    unsigned int w, unsigned int h, unsigned int wTotal);
+	void showImgGray(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+			unsigned int w, unsigned int h, unsigned int wTotal);
 
-    void showImgGrayA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
-		    unsigned int w, unsigned int h, unsigned int wTotal);
+	void showImgGrayA(uint8_t *img, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1,
+			unsigned int w, unsigned int h, unsigned int wTotal);
 
-    void fillScreen(uint8_t r, uint8_t g, uint8_t b);
+	void fillScreen(uint8_t r, uint8_t g, uint8_t b);
 
-    void fillScreen(uint8_t c);
+	void fillScreen(uint8_t c);
 
-    void fillRect(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w,
-		    unsigned int h);
+	void fillRect(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w,
+			unsigned int h);
 
-    void fillRect(uint8_t c, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
+	void fillRect(uint8_t c, unsigned int x, unsigned int y, unsigned int w, unsigned int h);
 
-    void drawVert(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int h);
+	void drawVert(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int h);
 
-    void drawHoriz(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w);
+	void drawHoriz(uint8_t r, uint8_t g, uint8_t b, unsigned int x, unsigned int y, unsigned int w);
 
 }
 

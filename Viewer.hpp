@@ -24,48 +24,48 @@ extern "C" {
 }
 
 class Viewer {
-    private:
-	static const int scroll;
-	static const float zoom;
-	static const unsigned char bgColor;
-	static const float maxScale;
-	static const float minScale;
-	fz_context *ctx;
-	fz_document *doc;
-	fz_page *page;
-	fz_pixmap *pix;
-	fz_device *dev;
-	fz_rect bounds;
-	float scale;
-	int pageNo;
-	int xPos;
-	int yPos;
-	bool curPageLoaded;
-	bool fitWidth;
-	bool needDisplay;
-	int width;
-	int height;
-    public:
-	Viewer();
-	~Viewer();
-	bool init();
-	fz_context* getCtx() const;
-	void openDoc(const char *path);
-	int getPages();
-	void drawPage();
-	void display();
-	void next();
-	void prev();
-	void scrollUp();
-	void scrollDown();
-	void scrollLeft();
-	void scrollRight();
-	void setFitWidth();
-	void unsetFitWidth();
-	void zoomIn();
-	void zoomOut();
-	void gotoPage(unsigned int page);
-	void fixBounds();
+	private:
+		static const int scroll;
+		static const float zoom;
+		static const unsigned char bgColor;
+		static const float maxScale;
+		static const float minScale;
+		fz_context *ctx;
+		fz_document *doc;
+		fz_page *page;
+		fz_pixmap *pix;
+		fz_device *dev;
+		fz_rect bounds;
+		float scale;
+		int pageNo;
+		int xPos;
+		int yPos;
+		bool curPageLoaded;
+		bool fitWidth;
+		bool needDisplay;
+		int width;
+		int height;
+	public:
+		Viewer();
+		~Viewer();
+		bool init();
+		fz_context* getCtx() const;
+		void openDoc(const char *path);
+		int getPages();
+		void drawPage();
+		void display();
+		void next();
+		void prev();
+		void scrollUp();
+		void scrollDown();
+		void scrollLeft();
+		void scrollRight();
+		void setFitWidth();
+		void unsetFitWidth();
+		void zoomIn();
+		void zoomOut();
+		void gotoPage(unsigned int page);
+		void fixBounds();
 };
 
 #endif
