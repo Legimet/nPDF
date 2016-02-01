@@ -48,7 +48,6 @@ class Viewer {
 	public:
 		Viewer();
 		~Viewer();
-		bool init();
 		fz_context* getCtx() const;
 		void openDoc(const char *path);
 		int getPages();

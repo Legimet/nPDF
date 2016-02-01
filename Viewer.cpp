@@ -32,7 +32,12 @@ const float Viewer::minScale = 0.1;
 
 // We have a separate initialization method for the error handling
 Viewer::Viewer() {
-	ctx = nullptr;
+	ctx = fz_new_context(nullptr, nullptr, FZ_STORE_UNLIMITED);
+	if (ctx) {
+		fz_register_document_handlers(ctx);
+	} else {
+		throw "Could not allocate MuPDF context";
+	}
 	doc = nullptr;
 	page = nullptr;
 	pix = nullptr;
@@ -63,17 +68,6 @@ Viewer::~Viewer() {
 	}
 	if (ctx) {
 		fz_drop_context(ctx);
-	}
-}
-
-bool Viewer::init() {
-	ctx = fz_new_context(nullptr, nullptr, FZ_STORE_UNLIMITED);
-
-	if (ctx) {
-		fz_register_document_handlers(ctx);
-		return true;
-	} else {
-		return false;
 	}
 }
 

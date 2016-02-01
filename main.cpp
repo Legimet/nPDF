@@ -20,6 +20,7 @@ extern "C" {
 #include <mupdf/fitz.h>
 }
 #include <cstdlib>
+#include <memory>
 #include <keys.h>
 #include <libndls.h>
 #include <string>
@@ -86,11 +87,16 @@ void handleDelays(ScrollAction key, ScrollAction& lastScrollKey) {
 }
 
 int main(int argc, char **argv) {
-	Viewer v;
+	std::unique_ptr<Viewer> v;
+	try {
+		v.reset(new Viewer);
+	} catch(const char *s) {
+		show_msgbox("nPDF", s);
+		return 1;
+	}
 
 	if (argc >= 2) {
-		v.init();
-		v.openDoc(argv[1]);
+		v->openDoc(argv[1]);
 	} else if (argc >= 1) {
 		std::string s = std::string(argv[0]);
 		size_t pos = s.find_last_of("/");
@@ -114,8 +120,8 @@ int main(int argc, char **argv) {
 
 	Screen::init();
 	Timer::init();
-	v.drawPage();
-	v.display();
+	v->drawPage();
+	v->display();
 
 	ScrollAction lastScrollKey = none;
 	ScrollAction current = none;
@@ -127,36 +133,36 @@ int main(int argc, char **argv) {
 			if (current != lastScrollKey || Timer::done()) {
 				toRefresh = false;
 				if (current & down) {
-					v.scrollDown();
+					v->scrollDown();
 					toRefresh = 1;
 				} else if (current & up) {
-					v.scrollUp();
+					v->scrollUp();
 					toRefresh = 1;
 				}
 				if (current & right) {
-					v.scrollRight();
+					v->scrollRight();
 					toRefresh = 1;
 				} else if (current & left) {
-					v.scrollLeft();
+					v->scrollLeft();
 					toRefresh = 1;
 				}
 				if (current & pgdown) {
-					v.next();
+					v->next();
 					toRefresh = 1;
 				} else if (current & pgup) {
-					v.prev();
+					v->prev();
 					toRefresh = 1;
 				}
 				if (current & zoomout) {
-					v.zoomOut();
+					v->zoomOut();
 					toRefresh = 1;
 				} else if (current & zoomin) {
-					v.zoomIn();
+					v->zoomIn();
 					toRefresh = 1;
 				}
 				if (toRefresh) {
 					handleDelays(current, lastScrollKey);
-					v.display();
+					v->display();
 				}
 			}
 		} else {
@@ -166,9 +172,9 @@ int main(int argc, char **argv) {
 				break;
 			}
 			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
-				if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, v.getPages())) {
-					v.gotoPage(page - 1);
-					v.display();
+				if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, v->getPages())) {
+					v->gotoPage(page - 1);
+					v->display();
 				}
 			}
 		}
