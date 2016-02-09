@@ -1,8 +1,8 @@
-.kdev*
-*.kdev4
 *.o
 *.tns
 *.elf
-*.gdb
-*.swp
+.kdev*
+*.kdev4
 *~
+.*.sw*
+.ycm*
