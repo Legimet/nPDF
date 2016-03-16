@@ -34,8 +34,8 @@ class Viewer {
 		fz_document *doc;
 		fz_page *page;
 		fz_pixmap *pix;
-		fz_device *dev;
 		fz_rect bounds;
+		fz_matrix transform;
 		float scale;
 		int pageNo;
 		int xPos;
@@ -45,10 +45,17 @@ class Viewer {
 		bool needDisplay;
 		int width;
 		int height;
+
+		fz_text_page *pageText;
+		fz_rect matches[512];
+		int matchesCount;
+		int matchIdx;
 	public:
 		Viewer();
 		~Viewer();
-		fz_context* getCtx() const;
+		void invert(const fz_rect *rect);
+		bool find(const char *s);
+		bool findNext(bool dir);
 		void openDoc(const char *path);
 		int getPages();
 		void drawPage();

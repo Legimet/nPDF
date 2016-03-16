@@ -16,9 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
-extern "C" {
-#include <mupdf/fitz.h>
-}
 #include <cstdlib>
 #include <memory>
 #include <keys.h>
@@ -171,11 +168,29 @@ int main(int argc, char **argv) {
 			if (isKeyPressed(KEY_NSPIRE_ESC)) {
 				break;
 			}
-			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
+			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_TAB)) {
 				if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, v->getPages())) {
 					v->gotoPage(page - 1);
 					v->display();
 				}
+			}
+			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_F)) {
+				char *s = nullptr;
+				if (show_msg_user_input("Find", "Enter string to search for", "", &s) != -1) {
+					if(v->find(s)) {
+						v->findNext(0);
+					}
+					v->display();
+					delete s;
+				}
+			}
+			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
+				if (isKeyPressed(KEY_NSPIRE_SHIFT)) {
+					v->findNext(1);
+				} else {
+					v->findNext(0);
+				}
+				v->display();
 			}
 		}
 		sleep(10);

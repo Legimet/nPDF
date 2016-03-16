@@ -41,7 +41,6 @@ Viewer::Viewer() {
 	doc = nullptr;
 	page = nullptr;
 	pix = nullptr;
-	dev = nullptr;
 	scale = 1.0f;
 	pageNo = 0;
 	xPos = 0;
@@ -51,28 +50,47 @@ Viewer::Viewer() {
 	needDisplay = false;
 	width = SCREEN_WIDTH;
 	height = SCREEN_HEIGHT;
+
+	pageText = nullptr;
+	matchesCount = 0;
 }
 
 Viewer::~Viewer() {
-	if (dev) {
-		fz_drop_device(ctx, dev);
-	}
-	if (pix) {
-		fz_drop_pixmap(ctx, pix);
-	}
-	if (page) {
-		fz_drop_page(ctx, page);
-	}
-	if (doc) {
-		fz_drop_document(ctx, doc);
-	}
-	if (ctx) {
-		fz_drop_context(ctx);
-	}
+	fz_drop_pixmap(ctx, pix);
+	fz_drop_page(ctx, page);
+	fz_drop_text_page(ctx, pageText);
+	fz_drop_document(ctx, doc);
+	fz_drop_context(ctx);
 }
 
-fz_context* Viewer::getCtx() const {
-	return ctx;
+void Viewer::invert(const fz_rect *rect) {
+	fz_irect b;
+	fz_rect r = *rect;
+	fz_round_rect(&b, fz_transform_rect(&r, &transform));
+	fz_invert_pixmap_rect(ctx, pix, &b);
+}
+
+bool Viewer::find(const char *s) {
+	if (matchIdx != -1)
+		invert(&matches[matchIdx]);
+	matchesCount = fz_search_text_page(ctx, pageText, s, matches, nelem(matches));
+	matchIdx = -1;
+	return (matchesCount > 0);
+}
+
+bool Viewer::findNext(bool dir) {
+	if (matchesCount <= 0)
+		return false;
+	if (matchIdx != -1) {
+		invert(&matches[matchIdx]);
+	}
+	if (dir == 0)
+		matchIdx = (matchIdx + 1) % matchesCount;
+	else
+		matchIdx = (matchIdx - 1) % matchesCount;
+	invert(&matches[matchIdx]);
+	needDisplay = true;
+	return true;
 }
 
 void Viewer::openDoc(const char *path) {
@@ -117,21 +135,18 @@ void Viewer::fixBounds() {
 }
 
 void Viewer::drawPage() {
-	if (pix) {
-		fz_drop_pixmap(ctx, pix);
-		pix = nullptr;
-	}
+	fz_drop_pixmap(ctx, pix);
+	fz_drop_text_page(ctx, pageText);
+
+	pix = nullptr;
+	pageText = nullptr;
 
 	if (!curPageLoaded) {
-		if (page) {
-			fz_drop_page(ctx, page);
-			page = nullptr;
-		}
+		fz_drop_page(ctx, page);
 		page = fz_load_page(ctx, doc, pageNo);
 		curPageLoaded = true;
 	}
 
-	fz_matrix transform;
 	fz_bound_page(ctx, page, &bounds);
 	if (fitWidth) {
 		scale = width / (bounds.x1 - bounds.x0);
@@ -139,6 +154,7 @@ void Viewer::drawPage() {
 
 	fz_scale(&transform, scale, scale);
 	fz_transform_rect(&bounds, &transform);
+
 	fz_irect bbox;
 	fz_round_rect(&bbox, &bounds);
 
@@ -151,13 +167,15 @@ void Viewer::drawPage() {
 	}
 	fz_clear_pixmap_with_value(ctx, pix, 0xff);
 
-	dev = fz_new_draw_device(ctx, pix);
+	fz_device *dev = fz_new_draw_device(ctx, pix);
 	fz_run_page(ctx, page, dev, &transform, nullptr);
+	fz_drop_device(ctx, dev);
+	dev = nullptr;
 
-	if (dev) {
-		fz_drop_device(ctx, dev);
-		dev = nullptr;
-	}
+	fz_text_sheet *sheet = fz_new_text_sheet(ctx);
+	pageText = fz_new_text_page_from_page(ctx, page, sheet);
+	fz_drop_text_sheet(ctx, sheet);
+	sheet = nullptr;
 
 	needDisplay = true;
 }
