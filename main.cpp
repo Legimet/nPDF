@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU General Public License
 // along with nPDF.  If not, see <http://www.gnu.org/licenses/>.
 
-#include <cstdlib>
 #include <memory>
 #include <keys.h>
 #include <libndls.h>
@@ -115,7 +114,8 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
-	Screen::init();
+	if(!Screen::init())
+		return 1;
 	Timer::init();
 	v->drawPage();
 	v->display();
@@ -195,6 +195,8 @@ int main(int argc, char **argv) {
 		}
 		sleep(10);
 	}
+
+	Screen::deinit();
 
 	return 0;
 }

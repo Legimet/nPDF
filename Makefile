@@ -14,7 +14,7 @@ MUPDF_OUT := $(MUPDF_DIR)/build/$(MUPDF_BUILD)
 MUPDF_XCFLAGS := -DNOCJK
 
 CXX := nspire-g++
-CXXFLAGS := -O$(OPTIMIZE) -Wall -Wextra -std=gnu++11 -marm -I $(MUPDF_INC) -DOLD_SCREEN_API
+CXXFLAGS := -O$(OPTIMIZE) -Wall -Wextra -std=gnu++11 -marm -I $(MUPDF_INC)
 ifeq ($(OPTIMIZE),g)
 	CXXFLAGS += -g
 endif

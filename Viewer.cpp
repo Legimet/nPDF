@@ -53,6 +53,7 @@ Viewer::Viewer() {
 
 	pageText = nullptr;
 	matchesCount = 0;
+	matchIdx = -1;
 }
 
 Viewer::~Viewer() {
@@ -219,7 +220,7 @@ void Viewer::display() {
 			Screen::drawHoriz(0,0,0,2+xPos*(width-8)/(bounds.x1-bounds.x0),height-3,width*(width-7)/(bounds.x1-bounds.x0));
 		}
 
-		Screen::switchBufs();
+		Screen::display();
 	}
 	needDisplay = false;
 }
