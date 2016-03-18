@@ -1,5 +1,5 @@
 // nPDF main function
-// Copyright (C) 2014  Legimet
+// Copyright (C) 2014-2016  Legimet
 //
 // This file is part of nPDF.
 //

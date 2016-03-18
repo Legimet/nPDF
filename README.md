@@ -1,8 +1,8 @@
-# nPDF 0.4 beta
+# nPDF
 
-nPDF is a document viewer for TI-Nspire handheld calculators using MuPDF 1.6.
-It supports PDF, XPS, CBZ, and various image formats. [Ndless](http://ndless.me)
-is required.
+nPDF is a document viewer for TI-Nspire handheld calculators using MuPDF.
+It supports PDF, XPS, CBZ, EPUB, HTML, and various image formats.
+[Ndless](http://ndless.me) is required.
 
 ## Controls
 
@@ -11,33 +11,27 @@ is required.
 * ÷: Zoom out
 * -: Previous page
 * +: Next page
-* Ctrl+G: Go to page
+* Ctrl+Tab: Go to page
+* Ctrl+F: Find text
+* Ctrl+G: Find next
+* Ctrl+Shift+G: Find previous
 * Esc: Exit
 
 More controls will be added later.
 
 ## Compiling from source
 
-You must have the [Ndless SDK](http://ndlessly.wordpress.com/ndless-for-developers/)
+You must have the [Ndless SDK](https://hackspire.unsads.com/index.php/C_and_assembly_development_introduction)
 installed.
 
 The source code can be found on [GitHub](https://github.com/Legimet/nPDF/).
 
-Once you have the code, clone submodules jbig2dec, jpeg, and openjpeg:
+Once you have the code, clone the submodules jbig2dec, jpeg, and openjpeg:
 
     git submodule init
     git submodule update mupdf/thirdparty/jbig2dec mupdf/thirdparty/jpeg mupdf/thirdparty/openjpeg
 
-(Do **not** clone the freetype or zlib modules. They will conflict with the ones
-provided in the Ndless SDK.)
-
 Simply run `make` to compile nPDF.
-
-For EPUB and HTML support, the CJK fonts will have to be included in the MuPDF
-build because of a [bug in MuPDF](http://bugs.ghostscript.com/show_bug.cgi?id=696326).
-This will increase the size of the executable significantly, but if you want
-to do this, simply change `MUPDF_XCFLAGS` in `Makefile` to `-DNOCJKFULL` (larger
-size) or remove it (even larger size).
 
 ## Libraries used
 
@@ -74,7 +68,7 @@ found in their respective directories.
 
 ## Links
 
-* [Omnimaga thread](http://www.omnimaga.org/ti-nspire-projects/npdf-a-document-viewer-for-the-nspire/)
+* [Omnimaga thread](https://www.omnimaga.org/ti-nspire-projects/npdf-a-document-viewer-for-the-nspire/)
 * [MuPDF](http://mupdf.com)
 * [Ndless](http://ndless.me)
 
