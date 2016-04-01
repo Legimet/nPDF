@@ -175,6 +175,8 @@ void Viewer::drawPage() {
 	pageText = fz_new_text_page_from_page(ctx, page, sheet);
 	fz_drop_text_sheet(ctx, sheet);
 	sheet = nullptr;
+
+	matchIdx = -1;
 }
 
 void Viewer::display() {
