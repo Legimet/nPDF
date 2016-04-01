@@ -169,20 +169,22 @@ int main(int argc, char **argv) {
 				break;
 			}
 			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_TAB)) {
+				wait_no_key_pressed();
 				if (show_1numeric_input("Go to page", "", "Enter page number", &page, 1, v->getPages())) {
 					v->gotoPage(page - 1);
-					v->display();
 				}
+				v->display();
 			}
 			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_F)) {
 				char *s = nullptr;
+				wait_no_key_pressed();
 				if (show_msg_user_input("Find", "Enter string to search for", "", &s) != -1) {
 					if(v->find(s)) {
 						v->findNext(0);
 					}
-					v->display();
 					delete s;
 				}
+				v->display();
 			}
 			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
 				if (isKeyPressed(KEY_NSPIRE_SHIFT)) {
