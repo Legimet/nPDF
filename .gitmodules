@@ -1,24 +1,27 @@
-[submodule "mupdf/thirdparty/jbig2dec"]
+[submodule "thirdparty/jbig2dec"]
 	path = mupdf/thirdparty/jbig2dec
 	url = git://git.ghostscript.com/jbig2dec.git
-[submodule "mupdf/thirdparty/mujs"]
+[submodule "thirdparty/mujs"]
 	path = mupdf/thirdparty/mujs
 	url = git://git.ghostscript.com/mujs.git
-[submodule "mupdf/thirdparty/freetype"]
+[submodule "thirdparty/freetype"]
 	path = mupdf/thirdparty/freetype
 	url = git://git.ghostscript.com/thirdparty/freetype.git
-[submodule "mupdf/thirdparty/jpeg"]
+[submodule "thirdparty/harfbuzz"]
+	path = mupdf/thirdparty/harfbuzz
+	url = git://git.ghostscript.com/thirdparty/harfbuzz.git
+[submodule "thirdparty/jpeg"]
 	path = mupdf/thirdparty/jpeg
 	url = git://git.ghostscript.com/thirdparty/jpeg.git
-[submodule "mupdf/thirdparty/openjpeg"]
+[submodule "thirdparty/openjpeg"]
 	path = mupdf/thirdparty/openjpeg
 	url = https://github.com/Legimet/openjpeg.git
-[submodule "mupdf/thirdparty/zlib"]
+[submodule "thirdparty/zlib"]
 	path = mupdf/thirdparty/zlib
 	url = git://git.ghostscript.com/thirdparty/zlib.git
-[submodule "mupdf/thirdparty/glfw"]
+[submodule "thirdparty/glfw"]
 	path = mupdf/thirdparty/glfw
 	url = git://git.ghostscript.com/thirdparty/glfw.git
-[submodule "mupdf/thirdparty/curl"]
+[submodule "thirdparty/curl"]
 	path = mupdf/thirdparty/curl
 	url = git://git.ghostscript.com/thirdparty/curl.git

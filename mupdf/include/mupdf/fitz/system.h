@@ -76,6 +76,18 @@
 #if _MSC_VER < 1800
 #define va_copy(a, oa) do { a=oa; } while (0)
 #define va_copy_end(a) do {} while(0)
+
+static __inline int signbit(double x)
+{
+	union
+	{
+		double d;
+		__int64 i;
+	} u;
+	u.d = x;
+	return (int)(u.i>>63);
+}
+
 #else
 #define va_copy_end(a) va_end(a)
 #endif
@@ -100,11 +112,32 @@ struct timeval;
 struct timezone;
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-#define snprintf _snprintf
-#if _MSC_VER < 1800
+#if _MSC_VER < 1900 /* MSVC 2015 */
+#define snprintf msvc_snprintf
+#define vsnprintf msvc_vsnprintf
+static int msvc_vsnprintf(char *str, size_t size, const char *fmt, va_list ap)
+{
+	int n;
+	n = _vsnprintf(str, size, fmt, ap);
+	str[size-1] = 0;
+	return n;
+}
+static int msvc_snprintf(char *str, size_t size, const char *fmt, ...)
+{
+	int n;
+	va_list ap;
+	va_start(ap, fmt);
+	n = msvc_vsnprintf(str, size, fmt, ap);
+	va_end(ap);
+	return n;
+}
+#endif
+
+#if _MSC_VER < 1700 /* MSVC 2012 */
 #define isnan(x) _isnan(x)
 #define isinf(x) (!_finite(x))
 #endif
+
 #define hypotf _hypotf
 
 FILE *fz_fopen_utf8(const char *name, const char *mode);
@@ -154,7 +187,6 @@ typedef int fz_off_t;
 #define FZ_OFF_MAX INT_MAX
 #define fz_atoo_imp atoi
 #endif
-
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -216,11 +248,6 @@ typedef int fz_off_t;
 #define __printflike(fmtarg, firstvararg)
 #endif
 #endif
-
-/*
-	Shut the compiler up about unused variables
-*/
-#define UNUSED(x) do { x = x; } while (0)
 
 /* ARM assembly specific defines */
 

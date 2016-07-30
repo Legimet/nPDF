@@ -1,19 +1,12 @@
 #include "mupdf/fitz.h"
 
 #define SANE_DPI 72.0f
-
-fz_pixmap *
-fz_new_pixmap_from_image(fz_context *ctx, fz_image *image, int w, int h)
-{
-	if (image == NULL)
-		return NULL;
-	return fz_image_get_pixmap(ctx, image, w, h);
-}
+#define INSANE_DPI 4800.0f
 
 fz_image *
 fz_keep_image(fz_context *ctx, fz_image *image)
 {
-	return (fz_image *)fz_keep_storable(ctx, &image->storable);
+	return fz_keep_storable(ctx, &image->storable);
 }
 
 void
@@ -65,15 +58,12 @@ fz_cmp_image_key(fz_context *ctx, void *k0_, void *k1_)
 	return k0->image == k1->image && k0->l2factor == k1->l2factor;
 }
 
-#ifndef NDEBUG
 static void
-fz_debug_image(fz_context *ctx, FILE *out, void *key_)
+fz_print_image(fz_context *ctx, fz_output *out, void *key_)
 {
 	fz_image_key *key = (fz_image_key *)key_;
-
-	fprintf(out, "(image %d x %d sf=%d) ", key->image->w, key->image->h, key->l2factor);
+	fz_printf(ctx, out, "(image %d x %d sf=%d) ", key->image->w, key->image->h, key->l2factor);
 }
-#endif
 
 static fz_store_type fz_image_store_type =
 {
@@ -81,13 +71,11 @@ static fz_store_type fz_image_store_type =
 	fz_keep_image_key,
 	fz_drop_image_key,
 	fz_cmp_image_key,
-#ifndef NDEBUG
-	fz_debug_image
-#endif
+	fz_print_image
 };
 
 static void
-fz_mask_color_key(fz_pixmap *pix, int n, int *colorkey)
+fz_mask_color_key(fz_pixmap *pix, int n, const int *colorkey)
 {
 	unsigned char *p = pix->samples;
 	int len = pix->w * pix->h;
@@ -108,7 +96,7 @@ fz_mask_color_key(fz_pixmap *pix, int n, int *colorkey)
 static void
 fz_unblend_masked_tile(fz_context *ctx, fz_pixmap *tile, fz_image *image)
 {
-	fz_pixmap *mask = fz_image_get_pixmap(ctx, image->mask, tile->w, tile->h);
+	fz_pixmap *mask = fz_get_pixmap_from_image(ctx, image->mask, tile->w, tile->h);
 	unsigned char *s = mask->samples, *end = s + mask->w * mask->h;
 	unsigned char *d = tile->samples;
 	int k;
@@ -248,6 +236,9 @@ standard_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h, int *l
 	case FZ_IMAGE_GIF:
 		tile = fz_load_gif(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
 		break;
+	case FZ_IMAGE_BMP:
+		tile = fz_load_bmp(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
+		break;
 	case FZ_IMAGE_TIFF:
 		tile = fz_load_tiff(ctx, image->buffer->buffer->data, image->buffer->buffer->len);
 		break;
@@ -298,12 +289,15 @@ standard_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h, int *l
 }
 
 fz_pixmap *
-fz_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h)
+fz_get_pixmap_from_image(fz_context *ctx, fz_image *image, int w, int h)
 {
 	fz_pixmap *tile;
 	int l2factor, l2factor_remaining;
 	fz_image_key key;
 	fz_image_key *keyp;
+
+	if (!image)
+		return NULL;
 
 	/* 'Simple' images created direct from pixmaps will have no buffer
 	 * of compressed data. We cannot do any better than just returning
@@ -328,7 +322,7 @@ fz_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h)
 	if (w == 0 || h == 0)
 		l2factor = 0;
 	else
-		for (l2factor=0; image->w>>(l2factor+1) >= w+2 && image->h>>(l2factor+1) >= h+2 && l2factor < 8; l2factor++);
+		for (l2factor=0; image->w>>(l2factor+1) >= w+2 && image->h>>(l2factor+1) >= h+2 && l2factor < 6; l2factor++);
 
 	/* Can we find any suitable tiles in the cache? */
 	key.refs = 1;
@@ -349,7 +343,7 @@ fz_image_get_pixmap(fz_context *ctx, fz_image *image, int w, int h)
 	tile = image->get_pixmap(ctx, image, w, h, &l2factor_remaining);
 
 	/* l2factor_remaining is updated to the amount of subscaling left to do */
-	assert(l2factor_remaining >= 0 && l2factor_remaining < 8);
+	assert(l2factor_remaining >= 0 && l2factor_remaining <= 6);
 	if (l2factor_remaining)
 	{
 		fz_subsample_pixmap(ctx, tile, l2factor_remaining);
@@ -543,6 +537,11 @@ fz_new_image_from_buffer(fz_context *ctx, fz_buffer *buffer)
 			bc->params.type = FZ_IMAGE_GIF;
 			fz_load_gif_info(ctx, buf, len, &w, &h, &xres, &yres, &cspace);
 		}
+		else if (memcmp(buf, "BM", 2) == 0)
+		{
+			bc->params.type = FZ_IMAGE_BMP;
+			fz_load_bmp_info(ctx, buf, len, &w, &h, &xres, &yres, &cspace);
+		}
 		else
 			fz_throw(ctx, FZ_ERROR_GENERIC, "unknown image file format");
 	}
@@ -555,8 +554,25 @@ fz_new_image_from_buffer(fz_context *ctx, fz_buffer *buffer)
 	return fz_new_image(ctx, w, h, 8, cspace, xres, yres, 0, 0, NULL, NULL, bc, NULL);
 }
 
+fz_image *
+fz_new_image_from_file(fz_context *ctx, const char *path)
+{
+	fz_buffer *buffer;
+	fz_image *image;
+
+	buffer = fz_read_file(ctx, path);
+	fz_try(ctx)
+		image = fz_new_image_from_buffer(ctx, buffer);
+	fz_always(ctx)
+		fz_drop_buffer(ctx, buffer);
+	fz_catch(ctx)
+		fz_rethrow(ctx);
+
+	return image;
+}
+
 void
-fz_image_get_sanitised_res(fz_image *image, int *xres, int *yres)
+fz_image_resolution(fz_image *image, int *xres, int *yres)
 {
 	*xres = image->xres;
 	*yres = image->yres;
@@ -575,7 +591,7 @@ fz_image_get_sanitised_res(fz_image *image, int *xres, int *yres)
 	}
 
 	/* Scale xres and yres up until we get beleivable values */
-	if (*xres < SANE_DPI || *yres < SANE_DPI)
+	if (*xres < SANE_DPI || *yres < SANE_DPI || *xres > INSANE_DPI || *yres > INSANE_DPI)
 	{
 		if (*xres == *yres)
 		{

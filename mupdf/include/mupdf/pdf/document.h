@@ -12,6 +12,7 @@ typedef struct pdf_annot_s pdf_annot;
 typedef struct pdf_widget_s pdf_widget;
 typedef struct pdf_hotspot_s pdf_hotspot;
 typedef struct pdf_js_s pdf_js;
+typedef struct pdf_resource_tables_s pdf_resource_tables;
 
 enum
 {
@@ -86,14 +87,14 @@ pdf_document *pdf_open_document(fz_context *ctx, const char *filename);
 pdf_document *pdf_open_document_with_stream(fz_context *ctx, fz_stream *file);
 
 /*
-	pdf_close_document: Closes and frees an opened PDF document.
+	pdf_drop_document: Closes and frees an opened PDF document.
 
 	The resource store in the context associated with pdf_document
 	is emptied.
 
 	Does not throw exceptions.
 */
-void pdf_close_document(fz_context *ctx, pdf_document *doc);
+void pdf_drop_document(fz_context *ctx, pdf_document *doc);
 
 /*
 	pdf_specific: down-cast an fz_document to a pdf_document.
@@ -243,7 +244,7 @@ struct pdf_document_s
 	pdf_obj *focus_obj;
 
 	pdf_js *js;
-	void (*drop_js)(pdf_js *js);
+
 	int recalculating;
 	int dirty;
 
@@ -255,6 +256,8 @@ struct pdf_document_s
 	int num_type3_fonts;
 	int max_type3_fonts;
 	fz_font **type3_fonts;
+
+	pdf_resource_tables *resources;
 };
 
 /*
@@ -266,18 +269,53 @@ struct pdf_document_s
 */
 pdf_document *pdf_create_document(fz_context *ctx);
 
-pdf_page *pdf_create_page(fz_context *ctx, pdf_document *doc, fz_rect rect, int res, int rotate);
-
-void pdf_insert_page(fz_context *ctx, pdf_document *doc, pdf_page *page, int at);
-
+pdf_obj *pdf_add_page(fz_context *ctx, pdf_document *doc, const fz_rect *mediabox, int rotate, fz_buffer *contents, pdf_obj *resources);
+void pdf_insert_page(fz_context *ctx, pdf_document *doc, int at, pdf_obj *page);
 void pdf_delete_page(fz_context *ctx, pdf_document *doc, int number);
-
 void pdf_delete_page_range(fz_context *ctx, pdf_document *doc, int start, int end);
 
-fz_device *pdf_page_write(fz_context *ctx, pdf_document *doc, pdf_page *page);
+fz_device *pdf_page_write(fz_context *ctx, pdf_document *doc, const fz_rect *mediabox, fz_buffer **pcontents, pdf_obj **presources);
 
 void pdf_finish_edit(fz_context *ctx, pdf_document *doc);
 
 int pdf_recognize(fz_context *doc, const char *magic);
+
+typedef struct pdf_write_options_s pdf_write_options;
+
+/* An enumeration of bitflags to use in the 'do_expand' field of the options struct. */
+enum
+{
+	PDF_EXPAND_IMAGES = 1,
+	PDF_EXPAND_FONTS = 2,
+	PDF_EXPAND_ALL = -1
+};
+
+/*
+	In calls to fz_save_document, the following options structure can be used
+	to control aspects of the writing process. This structure may grow
+	in future, and should be zero-filled to allow forwards compatiblity.
+*/
+struct pdf_write_options_s
+{
+	int do_incremental; /* Write just the changed objects */
+	int do_ascii; /* If non-zero then attempt (where possible) to make
+				the output ascii. */
+	int do_deflate; /* If non-zero then attempt to compress streams. */
+	int do_expand; /* Bitflags; each non zero bit indicates an aspect
+				of the file that should be 'expanded' on
+				writing. */
+	int do_garbage; /* If non-zero then attempt (where possible) to
+				garbage collect the file before writing. */
+	int do_linear; /* If non-zero then write linearised. */
+	int do_clean; /* If non-zero then clean contents */
+	int continue_on_error; /* If non-zero, errors are (optionally)
+					counted and writing continues. */
+	int *errors; /* Pointer to a place to store a count of errors */
+};
+
+/*
+	pdf_save_document: Write out the document to a file with all changes finalised.
+*/
+void pdf_save_document(fz_context *ctx, pdf_document *doc, const char *filename, pdf_write_options *opts);
 
 #endif

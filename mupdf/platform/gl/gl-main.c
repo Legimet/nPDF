@@ -266,9 +266,9 @@ void render_page(void)
 	fz_drop_pixmap(ctx, pix);
 
 	annot_count = 0;
-	for (annot = fz_first_annot(ctx, page); annot; annot = fz_next_annot(ctx, page, annot))
+	for (annot = fz_first_annot(ctx, page); annot; annot = fz_next_annot(ctx, annot))
 	{
-		pix = fz_new_pixmap_from_annot(ctx, page, annot, &page_ctm, fz_device_rgb(ctx));
+		pix = fz_new_pixmap_from_annot(ctx, annot, &page_ctm, fz_device_rgb(ctx));
 		texture_from_pixmap(&annot_tex[annot_count++], pix);
 		fz_drop_pixmap(ctx, pix);
 	}
@@ -808,10 +808,15 @@ static void smart_move_forward(void)
 	}
 }
 
+static void quit(void)
+{
+	glfwSetWindowShouldClose(window, 1);
+}
+
 static void do_app(void)
 {
 	if (ui.key == KEY_F4 && ui.mod == GLFW_MOD_ALT)
-		exit(0);
+		quit();
 
 	if (ui.down || ui.middle || ui.right || ui.key)
 		showinfo = 0;
@@ -821,7 +826,7 @@ static void do_app(void)
 		switch (ui.key)
 		{
 		case 'q':
-			exit(0);
+			quit();
 			break;
 		case 'm':
 			if (number == 0)
@@ -882,8 +887,8 @@ static void do_app(void)
 		case 'z': currentzoom = number > 0 ? number : DEFRES; break;
 		case '<': currentpage -= 10 * fz_maxi(number, 1); break;
 		case '>': currentpage += 10 * fz_maxi(number, 1); break;
-		case ',': currentpage -= fz_maxi(number, 1); break;
-		case '.': currentpage += fz_maxi(number, 1); break;
+		case ',': case KEY_PAGE_UP: currentpage -= fz_maxi(number, 1); break;
+		case '.': case KEY_PAGE_DOWN: currentpage += fz_maxi(number, 1); break;
 		case 'b': number = fz_maxi(number, 1); while (number--) smart_move_backward(); break;
 		case ' ': number = fz_maxi(number, 1); while (number--) smart_move_forward(); break;
 		case 'g': jump_to_page(number - 1); break;
@@ -900,8 +905,6 @@ static void do_app(void)
 		case KEY_DOWN: scroll_y += 10; break;
 		case KEY_LEFT: scroll_x -= 10; break;
 		case KEY_RIGHT: scroll_x += 10; break;
-		case KEY_PAGE_UP: currentpage -= fz_maxi(number, 1); number = 0; break;
-		case KEY_PAGE_DOWN: currentpage += fz_maxi(number, 1); number = 0; break;
 		}
 
 		if (ui.key >= '0' && ui.key <= '9')
@@ -1272,9 +1275,10 @@ static void on_error(int error, const char *msg)
 	fprintf(stderr, "gl error %d: %s\n", error, msg);
 }
 
-static void usage(void)
+static void usage(const char *argv0)
 {
-	fprintf(stderr, "usage: mupdf [options] document [page]\n");
+	fprintf(stderr, "mupdf-gl version %s\n", FZ_VERSION);
+	fprintf(stderr, "usage: %s [options] document [page]\n", argv0);
 	fprintf(stderr, "\t-p -\tpassword\n");
 	fprintf(stderr, "\t-r -\tresolution\n");
 	fprintf(stderr, "\t-W -\tpage width for EPUB layout\n");
@@ -1303,7 +1307,7 @@ int main(int argc, char **argv)
 	{
 		switch (c)
 		{
-		default: usage(); break;
+		default: usage(argv[0]); break;
 		case 'p': password = fz_optarg; break;
 		case 'r': currentzoom = fz_atof(fz_optarg); break;
 		case 'W': layout_w = fz_atof(fz_optarg); break;
@@ -1324,7 +1328,7 @@ int main(int argc, char **argv)
 		if (!win_open_file(filename, sizeof filename))
 			exit(0);
 #else
-		usage();
+		usage(argv[0]);
 #endif
 	}
 
@@ -1428,8 +1432,11 @@ int main(int argc, char **argv)
 
 	fz_drop_link(ctx, links);
 	fz_drop_page(ctx, page);
+	fz_drop_outline(ctx, outline);
 	fz_drop_document(ctx, doc);
 	fz_drop_context(ctx);
+
+	glfwTerminate();
 
 	return 0;
 }
