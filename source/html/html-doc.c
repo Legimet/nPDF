@@ -87,7 +87,7 @@ htdoc_run_page(fz_context *ctx, fz_page *page_, fz_device *dev, const fz_matrix 
 
 	fz_pre_translate(&local_ctm, doc->page_margin[L], doc->page_margin[T]);
 
-	fz_draw_html(ctx, doc->box, n * doc->page_h, (n+1) * doc->page_h, dev, &local_ctm);
+	fz_draw_html(ctx, dev, &local_ctm, doc->box, n * doc->page_h, (n+1) * doc->page_h);
 }
 
 static fz_page *
@@ -117,7 +117,8 @@ htdoc_open_document_with_stream(fz_context *ctx, fz_stream *file)
 	html_document *doc;
 	fz_buffer *buf;
 
-	doc = fz_malloc_struct(ctx, html_document);
+	doc = fz_new_document(ctx, sizeof *doc);
+
 	doc->super.close = htdoc_close_document;
 	doc->super.layout = htdoc_layout;
 	doc->super.count_pages = htdoc_count_pages;
@@ -143,7 +144,7 @@ htdoc_open_document(fz_context *ctx, const char *filename)
 
 	fz_dirname(dirname, filename, sizeof dirname);
 
-	doc = fz_malloc_struct(ctx, html_document);
+	doc = fz_new_document(ctx, sizeof *doc);
 	doc->super.close = htdoc_close_document;
 	doc->super.layout = htdoc_layout;
 	doc->super.count_pages = htdoc_count_pages;

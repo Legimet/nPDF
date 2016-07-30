@@ -439,11 +439,9 @@ xps_parse_abbreviated_geometry(fz_context *ctx, xps_document *doc, char *geom, i
 			break;
 
 		default:
-			/* eek */
 			fz_warn(ctx, "ignoring invalid command '%c'", cmd);
-			/* Skip any trailing numbers to avoid an infinite loop */
-			while (i < n && (args[i][0] == '+' || args[i][0] == '.' || args[i][0] == '-' || (args[i][0] >= '0' && args[i][0] <= '9')))
-				i ++;
+			if (old == cmd) /* avoid infinite loop */
+				i++;
 			break;
 		}
 
@@ -764,7 +762,7 @@ xps_clip(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, xps_resource 
 		path = xps_parse_path_geometry(ctx, doc, dict, clip_tag, 0, &fill_rule);
 	else
 		path = fz_new_path(ctx);
-	fz_clip_path(ctx, dev, path, NULL, fill_rule == 0, ctm);
+	fz_clip_path(ctx, dev, path, fill_rule == 0, ctm, NULL);
 	fz_drop_path(ctx, path);
 }
 
@@ -1004,7 +1002,7 @@ xps_parse_path(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, char *b
 
 	if (fill_tag)
 	{
-		fz_clip_path(ctx, dev, path, &area, fill_rule == 0, &local_ctm);
+		fz_clip_path(ctx, dev, path, fill_rule == 0, &local_ctm, &area);
 		xps_parse_brush(ctx, doc, &local_ctm, &area, fill_uri, dict, fill_tag);
 		fz_pop_clip(ctx, dev);
 	}
@@ -1022,7 +1020,7 @@ xps_parse_path(fz_context *ctx, xps_document *doc, const fz_matrix *ctm, char *b
 
 	if (stroke_tag)
 	{
-		fz_clip_stroke_path(ctx, dev, stroke_path, &area, stroke, &local_ctm);
+		fz_clip_stroke_path(ctx, dev, stroke_path, stroke, &local_ctm, &area);
 		xps_parse_brush(ctx, doc, &local_ctm, &area, stroke_uri, dict, stroke_tag);
 		fz_pop_clip(ctx, dev);
 	}

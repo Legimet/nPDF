@@ -22,7 +22,7 @@ intersect_box(fz_context *ctx, pdf_document *doc, pdf_obj *page, pdf_obj *box_na
 {
 	pdf_obj *box = pdf_dict_get(ctx, page, box_name);
 	pdf_obj *newbox;
-	fz_rect  old_rect;
+	fz_rect old_rect;
 
 	if (box == NULL)
 		return;
@@ -157,15 +157,9 @@ int pdfposter_main(int argc, char **argv)
 	char *outfile = "out.pdf";
 	char *password = "";
 	int c;
-	fz_write_options opts = { 0 };
+	pdf_write_options opts = { 0 };
 	pdf_document *doc;
 	fz_context *ctx;
-
-	opts.do_incremental = 0;
-	opts.do_garbage = 0;
-	opts.do_expand = 0;
-	opts.do_ascii = 0;
-	opts.do_linear = 0;
 
 	while ((c = fz_getopt(argc, argv, "x:y:")) != -1)
 	{
@@ -203,9 +197,9 @@ int pdfposter_main(int argc, char **argv)
 
 	decimatepages(ctx, doc);
 
-	pdf_write_document(ctx, doc, outfile, &opts);
+	pdf_save_document(ctx, doc, outfile, &opts);
 
-	pdf_close_document(ctx, doc);
+	pdf_drop_document(ctx, doc);
 	fz_drop_context(ctx);
 	return 0;
 }

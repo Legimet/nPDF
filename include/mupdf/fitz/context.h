@@ -10,6 +10,7 @@
 
 typedef struct fz_alloc_context_s fz_alloc_context;
 typedef struct fz_error_context_s fz_error_context;
+typedef struct fz_error_stack_slot_s fz_error_stack_slot;
 typedef struct fz_id_context_s fz_id_context;
 typedef struct fz_warn_context_s fz_warn_context;
 typedef struct fz_font_context_s fz_font_context;
@@ -30,13 +31,16 @@ struct fz_alloc_context_s
 	void (*free)(void *, void *);
 };
 
+struct fz_error_stack_slot_s
+{
+	int code;
+	fz_jmp_buf buffer;
+};
+
 struct fz_error_context_s
 {
-	int top;
-	struct {
-		int code;
-		fz_jmp_buf buffer;
-	} stack[256];
+	fz_error_stack_slot *top;
+	fz_error_stack_slot stack[256];
 	int errcode;
 	char message[256];
 };
@@ -50,24 +54,24 @@ void fz_var_imp(void *);
 */
 
 #define fz_try(ctx) \
-	{{{ fz_push_try(ctx); \
-	if (fz_setjmp(ctx->error->stack[ctx->error->top].buffer) == 0)\
-	{ do {
+	{ \
+		if (fz_push_try(ctx)) { \
+			if (fz_setjmp((ctx)->error->top->buffer) == 0) do \
 
 #define fz_always(ctx) \
-		} while (0); \
-	} \
-	if (ctx->error->stack[ctx->error->top].code < 3) \
-	{ \
-		ctx->error->stack[ctx->error->top].code++; \
-		do { \
+			while (0); \
+		} \
+		if (ctx->error->top->code < 3) { \
+			ctx->error->top->code++; \
+			do \
 
 #define fz_catch(ctx) \
-		} while(0); \
-	} }}} \
-	if (ctx->error->stack[ctx->error->top--].code > 1)
+			while (0); \
+		} \
+	} \
+	if ((ctx->error->top--)->code > 1)
 
-void fz_push_try(fz_context *ctx);
+int fz_push_try(fz_context *ctx);
 FZ_NORETURN void fz_throw(fz_context *ctx, int errcode, const char *, ...) __printflike(3, 4);
 FZ_NORETURN void fz_rethrow(fz_context *ctx);
 FZ_NORETURN void fz_rethrow_message(fz_context *ctx, const char *fmt, ...)  __printflike(2, 3);
@@ -101,8 +105,9 @@ void fz_flush_warnings(fz_context *ctx);
 
 struct fz_context_s
 {
-	fz_alloc_context *alloc;
-	fz_locks_context *locks;
+	void *user;
+	const fz_alloc_context *alloc;
+	const fz_locks_context *locks;
 	fz_id_context *id;
 	fz_error_context *error;
 	fz_warn_context *warn;
@@ -157,7 +162,7 @@ enum {
 
 	Does not throw exceptions, but may return NULL.
 */
-fz_context *fz_new_context_imp(fz_alloc_context *alloc, fz_locks_context *locks, unsigned int max_store, const char *version);
+fz_context *fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks, unsigned int max_store, const char *version);
 
 #define fz_new_context(alloc, locks, max_store) fz_new_context_imp(alloc, locks, max_store, FZ_VERSION)
 
@@ -188,6 +193,23 @@ fz_context *fz_clone_context(fz_context *ctx);
 	Does not throw exceptions.
 */
 void fz_drop_context(fz_context *ctx);
+
+/*
+	fz_set_user_context: Set the user field in the context.
+
+	NULL initially, this field can be set to any opaque value
+	required by the user. It is copied on clones.
+
+	Does not throw exceptions.
+*/
+void fz_set_user_context(fz_context *ctx, void *user);
+
+/*
+	fz_user_context: Read the user field from the context.
+
+	Does not throw exceptions.
+*/
+void *fz_user_context(fz_context *ctx);
 
 /*
 	fz_aa_level: Get the number of bits of antialiasing we are

@@ -1,6 +1,10 @@
 #ifndef MUDPF_FITZ_H
 #define MUDPF_FITZ_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "mupdf/fitz/version.h"
 #include "mupdf/fitz/system.h"
 #include "mupdf/fitz/context.h"
@@ -9,9 +13,11 @@
 #include "mupdf/fitz/getopt.h"
 #include "mupdf/fitz/hash.h"
 #include "mupdf/fitz/math.h"
+#include "mupdf/fitz/pool.h"
 #include "mupdf/fitz/string.h"
-#include "mupdf/fitz/ucdn.h"
 #include "mupdf/fitz/tree.h"
+#include "mupdf/fitz/ucdn.h"
+#include "mupdf/fitz/bidi.h"
 #include "mupdf/fitz/xml.h"
 
 /* I/O */
@@ -49,8 +55,6 @@
 #include "mupdf/fitz/document.h"
 #include "mupdf/fitz/annotation.h"
 
-#include "mupdf/fitz/write-document.h"
-
 #include "mupdf/fitz/util.h"
 
 /* Output formats */
@@ -58,7 +62,12 @@
 #include "mupdf/fitz/output-png.h"
 #include "mupdf/fitz/output-pwg.h"
 #include "mupdf/fitz/output-pcl.h"
+#include "mupdf/fitz/output-ps.h"
 #include "mupdf/fitz/output-svg.h"
 #include "mupdf/fitz/output-tga.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -10,6 +10,11 @@
 
 #include "mupdf/fitz.h"
 #if defined(USE_GS_API) && !defined(__ANDROID__)
+#ifdef _MSC_VER
+#define GSDLLEXPORT
+#define GSDLLAPI __stdcall
+#define GSDLLCALL
+#endif
 #include "iapi.h"
 #endif
 
@@ -173,14 +178,14 @@ static inline unsigned char *cmyk_to_rgba(unsigned char *out, uint32_t c, uint32
 	uint32_t c1m1y, c1m1y1, c1my, c1my1, cm1y, cm1y1, cmy, cmy1;
 
 	/* We use some tricks here:
-	 *    x + (x>>15)
+	 *	x + (x >> 15)
 	 * converts x from 0..65535 to 0..65536
-	 *    (A * B)>>16
+	 *	(A * B) >> 16
 	 * multiplies A (0..65535) and B (0..65536) to give a 0...65535 result.
 	 * (This relies on A and B being unsigned).
 	 *
 	 * We also rely on the fact that if:
-	 *    C = (A * B)>> 16
+	 *	C = (A * B) >> 16
 	 * for A (0..65535) and B (0..65536) then A - C is also in (0..65535)
 	 * as C cannot possibly be any larger than A.
 	 */
@@ -714,7 +719,6 @@ gprf_run_page(fz_context *ctx, fz_page *page_, fz_device *dev, const fz_matrix *
 {
 	gprf_page *page = (gprf_page*)page_;
 	gprf_document *doc = page->doc;
-	fz_rect page_rect;
 	int i, y, x;
 
 	/* If we have no page, generate it. */
@@ -729,13 +733,7 @@ gprf_run_page(fz_context *ctx, fz_page *page_, fz_device *dev, const fz_matrix *
 	}
 
 	/* Send the images to the page */
-	page_rect.x0 = 0;
-	page_rect.y0 = 0;
-	page_rect.x1 = 72.0 * page->width / doc->res;
-	page_rect.y1 = 72.0 * page->height / doc->res;
 	fz_render_flags(ctx, dev, FZ_DEVFLAG_GRIDFIT_AS_TILED, 0);
-	fz_begin_page(ctx, dev, &page_rect, ctm);
-
 	i = 0;
 	for (y = 0; y < page->tile_height; y++)
 	{
@@ -755,7 +753,6 @@ gprf_run_page(fz_context *ctx, fz_page *page_, fz_device *dev, const fz_matrix *
 			fz_fill_image(ctx, dev, page->tiles[i++], &local, 1.0);
 		}
 	}
-	fz_end_page(ctx, dev);
 	fz_render_flags(ctx, dev, 0, FZ_DEVFLAG_GRIDFIT_AS_TILED);
 }
 
@@ -769,14 +766,14 @@ static int gprf_count_separations(fz_context *ctx, fz_page *page_)
 static void gprf_control_separation(fz_context *ctx, fz_page *page_, int sep, int disable)
 {
 	gprf_page *page = (gprf_page *)page_;
-	
+
 	fz_control_separation(ctx, page->separations, sep, disable);
 }
 
 static int gprf_separation_disabled(fz_context *ctx, fz_page *page_, int sep)
 {
 	gprf_page *page = (gprf_page *)page_;
-	
+
 	return fz_separation_disabled(ctx, page->separations, sep);
 }
 
@@ -864,7 +861,7 @@ gprf_open_document_with_stream(fz_context *ctx, fz_stream *file)
 		val = fz_read_int32_le(ctx, file);
 		if (val != 0x4f525047)
 			fz_throw(ctx, FZ_ERROR_GENERIC, "Invalid file signature in gproof file");
-		val  = fz_read_byte(ctx, file);
+		val = fz_read_byte(ctx, file);
 		val |= fz_read_byte(ctx, file)<<8;
 		if (val != 1)
 			fz_throw(ctx, FZ_ERROR_GENERIC, "Invalid version in gproof file");

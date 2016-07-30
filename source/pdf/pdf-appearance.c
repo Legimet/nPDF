@@ -319,7 +319,7 @@ static void fzbuf_print_text(fz_context *ctx, fz_buffer *fzbuf, const fz_rect *c
 	if (tm)
 		fz_buffer_printf(ctx, fzbuf, fmt_Tm, tm->a, tm->b, tm->c, tm->d, tm->e, tm->f);
 
-	fz_buffer_cat_pdf_string(ctx, fzbuf, text);
+	fz_buffer_print_pdf_string(ctx, fzbuf, text);
 	fz_buffer_printf(ctx, fzbuf, fmt_Tj);
 	fz_buffer_printf(ctx, fzbuf, fmt_ET);
 	fz_buffer_printf(ctx, fzbuf, fmt_Q);
@@ -703,7 +703,7 @@ static fz_buffer *create_text_appearance(fz_context *ctx, pdf_document *doc, con
 			fzbuf_print_text_start1(ctx, fzbuf, &rect, info->col);
 			fzbuf_print_text_start2(ctx, fzbuf, &info->font_rec, &tm);
 
-			fz_buffer_cat(ctx, fzbuf, fztmp);
+			fz_append_buffer(ctx, fzbuf, fztmp);
 
 			fzbuf_print_text_end(ctx, fzbuf);
 		}
@@ -1182,7 +1182,6 @@ void pdf_update_listbox_appearance(fz_context *ctx, pdf_document *doc, pdf_obj *
 	fz_matrix tm;
 	fz_rect clip_rect;
 	fz_rect fill_rect;
-	int has_tm;
 	pdf_obj *valarr;
 	pdf_obj *optarr;
 	char *text;
@@ -1233,8 +1232,7 @@ void pdf_update_listbox_appearance(fz_context *ctx, pdf_document *doc, pdf_obj *
 			}
 		}
 
-		/* If ANY of the entries are not an array then just use the opts not
-		   the vals. */
+		/* If ANY of the entries are not an array then just use the opts not the vals. */
 		if (val_opt_ok)
 			pos = vals;
 		else
@@ -1242,7 +1240,6 @@ void pdf_update_listbox_appearance(fz_context *ctx, pdf_document *doc, pdf_obj *
 
 		get_text_widget_info(ctx, doc, obj, &info);
 		form = load_or_create_form(ctx, doc, obj, &clip_rect);
-		has_tm = get_matrix(ctx, doc, form, info.q, &tm);
 
 		/* See which ones are selected */
 		valarr = pdf_get_inheritable(ctx, doc, obj, PDF_NAME_V);
@@ -1323,8 +1320,7 @@ void pdf_update_listbox_appearance(fz_context *ctx, pdf_document *doc, pdf_obj *
 		info.font_rec.da_rec.font_size = fontsize;
 		lineheight = ascent - descent;
 
-		/* Check if all items will fit.  If not, then place the "selected" item
-		   at the top of our widget rect. */
+		/* Check if all items will fit. If not, then place the "selected" item at the top of our widget rect. */
 		items_height = n * fontsize * lineheight;
 		if (items_height <= height || !num_sel)
 			fz_translate(&tm, clip_rect.x0, clip_rect.y1 - lineheight * fontsize);
@@ -1337,9 +1333,9 @@ void pdf_update_listbox_appearance(fz_context *ctx, pdf_document *doc, pdf_obj *
 		/* Add the selection rects */
 		if (num_sel > 0)
 		{
-			color[0] = LIST_SEL_COLOR_R;
-			color[1] = LIST_SEL_COLOR_G;
-			color[2] = LIST_SEL_COLOR_B;
+			color[0] = (float)LIST_SEL_COLOR_R;
+			color[1] = (float)LIST_SEL_COLOR_G;
+			color[2] = (float)LIST_SEL_COLOR_B;
 			fill_rect.x0 = 0.0;
 			fill_rect.x1 = width;
 			for (i = 0; i < num_sel; i++)
@@ -1584,6 +1580,9 @@ void pdf_set_annot_appearance(fz_context *ctx, pdf_document *doc, pdf_annot *ann
 	fz_device *dev = NULL;
 	pdf_xobject *xobj = NULL;
 
+	pdf_obj *resources;
+	fz_buffer *contents;
+
 	fz_invert_matrix(&ctm, page_ctm);
 
 	fz_var(dev);
@@ -1598,7 +1597,7 @@ void pdf_set_annot_appearance(fz_context *ctx, pdf_document *doc, pdf_annot *ann
 
 		/* See if there is a current normal appearance */
 		ap_obj = pdf_dict_getl(ctx, obj, PDF_NAME_AP, PDF_NAME_N, NULL);
-		if (!pdf_is_stream(ctx, doc, pdf_to_num(ctx, ap_obj), pdf_to_gen(ctx, ap_obj)))
+		if (!pdf_is_stream(ctx, ap_obj))
 			ap_obj = NULL;
 
 		if (ap_obj == NULL)
@@ -1614,9 +1613,16 @@ void pdf_set_annot_appearance(fz_context *ctx, pdf_document *doc, pdf_annot *ann
 			pdf_dict_put_drop(ctx, ap_obj, PDF_NAME_Matrix, pdf_new_matrix(ctx, doc, &mat));
 		}
 
-		dev = pdf_new_pdf_device(ctx, doc, ap_obj, pdf_dict_get(ctx, ap_obj, PDF_NAME_Resources), &mat, NULL);
+		resources = pdf_dict_get(ctx, ap_obj, PDF_NAME_Resources);
+
+		contents = fz_new_buffer(ctx, 0);
+
+		dev = pdf_new_pdf_device(ctx, doc, &fz_identity, &trect, contents, resources);
 		fz_run_display_list(ctx, disp_list, dev, &ctm, &fz_infinite_rect, NULL);
 		fz_drop_device(ctx, dev);
+
+		pdf_update_stream(ctx, doc, ap_obj, contents, 0);
+		fz_drop_buffer(ctx, contents);
 
 		/* Mark the appearance as changed - required for partial update */
 		xobj = pdf_load_xobject(ctx, doc, ap_obj);
@@ -1898,36 +1904,37 @@ void pdf_update_ink_appearance(fz_context *ctx, pdf_document *doc, pdf_annot *an
 	}
 }
 
-static void add_text(fz_context *ctx, font_info *font_rec, fz_text *text, char *str, int str_len, float x, float y)
+static void add_text(fz_context *ctx, font_info *font_rec, fz_text *text, char *str, int str_len, const fz_matrix *tm_)
 {
 	fz_font *font = font_rec->font->font;
-	int mask = FT_LOAD_NO_SCALE | FT_LOAD_IGNORE_TRANSFORM;
+	fz_matrix tm = *tm_;
+	int ucs, gid, n;
 
-	while (str_len--)
+	while (str_len > 0)
 	{
-		FT_Fixed adv;
-
-		/* FIXME: convert str from utf8 to WinAnsi */
-		int gid = FT_Get_Char_Index(font->ft_face, *str);
-		fz_add_text(ctx, text, gid, *str++, x, y);
-
-		FT_Get_Advance(font->ft_face, gid, mask, &adv);
-		x += ((float)adv) * font_rec->da_rec.font_size / ((FT_Face)font->ft_face)->units_per_EM;
+		n = fz_chartorune(&ucs, str);
+		str += n;
+		str_len -= n;
+		gid = fz_encode_character(ctx, font, ucs);
+		fz_show_glyph(ctx, text, font, &tm, gid, ucs, 0, 0, FZ_BIDI_NEUTRAL, FZ_LANG_UNSET);
+		tm.e += fz_advance_glyph(ctx, font, gid, 0) * font_rec->da_rec.font_size;
 	}
 }
 
 static fz_text *layout_text(fz_context *ctx, font_info *font_rec, char *str, float x, float y)
 {
-	fz_matrix tm;
-	fz_font *font = font_rec->font->font;
 	fz_text *text;
+	fz_matrix tm;
 
 	fz_scale(&tm, font_rec->da_rec.font_size, font_rec->da_rec.font_size);
-	text = fz_new_text(ctx, font, &tm, 0);
+	tm.e = x;
+	tm.f = y;
+
+	text = fz_new_text(ctx);
 
 	fz_try(ctx)
 	{
-		add_text(ctx, font_rec, text, str, strlen(str), x, y);
+		add_text(ctx, font_rec, text, str, strlen(str), &tm);
 	}
 	fz_catch(ctx)
 	{
@@ -1944,6 +1951,7 @@ static fz_text *fit_text(fz_context *ctx, font_info *font_rec, char *str, fz_rec
 	float height = bounds->y1 - bounds->y0;
 	fz_matrix tm;
 	fz_text *text = NULL;
+	fz_text_span *span;
 	text_splitter splitter;
 	float ascender;
 
@@ -1961,14 +1969,15 @@ static fz_text *fit_text(fz_context *ctx, font_info *font_rec, char *str, fz_rec
 			/* Try a layout pass */
 			int line = 0;
 			float font_size;
-			float x = 0.0;
-			float y = 0.0;
 
 			fz_drop_text(ctx, text);
 			text = NULL;
 			font_size = font_rec->da_rec.font_size;
 			fz_scale(&tm, font_size, font_size);
-			text = fz_new_text(ctx, font_rec->font->font, &tm, 0);
+			tm.e = 0;
+			tm.f = 0;
+
+			text = fz_new_text(ctx);
 
 			text_splitter_start_pass(&splitter);
 
@@ -1989,9 +1998,9 @@ static fz_text *fit_text(fz_context *ctx, font_info *font_rec, char *str, fz_rec
 						int wordlen = splitter.text_end-splitter.text_start;
 
 						text_splitter_move(&splitter, -line, &dx, &dy);
-						x += dx;
-						y += dy;
-						add_text(ctx, font_rec, text, word, wordlen, x, y);
+						tm.e += dx;
+						tm.f += dy;
+						add_text(ctx, font_rec, text, word, wordlen, &tm);
 					}
 				}
 
@@ -2004,12 +2013,15 @@ static fz_text *fit_text(fz_context *ctx, font_info *font_rec, char *str, fz_rec
 
 		/* Post process text with the scale determined by the splitter
 		 * and with the required offst */
-		fz_pre_scale(&text->trm, splitter.scale, splitter.scale);
-		ascender = font_rec->font->ascent * font_rec->da_rec.font_size * splitter.scale / 1000.0f;
-		for (i = 0; i < text->len; i++)
+		for (span = text->head; span; span = span->next)
 		{
-			text->items[i].x = text->items[i].x * splitter.scale + bounds->x0;
-			text->items[i].y = text->items[i].y * splitter.scale + bounds->y1 - ascender;
+			fz_pre_scale(&span->trm, splitter.scale, splitter.scale);
+			ascender = font_rec->font->ascent * font_rec->da_rec.font_size * splitter.scale / 1000.0f;
+			for (i = 0; i < span->len; i++)
+			{
+				span->items[i].x = span->items[i].x * splitter.scale + bounds->x0;
+				span->items[i].y = span->items[i].y * splitter.scale + bounds->y1 - ascender;
+			}
 		}
 	}
 	fz_catch(ctx)

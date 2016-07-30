@@ -64,7 +64,6 @@ epub_layout(fz_context *ctx, fz_document *doc_, float w, float h, float em)
 	epub_chapter *ch;
 	int count = 0;
 
-	printf("epub: laying out chapters.\n");
 	for (ch = doc->spine; ch; ch = ch->next)
 	{
 		ch->start = count;
@@ -80,8 +79,6 @@ epub_layout(fz_context *ctx, fz_document *doc_, float w, float h, float em)
 	}
 
 	epub_update_link_dests(ctx, doc, doc->outline);
-
-	printf("epub: done.\n");
 }
 
 static int
@@ -143,7 +140,7 @@ epub_run_page(fz_context *ctx, fz_page *page_, fz_device *dev, const fz_matrix *
 		if (n < count + cn)
 		{
 			fz_pre_translate(&local_ctm, ch->page_margin[L], ch->page_margin[T]);
-			fz_draw_html(ctx, ch->box, (n-count) * ch->page_h, (n-count+1) * ch->page_h, dev, &local_ctm);
+			fz_draw_html(ctx, dev, &local_ctm, ch->box, (n-count) * ch->page_h, (n-count+1) * ch->page_h);
 			break;
 		}
 		count += cn;
@@ -179,6 +176,7 @@ epub_close_document(fz_context *ctx, fz_document *doc_)
 	}
 	fz_drop_archive(ctx, doc->zip);
 	fz_drop_html_font_set(ctx, doc->set);
+	fz_drop_outline(ctx, doc->outline);
 	fz_free(ctx, doc->dc_title);
 	fz_free(ctx, doc->dc_creator);
 	fz_free(ctx, doc);
@@ -343,8 +341,6 @@ epub_parse_header(fz_context *ctx, epub_document *doc)
 	if (!full_path)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot find root file in EPUB");
 
-	printf("epub: found root: %s\n", full_path);
-
 	fz_dirname(base_uri, full_path, sizeof base_uri);
 
 	/* parse OPF to find NCX and spine */
@@ -371,7 +367,6 @@ epub_parse_header(fz_context *ctx, epub_document *doc)
 
 	if (path_from_idref(ncx, manifest, base_uri, fz_xml_att(spine, "toc"), sizeof ncx))
 	{
-		printf("epub: found outline: %s\n", ncx);
 		epub_parse_ncx(ctx, doc, ncx);
 	}
 
@@ -381,7 +376,6 @@ epub_parse_header(fz_context *ctx, epub_document *doc)
 	{
 		if (path_from_idref(s, manifest, base_uri, fz_xml_att(itemref, "idref"), sizeof s))
 		{
-			printf("epub: found spine %s\n", s);
 			if (!head)
 				head = tail = epub_parse_chapter(ctx, doc, s);
 			else
@@ -391,8 +385,6 @@ epub_parse_header(fz_context *ctx, epub_document *doc)
 	}
 
 	doc->spine = head;
-
-	printf("epub: done.\n");
 
 	fz_drop_xml(ctx, container_xml);
 	fz_drop_xml(ctx, content_opf);
@@ -423,7 +415,7 @@ epub_init(fz_context *ctx, fz_archive *zip)
 {
 	epub_document *doc;
 
-	doc = fz_malloc_struct(ctx, epub_document);
+	doc = fz_new_document(ctx, sizeof *doc);
 	doc->zip = zip;
 	doc->set = fz_new_html_font_set(ctx);
 

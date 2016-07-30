@@ -197,7 +197,10 @@ pdf_obj *
 pdf_keep_obj(fz_context *ctx, pdf_obj *obj)
 {
 	if (obj >= PDF_OBJ__LIMIT)
+	{
+		(void)Memento_takeRef(obj);
 		obj->refs ++;
+	}
 	return obj;
 }
 
@@ -386,6 +389,19 @@ pdf_document *pdf_get_indirect_document(fz_context *ctx, pdf_obj *obj)
 	if (obj < PDF_OBJ__LIMIT || obj->kind != PDF_INDIRECT)
 		return NULL;
 	return REF(obj)->doc;
+}
+
+pdf_document *pdf_get_bound_document(fz_context *ctx, pdf_obj *obj)
+{
+	if (obj < PDF_OBJ__LIMIT)
+		return NULL;
+	if (obj->kind == PDF_INDIRECT)
+		return REF(obj)->doc;
+	if (obj->kind == PDF_ARRAY)
+		return ARRAY(obj)->doc;
+	if (obj->kind == PDF_DICT)
+		return DICT(obj)->doc;
+	return NULL;
 }
 
 int pdf_objcmp_resolve(fz_context *ctx, pdf_obj *a, pdf_obj *b)
@@ -1702,6 +1718,7 @@ pdf_drop_obj(fz_context *ctx, pdf_obj *obj)
 {
 	if (obj >= PDF_OBJ__LIMIT)
 	{
+		(void)Memento_dropRef(obj);
 		if (--obj->refs)
 			return;
 		if (obj->kind == PDF_ARRAY)
@@ -1745,6 +1762,8 @@ int pdf_obj_parent_num(fz_context *ctx, pdf_obj *obj)
 
 	switch(obj->kind)
 	{
+	case PDF_INDIRECT:
+		return REF(obj)->num;
 	case PDF_ARRAY:
 		return ARRAY(obj)->parent_num;
 	case PDF_DICT:
@@ -1951,15 +1970,19 @@ static void fmt_array(fz_context *ctx, struct fmt *fmt, pdf_obj *obj)
 		fmt_putc(ctx, fmt, ']');
 	}
 	else {
-		fmt_puts(ctx, fmt, "[ ");
+		fmt_putc(ctx, fmt, '[');
+		fmt->indent ++;
 		for (i = 0; i < n; i++) {
 			if (fmt->col > 60) {
 				fmt_putc(ctx, fmt, '\n');
 				fmt_indent(ctx, fmt);
+			} else {
+				fmt_putc(ctx, fmt, ' ');
 			}
 			fmt_obj(ctx, fmt, pdf_array_get(ctx, obj, i));
-			fmt_putc(ctx, fmt, ' ');
 		}
+		fmt->indent --;
+		fmt_putc(ctx, fmt, ' ');
 		fmt_putc(ctx, fmt, ']');
 		fmt_sep(ctx, fmt);
 	}
@@ -2078,8 +2101,7 @@ pdf_sprint_obj(fz_context *ctx, char *s, int n, pdf_obj *obj, int tight)
 	return fmt.len;
 }
 
-int
-pdf_fprint_obj(fz_context *ctx, FILE *fp, pdf_obj *obj, int tight)
+int pdf_print_obj(fz_context *ctx, fz_output *out, pdf_obj *obj, int tight)
 {
 	char buf[1024];
 	char *ptr;
@@ -2089,55 +2111,17 @@ pdf_fprint_obj(fz_context *ctx, FILE *fp, pdf_obj *obj, int tight)
 	if ((n + 1) < sizeof buf)
 	{
 		pdf_sprint_obj(ctx, buf, sizeof buf, obj, tight);
-		fputs(buf, fp);
-		fputc('\n', fp);
+		fz_write(ctx, out, buf, n);
 	}
 	else
 	{
 		ptr = fz_malloc(ctx, n + 1);
 		pdf_sprint_obj(ctx, ptr, n + 1, obj, tight);
-		fputs(ptr, fp);
-		fputc('\n', fp);
+		fz_write(ctx, out, ptr, n);
 		fz_free(ctx, ptr);
 	}
 	return n;
 }
-
-int pdf_output_obj(fz_context *ctx, fz_output *out, pdf_obj *obj, int tight)
-{
-	char buf[1024];
-	char *ptr;
-	int n;
-
-	n = pdf_sprint_obj(ctx, NULL, 0, obj, tight);
-	if ((n + 1) < sizeof buf)
-	{
-		pdf_sprint_obj(ctx, buf, sizeof buf, obj, tight);
-		fz_puts(ctx, out, buf);
-	}
-	else
-	{
-		ptr = fz_malloc(ctx, n + 1);
-		pdf_sprint_obj(ctx, ptr, n + 1, obj, tight);
-		fz_puts(ctx, out, buf);
-		fz_free(ctx, ptr);
-	}
-	return n;
-}
-
-#ifndef NDEBUG
-void
-pdf_print_obj(fz_context *ctx, pdf_obj *obj)
-{
-	pdf_fprint_obj(ctx, stdout, obj, 0);
-}
-
-void
-pdf_print_ref(fz_context *ctx, pdf_obj *ref)
-{
-	pdf_print_obj(ctx, pdf_resolve_indirect(ctx, ref));
-}
-#endif
 
 int pdf_obj_refs(fz_context *ctx, pdf_obj *ref)
 {

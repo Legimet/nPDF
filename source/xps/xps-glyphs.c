@@ -242,8 +242,10 @@ xps_lookup_font(fz_context *ctx, xps_document *doc, char *base_uri, char *font_u
 
 		if (style_att)
 		{
-			font->ft_bold = !!strstr(style_att, "Bold");
-			font->ft_italic = !!strstr(style_att, "Italic");
+			font->fake_bold = !!strstr(style_att, "Bold");
+			font->is_bold = font->fake_bold;
+			font->fake_italic = !!strstr(style_att, "Italic");
+			font->is_italic = font->fake_italic;
 		}
 
 		xps_select_best_font_encoding(ctx, doc, font);
@@ -348,7 +350,6 @@ xps_parse_glyphs_imp(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 	xps_glyph_metrics mtx;
 	fz_text *text;
 	fz_matrix tm;
-	float e, f;
 	float x = originx;
 	float y = originy;
 	char *us = unicode;
@@ -372,7 +373,7 @@ xps_parse_glyphs_imp(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 	else
 		fz_scale(&tm, size, -size);
 
-	text = fz_new_text(ctx, font, &tm, is_sideways);
+	text = fz_new_text(ctx);
 
 	while ((us && un > 0) || (is && *is))
 	{
@@ -407,6 +408,7 @@ xps_parse_glyphs_imp(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 			float u_offset = 0;
 			float v_offset = 0;
 			float advance;
+			int dir;
 
 			if (is && *is)
 				is = xps_parse_glyph_index(is, &glyph_index);
@@ -422,7 +424,7 @@ xps_parse_glyphs_imp(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 			else
 				advance = mtx.hadv * 100;
 
-			if (font->ft_bold)
+			if (font->fake_bold)
 				advance *= 1.02f;
 
 			if (is && *is)
@@ -440,16 +442,17 @@ xps_parse_glyphs_imp(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 
 			if (is_sideways)
 			{
-				e = x + u_offset + (mtx.vorg * size);
-				f = y - v_offset + (mtx.hadv * 0.5f * size);
+				tm.e = x + u_offset + (mtx.vorg * size);
+				tm.f = y - v_offset + (mtx.hadv * 0.5f * size);
 			}
 			else
 			{
-				e = x + u_offset;
-				f = y - v_offset;
+				tm.e = x + u_offset;
+				tm.f = y - v_offset;
 			}
 
-			fz_add_text(ctx, text, glyph_index, char_code, e, f);
+			dir = bidi_level & 1 ? FZ_BIDI_RTL : FZ_BIDI_LTR;
+			fz_show_glyph(ctx, text, font, &tm, glyph_index, char_code, is_sideways, bidi_level, dir, FZ_LANG_UNSET);
 
 			x += advance * 0.01f * size;
 		}
@@ -613,7 +616,7 @@ xps_parse_glyphs(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 
 	if (fill_tag)
 	{
-		fz_clip_text(ctx, dev, text, &local_ctm, 0);
+		fz_clip_text(ctx, dev, text, &local_ctm, &area);
 		xps_parse_brush(ctx, doc, &local_ctm, &area, fill_uri, dict, fill_tag);
 		fz_pop_clip(ctx, dev);
 	}

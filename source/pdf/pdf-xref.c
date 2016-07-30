@@ -700,14 +700,6 @@ pdf_xref_size_from_old_trailer(fz_context *ctx, pdf_document *doc, pdf_lexbuf *b
 	return size;
 }
 
-pdf_obj *
-pdf_new_ref(fz_context *ctx, pdf_document *doc, pdf_obj *obj)
-{
-	int num = pdf_create_object(ctx, doc);
-	pdf_update_object(ctx, doc, num, obj);
-	return pdf_new_indirect(ctx, doc, num, 0);
-}
-
 static pdf_xref_entry *
 pdf_xref_find_subsection(fz_context *ctx, pdf_document *doc, fz_off_t ofs, int len)
 {
@@ -717,7 +709,7 @@ pdf_xref_find_subsection(fz_context *ctx, pdf_document *doc, fz_off_t ofs, int l
 
 	/* Different cases here. Case 1) We might be asking for a
 	 * subsection (or a subset of a subsection) that we already
-	 * have -  Just return it. Case 2) We might be asking for a
+	 * have - Just return it. Case 2) We might be asking for a
 	 * completely new subsection - Create it and return it.
 	 * Case 3) We might have an overlapping one - Create a 'solid'
 	 * subsection and return that. */
@@ -1573,7 +1565,7 @@ pdf_init_document(fz_context *ctx, pdf_document *doc)
 	fz_catch(ctx) { }
 }
 
-void
+static void
 pdf_close_document(fz_context *ctx, pdf_document *doc)
 {
 	int i;
@@ -1587,7 +1579,7 @@ pdf_close_document(fz_context *ctx, pdf_document *doc)
 	fz_purge_glyph_cache(ctx);
 
 	if (doc->js)
-		doc->drop_js(doc->js);
+		pdf_drop_js(ctx, doc->js);
 
 	pdf_drop_xref_sections(ctx, doc);
 	fz_free(ctx, doc->xref_index);
@@ -1626,7 +1618,15 @@ pdf_close_document(fz_context *ctx, pdf_document *doc)
 
 	pdf_lexbuf_fin(ctx, &doc->lexbuf.base);
 
+	pdf_drop_resource_tables(ctx, doc);
+
 	fz_free(ctx, doc);
+}
+
+void
+pdf_drop_document(fz_context *ctx, pdf_document *doc)
+{
+	fz_drop_document(ctx, &doc->super);
 }
 
 void
@@ -1735,7 +1735,11 @@ pdf_load_obj_stm(fz_context *ctx, pdf_document *doc, int num, int gen, pdf_lexbu
 					pdf_drop_obj(ctx, obj);
 				}
 				else
+				{
 					entry->obj = obj;
+					fz_drop_buffer(ctx, entry->stm_buf);
+					entry->stm_buf = NULL;
+				}
 				if (numbuf[i] == target)
 					ret_entry = entry;
 			}
@@ -2325,9 +2329,8 @@ pdf_page_presentation(fz_context *ctx, pdf_page *page, float *duration)
 static pdf_document *
 pdf_new_document(fz_context *ctx, fz_stream *file)
 {
-	pdf_document *doc = fz_malloc_struct(ctx, pdf_document);
+	pdf_document *doc = fz_new_document(ctx, sizeof *doc);
 
-	doc->super.refs = 1;
 	doc->super.close = (fz_document_close_fn *)pdf_close_document;
 	doc->super.needs_password = (fz_document_needs_password_fn *)pdf_needs_password;
 	doc->super.authenticate_password = (fz_document_authenticate_password_fn *)pdf_authenticate_password;
@@ -2336,7 +2339,6 @@ pdf_new_document(fz_context *ctx, fz_stream *file)
 	doc->super.count_pages = (fz_document_count_pages_fn *)pdf_count_pages;
 	doc->super.load_page = (fz_document_load_page_fn *)pdf_load_page;
 	doc->super.lookup_metadata = (fz_document_lookup_metadata_fn *)pdf_lookup_metadata;
-	doc->super.write = (fz_document_write_fn *)pdf_write_document;
 	doc->update_appearance = pdf_update_appearance;
 
 	pdf_lexbuf_init(ctx, &doc->lexbuf.base, PDF_LEXBUF_LARGE);
@@ -2724,6 +2726,41 @@ pdf_document *pdf_specifics(fz_context *ctx, fz_document *doc)
 	return (pdf_document *)((doc && doc->close == (fz_document_close_fn *)pdf_close_document) ? doc : NULL);
 }
 
+pdf_obj *
+pdf_add_object(fz_context *ctx, pdf_document *doc, pdf_obj *obj)
+{
+	int num;
+	if (pdf_is_indirect(ctx, obj))
+		return pdf_keep_obj(ctx, obj);
+	num = pdf_create_object(ctx, doc);
+	pdf_update_object(ctx, doc, num, obj);
+	return pdf_new_indirect(ctx, doc, num, 0);
+}
+
+pdf_obj *
+pdf_add_object_drop(fz_context *ctx, pdf_document *doc, pdf_obj *obj)
+{
+	pdf_obj *ind;
+	fz_try(ctx)
+		ind = pdf_add_object(ctx, doc, obj);
+	fz_always(ctx)
+		pdf_drop_obj(ctx, obj);
+	fz_catch(ctx)
+		fz_rethrow(ctx);
+	return ind;
+}
+
+pdf_obj *
+pdf_add_stream(fz_context *ctx, pdf_document *doc, fz_buffer *buf)
+{
+	pdf_obj *ind = pdf_add_object_drop(ctx, doc, pdf_new_dict(ctx, doc, 4));
+	fz_try(ctx)
+		pdf_update_stream(ctx, doc, ind, buf, 0);
+	fz_catch(ctx)
+		pdf_drop_obj(ctx, ind);
+	return ind;
+}
+
 pdf_document *pdf_create_document(fz_context *ctx)
 {
 	pdf_document *doc;
@@ -2745,22 +2782,23 @@ pdf_document *pdf_create_document(fz_context *ctx)
 		doc->num_incremental_sections = 0;
 		doc->xref_base = 0;
 		doc->disallow_new_increments = 0;
+		pdf_init_resource_tables(ctx, doc);
 		pdf_get_populating_xref_entry(ctx, doc, 0);
 		trailer = pdf_new_dict(ctx, doc, 2);
 		pdf_dict_put_drop(ctx, trailer, PDF_NAME_Size, pdf_new_int(ctx, doc, 3));
 		o = root = pdf_new_dict(ctx, doc, 2);
-		pdf_dict_put_drop(ctx, trailer, PDF_NAME_Root, pdf_new_ref(ctx, doc, o));
+		pdf_dict_put_drop(ctx, trailer, PDF_NAME_Root, pdf_add_object(ctx, doc, o));
 		pdf_drop_obj(ctx, o);
 		o = NULL;
 		pdf_dict_put_drop(ctx, root, PDF_NAME_Type, PDF_NAME_Catalog);
 		o = pages = pdf_new_dict(ctx, doc, 3);
-		pdf_dict_put_drop(ctx, root, PDF_NAME_Pages, pdf_new_ref(ctx, doc, o));
+		pdf_dict_put_drop(ctx, root, PDF_NAME_Pages, pdf_add_object(ctx, doc, o));
 		pdf_drop_obj(ctx, o);
 		o = NULL;
 		pdf_dict_put_drop(ctx, pages, PDF_NAME_Type, PDF_NAME_Pages);
 		pdf_dict_put_drop(ctx, pages, PDF_NAME_Count, pdf_new_int(ctx, doc, 0));
 		pdf_dict_put_drop(ctx, pages, PDF_NAME_Kids, pdf_new_array(ctx, doc, 1));
-		/* Set the trailer of the final xref section.  */
+		/* Set the trailer of the final xref section. */
 		doc->xref_sections[0].trailer = trailer;
 	}
 	fz_catch(ctx)

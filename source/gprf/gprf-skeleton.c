@@ -1,7 +1,7 @@
 #include "mupdf/fitz.h"
 
 void
-fz_write_gproof_file(fz_context *ctx, const char *pdf_file, fz_document *doc, const char *filename, int res,
+fz_save_gproof(fz_context *ctx, const char *pdf_file, fz_document *doc, const char *filename, int res,
 				const char *print_profile, const char *display_profile)
 {
 	int i;
@@ -10,11 +10,11 @@ fz_write_gproof_file(fz_context *ctx, const char *pdf_file, fz_document *doc, co
 	fz_page *page = NULL;
 
 	fz_var(page);
-	
+
 	if (num_pages <= 0)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "Cannot write a 0 page GProof skeleton file");
 
-	out = fz_new_output_to_filename(ctx, filename);
+	out = fz_new_output_with_path(ctx, filename, 0);
 
 	fz_try(ctx)
 	{
