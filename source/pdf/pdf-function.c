@@ -833,7 +833,7 @@ parse_code(fz_context *ctx, pdf_function *func, fz_stream *stream, int *codeptr,
 }
 
 static void
-load_postscript_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf_obj *dict, int num, int gen)
+load_postscript_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf_obj *dict)
 {
 	fz_stream *stream = NULL;
 	int codeptr;
@@ -848,7 +848,7 @@ load_postscript_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf
 
 	fz_try(ctx)
 	{
-		stream = pdf_open_stream(ctx, doc, num, gen);
+		stream = pdf_open_stream(ctx, dict);
 
 		tok = pdf_lex(ctx, stream, &buf);
 		if (tok != PDF_TOK_OPEN_BRACE)
@@ -869,7 +869,7 @@ load_postscript_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf
 	}
 	fz_catch(ctx)
 	{
-		fz_rethrow_message(ctx, "cannot parse calculator function (%d %d R)", num, gen);
+		fz_rethrow(ctx);
 	}
 
 	func->base.size += func->u.p.cap * sizeof(psobj);
@@ -906,7 +906,7 @@ eval_postscript_func(fz_context *ctx, pdf_function *func, const float *in, float
 #define MAX_SAMPLE_FUNCTION_SIZE (100 << 20)
 
 static void
-load_sample_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf_obj *dict, int num, int gen)
+load_sample_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf_obj *dict)
 {
 	fz_stream *stream;
 	pdf_obj *obj;
@@ -984,7 +984,7 @@ load_sample_func(fz_context *ctx, pdf_document *doc, pdf_function *func, pdf_obj
 	func->u.sa.samples = fz_malloc_array(ctx, samplecount, sizeof(float));
 	func->base.size += samplecount * sizeof(float);
 
-	stream = pdf_open_stream(ctx, doc, num, gen);
+	stream = pdf_open_stream(ctx, dict);
 
 	fz_try(ctx)
 	{
@@ -1661,7 +1661,7 @@ pdf_load_function(fz_context *ctx, pdf_document *doc, pdf_obj *dict, int in, int
 		switch (func->type)
 		{
 		case SAMPLE:
-			load_sample_func(ctx, doc, func, dict, pdf_to_num(ctx, dict), pdf_to_gen(ctx, dict));
+			load_sample_func(ctx, doc, func, dict);
 			break;
 
 		case EXPONENTIAL:
@@ -1673,26 +1673,19 @@ pdf_load_function(fz_context *ctx, pdf_document *doc, pdf_obj *dict, int in, int
 			break;
 
 		case POSTSCRIPT:
-			load_postscript_func(ctx, doc, func, dict, pdf_to_num(ctx, dict), pdf_to_gen(ctx, dict));
+			load_postscript_func(ctx, doc, func, dict);
 			break;
 
 		default:
-			fz_throw(ctx, FZ_ERROR_GENERIC, "unknown function type (%d %d R)", pdf_to_num(ctx, dict), pdf_to_gen(ctx, dict));
+			fz_throw(ctx, FZ_ERROR_GENERIC, "unknown function type (%d 0 R)", pdf_to_num(ctx, dict));
 		}
 
 		pdf_store_item(ctx, dict, func, func->base.size);
 	}
 	fz_catch(ctx)
 	{
-		int type = func->type;
 		fz_drop_function(ctx, (fz_function *)func);
-		fz_rethrow_message(ctx, "cannot load %s function (%d %d R)",
-					type == SAMPLE ? "sampled" :
-					type == EXPONENTIAL ? "exponential" :
-					type == STITCHING ? "stitching" :
-					type == POSTSCRIPT ? "calculator" :
-					"unknown",
-					pdf_to_num(ctx, dict), pdf_to_gen(ctx, dict));
+		fz_rethrow(ctx);
 	}
 
 	return (fz_function *)func;

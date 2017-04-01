@@ -1,6 +1,6 @@
 #include "mupdf/pdf.h" // TODO: move this file to pdf module
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBCRYPTO
 
 #include "openssl/err.h"
 #include "openssl/bio.h"
@@ -357,8 +357,7 @@ struct pdf_signer_s
 
 void pdf_drop_designated_name(fz_context *ctx, pdf_designated_name *dn)
 {
-	if (dn)
-		fz_free(ctx, dn);
+	fz_free(ctx, dn);
 }
 
 static void add_from_bags(X509 **pX509, EVP_PKEY **pPkey, STACK_OF(PKCS12_SAFEBAG) *bags, const char *pw);
@@ -507,21 +506,16 @@ pdf_signer *pdf_read_pfx(fz_context *ctx, const char *pfile, const char *pw)
 
 pdf_signer *pdf_keep_signer(fz_context *ctx, pdf_signer *signer)
 {
-	if (signer)
-		signer->refs++;
-	return signer;
+	return fz_keep_imp(ctx, signer, &signer->refs);
 }
 
 void pdf_drop_signer(fz_context *ctx, pdf_signer *signer)
 {
-	if (signer)
+	if (fz_drop_imp(ctx, signer, &signer->refs))
 	{
-		if (--signer->refs == 0)
-		{
-			X509_free(signer->x509);
-			EVP_PKEY_free(signer->pkey);
-			fz_free(ctx, signer);
-		}
+		X509_free(signer->x509);
+		EVP_PKEY_free(signer->pkey);
+		fz_free(ctx, signer);
 	}
 }
 
@@ -755,7 +749,7 @@ void pdf_sign_signature(fz_context *ctx, pdf_document *doc, pdf_widget *widget, 
 			if (dn->c)
 				fz_buffer_printf(ctx, fzbuf, ", c=%s", dn->c);
 
-			(void)fz_buffer_storage(ctx, fzbuf, (unsigned char **) &dn_str);
+			dn_str = fz_string_from_buffer(ctx, fzbuf);
 			pdf_set_signature_appearance(ctx, doc, (pdf_annot *)widget, dn->cn, dn_str, NULL);
 		}
 	}
@@ -776,7 +770,7 @@ int pdf_signatures_supported(fz_context *ctx)
 	return 1;
 }
 
-#else /* HAVE_OPENSSL */
+#else /* HAVE_LIBCRYPTO */
 
 int pdf_check_signature(fz_context *ctx, pdf_document *doc, pdf_widget *widget, char *file, char *ebuf, int ebufsize)
 {
@@ -806,4 +800,4 @@ int pdf_signatures_supported(fz_context *ctx)
 	return 0;
 }
 
-#endif /* HAVE_OPENSSL */
+#endif /* HAVE_LIBCRYPTO */
