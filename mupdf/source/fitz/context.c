@@ -1,4 +1,4 @@
-#include "mupdf/fitz.h"
+#include "fitz-imp.h"
 
 struct fz_id_context_s
 {
@@ -76,6 +76,46 @@ const char *fz_user_css(fz_context *ctx)
 	return ctx->style->user_css;
 }
 
+static void fz_new_tuning_context(fz_context *ctx)
+{
+	if (ctx)
+	{
+		ctx->tuning = fz_malloc_struct(ctx, fz_tuning_context);
+		ctx->tuning->refs = 1;
+		ctx->tuning->image_decode = &fz_default_image_decode;
+		ctx->tuning->image_scale = &fz_default_image_scale;
+	}
+}
+
+static fz_tuning_context *fz_keep_tuning_context(fz_context *ctx)
+{
+	if (!ctx)
+		return NULL;
+	return fz_keep_imp(ctx, ctx->tuning, &ctx->tuning->refs);
+}
+
+static void fz_drop_tuning_context(fz_context *ctx)
+{
+	if (!ctx)
+		return;
+	if (fz_drop_imp(ctx, ctx->tuning, &ctx->tuning->refs))
+	{
+		fz_free(ctx, ctx->tuning);
+	}
+}
+
+void fz_tune_image_decode(fz_context *ctx, fz_tune_image_decode_fn *image_decode, void *arg)
+{
+	ctx->tuning->image_decode = image_decode ? image_decode : fz_default_image_decode;
+	ctx->tuning->image_decode_arg = arg;
+}
+
+void fz_tune_image_scale(fz_context *ctx, fz_tune_image_scale_fn *image_scale, void *arg)
+{
+	ctx->tuning->image_scale = image_scale ? image_scale : fz_default_image_scale;
+	ctx->tuning->image_scale_arg = arg;
+}
+
 void
 fz_drop_context(fz_context *ctx)
 {
@@ -88,9 +128,11 @@ fz_drop_context(fz_context *ctx)
 	fz_drop_store_context(ctx);
 	fz_drop_aa_context(ctx);
 	fz_drop_style_context(ctx);
+	fz_drop_tuning_context(ctx);
 	fz_drop_colorspace_context(ctx);
 	fz_drop_font_context(ctx);
 	fz_drop_id_context(ctx);
+	fz_drop_output_context(ctx);
 
 	if (ctx->warn)
 	{
@@ -158,7 +200,7 @@ cleanup:
 }
 
 fz_context *
-fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks, unsigned int max_store, const char *version)
+fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks, size_t max_store, const char *version)
 {
 	fz_context *ctx;
 
@@ -181,6 +223,7 @@ fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks,
 	/* Now initialise sections that are shared */
 	fz_try(ctx)
 	{
+		fz_new_output_context(ctx);
 		fz_new_store_context(ctx, max_store);
 		fz_new_glyph_cache_context(ctx);
 		fz_new_colorspace_context(ctx);
@@ -188,6 +231,7 @@ fz_new_context_imp(const fz_alloc_context *alloc, const fz_locks_context *locks,
 		fz_new_id_context(ctx);
 		fz_new_document_handler_context(ctx);
 		fz_new_style_context(ctx);
+		fz_new_tuning_context(ctx);
 	}
 	fz_catch(ctx)
 	{
@@ -224,6 +268,8 @@ fz_clone_context_internal(fz_context *ctx)
 	fz_copy_aa_context(new_ctx, ctx);
 
 	/* Keep thread lock checking happy by copying pointers first and locking under new context */
+	new_ctx->output = ctx->output;
+	new_ctx->output = fz_keep_output_context(new_ctx);
 	new_ctx->user = ctx->user;
 	new_ctx->store = ctx->store;
 	new_ctx->store = fz_keep_store_context(new_ctx);
@@ -237,6 +283,8 @@ fz_clone_context_internal(fz_context *ctx)
 	new_ctx->style = fz_keep_style_context(new_ctx);
 	new_ctx->id = ctx->id;
 	new_ctx->id = fz_keep_id_context(new_ctx);
+	new_ctx->tuning = ctx->tuning;
+	new_ctx->tuning = fz_keep_tuning_context(new_ctx);
 	new_ctx->handler = ctx->handler;
 	new_ctx->handler = fz_keep_document_handler_context(new_ctx);
 

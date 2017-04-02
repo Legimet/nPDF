@@ -31,6 +31,7 @@ static HCURSOR arrowcurs, handcurs, waitcurs, caretcurs;
 static LRESULT CALLBACK frameproc(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK viewproc(HWND, UINT, WPARAM, LPARAM);
 static int timer_pending = 0;
+static char *password = NULL;
 
 static int justcopied = 0;
 
@@ -51,7 +52,7 @@ static char filename[PATH_MAX];
 	RegCreateKeyExA(parent, name, 0, 0, 0, KEY_WRITE, 0, &ptr, 0)
 
 #define SET_KEY(parent, name, value) \
-	RegSetValueExA(parent, name, 0, REG_SZ, (const BYTE *)(value), strlen(value) + 1)
+	RegSetValueExA(parent, name, 0, REG_SZ, (const BYTE *)(value), (DWORD)strlen(value) + 1)
 
 void install_app(char *argv0)
 {
@@ -289,7 +290,7 @@ static char **cd_opts;
 static char **cd_vals;
 static int pd_okay = 0;
 
-INT CALLBACK
+INT_PTR CALLBACK
 dlogpassproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch(message)
@@ -316,7 +317,7 @@ dlogpassproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-INT CALLBACK
+INT_PTR CALLBACK
 dlogtextproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch(message)
@@ -353,7 +354,7 @@ dlogtextproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-INT CALLBACK
+INT_PTR CALLBACK
 dlogchoiceproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	HWND listbox;
@@ -405,6 +406,14 @@ char *winpassword(pdfapp_t *app, char *filename)
 {
 	char buf[1024], *s;
 	int code;
+
+	if (password)
+	{
+		char *p = password;
+		password = NULL;
+		return p;
+	}
+
 	strcpy(buf, filename);
 	s = buf;
 	if (strrchr(s, '\\')) s = strrchr(s, '\\') + 1;
@@ -446,7 +455,7 @@ int winchoiceinput(pdfapp_t *app, int nopts, char *opts[], int *nvals, char *val
 	return pd_okay;
 }
 
-INT CALLBACK
+INT_PTR CALLBACK
 dloginfoproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	char buf[256];
@@ -527,7 +536,7 @@ void info()
 		winerror(&gapp, "cannot create info dialog");
 }
 
-INT CALLBACK
+INT_PTR CALLBACK
 dlogaboutproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch(message)
@@ -718,7 +727,7 @@ void windrawstring(pdfapp_t *app, int x, int y, char *s)
 {
 	HFONT font = (HFONT)GetStockObject(ANSI_FIXED_FONT);
 	SelectObject(hdc, font);
-	TextOutA(hdc, x, y - 12, s, strlen(s));
+	TextOutA(hdc, x, y - 12, s, (int)strlen(s));
 }
 
 void winblitsearch()
@@ -1107,7 +1116,7 @@ viewproc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	/* Mouse wheel */
 
 	case WM_MOUSEWHEEL:
-		if ((signed short)HIWORD(wParam) > 0)
+		if ((signed short)HIWORD(wParam) <= 0)
 		{
 			handlemouse(oldx, oldy, 4, 1);
 			handlemouse(oldx, oldy, 4, -1);
@@ -1221,7 +1230,6 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShow
 	int bps = 0;
 	int displayRes = get_system_dpi();
 	int c;
-	char *password = NULL;
 	char *layout_css = NULL;
 
 	ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
@@ -1280,8 +1288,7 @@ WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShow
 	if (layout_css)
 	{
 		fz_buffer *buf = fz_read_file(ctx, layout_css);
-		fz_write_buffer_byte(ctx, buf, 0);
-		fz_set_user_css(ctx, (char*)buf->data);
+		fz_set_user_css(ctx, fz_string_from_buffer(ctx, buf));
 		fz_drop_buffer(ctx, buf);
 	}
 
