@@ -14,14 +14,14 @@ MUPDF_OUT := $(MUPDF_DIR)/build/$(MUPDF_BUILD)
 MUPDF_XCFLAGS := -DNOCJK
 
 CXX := nspire-g++
-CXXFLAGS := -O$(OPTIMIZE) -Wall -Wextra -std=gnu++11 -marm -I $(MUPDF_INC)
+CXXFLAGS := -O$(OPTIMIZE) -Wall -Wextra -std=gnu++14 -marm -I $(MUPDF_INC)
 ifeq ($(OPTIMIZE),g)
 	CXXFLAGS += -g
 endif
-NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lfreetype -ljbig2dec -ljpeg -lopenjpeg -lz -lm
+NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lmupdfthird -lfreetype -lz -lm
 ZEHNFLAGS := --compress --name "nPDF" --author "Legimet" --notice "Document viewer"
 OBJS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
-LIBS := $(patsubst %,$(MUPDF_OUT)/lib%.a,mupdf jbig2dec jpeg openjpeg)
+LIBS := $(patsubst %,$(MUPDF_OUT)/lib%.a,mupdf mupdfthird)
 EXE := nPDF
 
 all: $(EXE).tns
