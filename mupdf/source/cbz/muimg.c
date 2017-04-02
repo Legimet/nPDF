@@ -152,16 +152,17 @@ img_recognize(fz_context *doc, const char *magic)
 #ifdef _TINSPIRE
 		if (!fz_strcasecmp(ext, ".tns"))
 		{
-			while (--ext >= magic)
-			{
-				if (*ext == '.')
-					break;
-			}
-			if (ext >= magic &&
-				(!fz_strcasecmp(ext, ".png.tns") || !fz_strcasecmp(ext, ".jpg.tns") ||
-				!fz_strcasecmp(ext, ".jpeg.tns") || !fz_strcasecmp(ext, ".jfif.tns") ||
-				!fz_strcasecmp(ext, ".jfif-tbnl.tns") || !fz_strcasecmp(ext, ".jpe.tns") ||
-				!fz_strcasecmp(ext, ".gif.tns")))
+			while (--ext >= magic && *ext != '.');
+			if (ext >= magic && (!fz_strcasecmp(ext, ".png.tns") ||
+				!fz_strcasecmp(ext, ".jpg.tns") || !fz_strcasecmp(ext, ".jpeg.tns") ||
+				!fz_strcasecmp(ext, ".jfif.tns") || !fz_strcasecmp(ext, ".jfif-tbnl.tns") ||
+				!fz_strcasecmp(ext, ".jpe.tns") || !fz_strcasecmp(ext, ".gif.tns") ||
+				!fz_strcasecmp(ext, ".bmp.tns") || !fz_strcasecmp(ext, ".jpx.tns") ||
+				!fz_strcasecmp(ext, ".jp2.tns") || !fz_strcasecmp(ext, ".j2k.tns") ||
+				!fz_strcasecmp(ext, ".wdp.tns") || !fz_strcasecmp(ext, ".hdp.tns") ||
+				!fz_strcasecmp(ext, ".jxr.tns") || !fz_strcasecmp(ext, ".pbm.tns") ||
+				!fz_strcasecmp(ext, ".pgm.tns") || !fz_strcasecmp(ext, ".ppm.tns") ||
+				!fz_strcasecmp(ext, ".pam.tns") || !fz_strcasecmp(ext, ".pnm.tns")))
 				return 100;
 		}
 #endif

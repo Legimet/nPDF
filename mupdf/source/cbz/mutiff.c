@@ -156,12 +156,9 @@ tiff_recognize(fz_context *doc, const char *magic)
 #ifdef _TINSPIRE
 		if (!fz_strcasecmp(ext, ".tns"))
 		{
-			while (--ext >= magic)
-			{
-				if (*ext == '.')
-					break;
-			}
-			if (ext >= magic && (!fz_strcasecmp(ext, ".tiff.tns") || !fz_strcasecmp(ext, ".tif.tns")))
+			while (--ext >= magic && *ext != '.');
+			if (ext >= magic && (!fz_strcasecmp(ext, ".tiff.tns") ||
+				!fz_strcasecmp(ext, ".tif.tns")))
 				return 100;
 		}
 #endif

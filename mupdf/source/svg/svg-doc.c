@@ -133,6 +133,14 @@ svg_recognize(fz_context *ctx, const char *magic)
 	char *ext = strrchr(magic, '.');
 	if (ext && !fz_strcasecmp(ext, ".svg"))
 		return 100;
+#ifdef _TINSPIRE
+	if (ext && !fz_strcasecmp(ext, ".tns"))
+	{
+		while (--ext >= magic && *ext != '.');
+		if (ext >= magic && !fz_strcasecmp(ext, ".svg.tns"))
+			return 100;
+	}
+#endif
 	if (!strcmp(magic, "svg") || !strcmp(magic, "image/svg+xml"))
 		return 100;
 	return 0;

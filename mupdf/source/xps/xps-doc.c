@@ -475,12 +475,8 @@ xps_recognize(fz_context *ctx, const char *magic)
 #ifdef _TINSPIRE
 		if (!fz_strcasecmp(ext, ".tns"))
 		{
-			while (--ext >= magic)
-			{
-				if (*ext == '.')
-					break;
-			}
-			if (ext >= magic && (!fz_strcasecmp(ext, ".xps.tns") || !fz_strcasecmp(ext, ".rels.tns") || !fz_strcasecmp(ext, ".oxps.tns")))
+			while (--ext >= magic && *ext != '.');
+			if (ext >= magic && (!fz_strcasecmp(ext, ".xps.tns") || !fz_strcasecmp(ext, ".oxps.tns")))
 				return 100;
 		}
 #endif

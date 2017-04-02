@@ -2702,11 +2702,7 @@ pdf_recognize(fz_context *doc, const char *magic)
 #ifdef _TINSPIRE
 		if (!fz_strcasecmp(ext, ".tns"))
 		{
-			while (--ext >= magic)
-			{
-				if (*ext == '.')
-					break;
-			}
+			while (--ext >= magic && *ext != '.');
 			if (ext >= magic && !fz_strcasecmp(ext, ".pdf.tns"))
 				return 100;
 		}

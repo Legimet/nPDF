@@ -233,6 +233,18 @@ cbz_recognize(fz_context *ctx, const char *magic)
 	if ((ext && !fz_strcasecmp(ext, ".cbt")) || !strcmp(magic, "cbt") ||
 			!strcmp(magic, "application/x-cbt"))
 		return 100;
+
+#ifdef _TINSPIRE
+	if (ext && !fz_strcasecmp(ext, ".tns"))
+	{
+		while (--ext >= magic && *ext != '.');
+		if (ext >= magic && (!fz_strcasecmp(ext, ".cbz.tns") ||
+				!fz_strcasecmp(ext, ".zip.tns") ||
+				!fz_strcasecmp(ext, ".tar.tns") ||
+				!fz_strcasecmp(ext, ".cbt.tns")))
+			return 100;
+	}
+#endif
 	return 0;
 }
 
