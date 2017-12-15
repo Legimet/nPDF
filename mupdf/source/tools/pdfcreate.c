@@ -4,14 +4,19 @@
  * Simple test bed to work with adding content and creating PDFs
  */
 
+#include "mupdf/fitz.h"
 #include "mupdf/pdf.h"
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 static void usage(void)
 {
 	fprintf(stderr,
 		"usage: mutool create [-o output.pdf] [-O options] page.txt [page2.txt ...]\n"
-		"\t-o\tname of PDF file to create\n"
-		"\t-O\tcomma separated list of output options\n"
+		"\t-o -\tname of PDF file to create\n"
+		"\t-O -\tcomma separated list of output options\n"
 		"\tpage.txt\tcontent stream with annotations for creating resources\n\n"
 		"Content stream special commands:\n"
 		"\t%%%%MediaBox LLX LLY URX URY\n"
@@ -19,7 +24,7 @@ static void usage(void)
 		"\t%%%%Font Name Filename (or base 14 font name)\n"
 		"\t%%%%Image Name Filename\n\n"
 		);
-	fprintf(stderr, "%s\n", fz_pdf_write_options_usage);
+	fputs(fz_pdf_write_options_usage, stderr);
 	exit(1);
 }
 
@@ -28,7 +33,7 @@ static pdf_document *doc = NULL;
 
 static void add_font_res(pdf_obj *resources, char *name, char *path)
 {
-	const char *data;
+	const unsigned char *data;
 	int size;
 	fz_font *font;
 	pdf_obj *subres, *ref;
@@ -129,8 +134,8 @@ static void create_page(char *input)
 		}
 		else
 		{
-			fz_write_buffer(ctx, contents, line, strlen(line));
-			fz_write_buffer_byte(ctx, contents, '\n');
+			fz_append_string(ctx, contents, line);
+			fz_append_byte(ctx, contents, '\n');
 		}
 	}
 	fz_drop_stream(ctx, stm);
@@ -147,7 +152,7 @@ int pdfcreate_main(int argc, char **argv)
 {
 	pdf_write_options opts = { 0 };
 	char *output = "out.pdf";
-	char *flags = "z";
+	char *flags = "compress";
 	int i, c;
 
 	while ((c = fz_getopt(argc, argv, "o:O:")) != -1)

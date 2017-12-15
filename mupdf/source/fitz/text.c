@@ -1,4 +1,7 @@
 #include "mupdf/fitz.h"
+#include "fitz-imp.h"
+
+#include <string.h>
 
 fz_text *
 fz_new_text(fz_context *ctx)
@@ -150,7 +153,6 @@ fz_bound_text(fz_context *ctx, const fz_text *text, const fz_stroke_state *strok
 					fz_union_rect(bbox, &gbox);
 				}
 			}
-
 		}
 	}
 
@@ -199,7 +201,6 @@ fz_clone_text(fz_context *ctx, const fz_text *text)
 			new_span->items = fz_malloc(ctx, span->len * sizeof(*span->items));
 			memcpy(new_span->items, span->items, span->len * sizeof(*span->items));
 			span = span->next;
-
 		}
 	}
 	fz_catch(ctx)

@@ -7,6 +7,10 @@
 #include <X11/keysym.h>
 #include <X11/XF86keysym.h>
 
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -344,10 +348,10 @@ void cleanup(pdfapp_t *app)
 	fz_drop_context(ctx);
 }
 
-static int winresolution()
+static int winresolution(void)
 {
-	return DisplayWidth(xdpy, xscr) * 25.4 /
-		DisplayWidthMM(xdpy, xscr) + 0.5;
+	return DisplayWidth(xdpy, xscr) * 25.4f /
+		DisplayWidthMM(xdpy, xscr) + 0.5f;
 }
 
 void wincursor(pdfapp_t *app, int curs)
@@ -812,8 +816,10 @@ static void usage(void)
 	fprintf(stderr, "\t-C -\tRRGGBB (tint color in hexadecimal syntax)\n");
 	fprintf(stderr, "\t-W -\tpage width for EPUB layout\n");
 	fprintf(stderr, "\t-H -\tpage height for EPUB layout\n");
+	fprintf(stderr, "\t-I -\tinvert colors\n");
 	fprintf(stderr, "\t-S -\tfont size for EPUB layout\n");
 	fprintf(stderr, "\t-U -\tuser style sheet for EPUB layout\n");
+	fprintf(stderr, "\t-X\tdisable document styles for EPUB layout\n");
 	exit(1);
 }
 
@@ -834,6 +840,7 @@ int main(int argc, char **argv)
 	struct timeval now;
 	struct timeval *timeout;
 	struct timeval tmo_advance_delay;
+	int bps = 0;
 
 	ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
 	if (!ctx)
@@ -844,7 +851,7 @@ int main(int argc, char **argv)
 
 	pdfapp_init(ctx, &gapp);
 
-	while ((c = fz_getopt(argc, argv, "p:r:A:C:W:H:S:U:")) != -1)
+	while ((c = fz_getopt(argc, argv, "Ip:r:A:C:W:H:S:U:Xb:")) != -1)
 	{
 		switch (c)
 		{
@@ -857,11 +864,14 @@ int main(int argc, char **argv)
 			break;
 		case 'p': password = fz_optarg; break;
 		case 'r': resolution = atoi(fz_optarg); break;
+		case 'I': gapp.invert = 1; break;
 		case 'A': fz_set_aa_level(ctx, atoi(fz_optarg)); break;
 		case 'W': gapp.layout_w = fz_atof(fz_optarg); break;
 		case 'H': gapp.layout_h = fz_atof(fz_optarg); break;
 		case 'S': gapp.layout_em = fz_atof(fz_optarg); break;
 		case 'U': gapp.layout_css = fz_optarg; break;
+		case 'X': gapp.layout_use_doc_css = 0; break;
+		case 'b': bps = (fz_optarg && *fz_optarg) ? fz_atoi(fz_optarg) : 4096; break;
 		default: usage();
 		}
 	}
@@ -893,7 +903,10 @@ int main(int argc, char **argv)
 	tmo_at.tv_usec = 0;
 	timeout = NULL;
 
-	pdfapp_open(&gapp, filename, 0);
+	if (bps)
+		pdfapp_open_progressive(&gapp, filename, 0, bps);
+	else
+		pdfapp_open(&gapp, filename, 0);
 
 	FD_ZERO(&fds);
 

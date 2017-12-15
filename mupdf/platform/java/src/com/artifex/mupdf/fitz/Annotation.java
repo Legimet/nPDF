@@ -2,6 +2,10 @@ package com.artifex.mupdf.fitz;
 
 public class Annotation
 {
+	static {
+		Context.init();
+	}
+
 	private long pointer;
 
 	protected native void finalize();
@@ -11,7 +15,7 @@ public class Annotation
 		pointer = 0;
 	}
 
-	private Annotation(long p) {
+	protected Annotation(long p) {
 		pointer = p;
 	}
 

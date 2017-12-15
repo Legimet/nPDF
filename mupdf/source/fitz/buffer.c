@@ -1,5 +1,8 @@
 #include "fitz-imp.h"
 
+#include <string.h>
+#include <stdarg.h>
+
 fz_buffer *
 fz_new_buffer(fz_context *ctx, size_t size)
 {
@@ -28,7 +31,7 @@ fz_new_buffer(fz_context *ctx, size_t size)
 fz_buffer *
 fz_new_buffer_from_data(fz_context *ctx, unsigned char *data, size_t size)
 {
-	fz_buffer *b;
+	fz_buffer *b = NULL;
 
 	fz_try(ctx)
 	{
@@ -49,7 +52,7 @@ fz_new_buffer_from_data(fz_context *ctx, unsigned char *data, size_t size)
 }
 
 fz_buffer *
-fz_new_buffer_from_shared_data(fz_context *ctx, const char *data, size_t size)
+fz_new_buffer_from_shared_data(fz_context *ctx, const unsigned char *data, size_t size)
 {
 	fz_buffer *b;
 
@@ -65,6 +68,15 @@ fz_new_buffer_from_shared_data(fz_context *ctx, const char *data, size_t size)
 }
 
 fz_buffer *
+fz_new_buffer_from_copied_data(fz_context *ctx, const unsigned char *data, size_t size)
+{
+	fz_buffer *b = fz_new_buffer(ctx, size);
+	b->len = size;
+	memcpy(b->data, data, size);
+	return b;
+}
+
+fz_buffer *
 fz_new_buffer_from_base64(fz_context *ctx, const char *data, size_t size)
 {
 	fz_buffer *buf = fz_new_buffer(ctx, size);
@@ -76,15 +88,15 @@ fz_new_buffer_from_base64(fz_context *ctx, const char *data, size_t size)
 		{
 			int c = *s++;
 			if (c >= 'A' && c <= 'Z')
-				fz_write_buffer_bits(ctx, buf, c - 'A', 6);
+				fz_append_bits(ctx, buf, c - 'A', 6);
 			else if (c >= 'a' && c <= 'z')
-				fz_write_buffer_bits(ctx, buf, c - 'a' + 26, 6);
+				fz_append_bits(ctx, buf, c - 'a' + 26, 6);
 			else if (c >= '0' && c <= '9')
-				fz_write_buffer_bits(ctx, buf, c - '0' + 52, 6);
+				fz_append_bits(ctx, buf, c - '0' + 52, 6);
 			else if (c == '+')
-				fz_write_buffer_bits(ctx, buf, 62, 6);
+				fz_append_bits(ctx, buf, 62, 6);
 			else if (c == '/')
-				fz_write_buffer_bits(ctx, buf, 63, 6);
+				fz_append_bits(ctx, buf, 63, 6);
 		}
 	}
 	fz_catch(ctx)
@@ -152,6 +164,15 @@ fz_trim_buffer(fz_context *ctx, fz_buffer *buf)
 		fz_resize_buffer(ctx, buf, buf->len);
 }
 
+void
+fz_terminate_buffer(fz_context *ctx, fz_buffer *buf)
+{
+	/* ensure that there is a zero-byte after the end of the data */
+	if (buf->len + 1 > buf->cap)
+		fz_grow_buffer(ctx, buf);
+	buf->data[buf->len] = 0;
+}
+
 size_t
 fz_buffer_storage(fz_context *ctx, fz_buffer *buf, unsigned char **datap)
 {
@@ -165,10 +186,7 @@ fz_string_from_buffer(fz_context *ctx, fz_buffer *buf)
 {
 	if (!buf)
 		return "";
-
-	if (buf->data[buf->len-1] != 0)
-		fz_write_buffer_byte(ctx, buf, 0);
-
+	fz_terminate_buffer(ctx, buf);
 	return (const char *)buf->data;
 }
 
@@ -199,7 +217,8 @@ fz_append_buffer(fz_context *ctx, fz_buffer *buf, fz_buffer *extra)
 	buf->len += extra->len;
 }
 
-void fz_write_buffer(fz_context *ctx, fz_buffer *buf, const void *data, size_t len)
+void
+fz_append_data(fz_context *ctx, fz_buffer *buf, const void *data, size_t len)
 {
 	if (buf->len + len > buf->cap)
 		fz_ensure_buffer(ctx, buf, buf->len + len);
@@ -208,7 +227,19 @@ void fz_write_buffer(fz_context *ctx, fz_buffer *buf, const void *data, size_t l
 	buf->unused_bits = 0;
 }
 
-void fz_write_buffer_byte(fz_context *ctx, fz_buffer *buf, int val)
+void
+fz_append_string(fz_context *ctx, fz_buffer *buf, const char *data)
+{
+	size_t len = strlen(data);
+	if (buf->len + len > buf->cap)
+		fz_ensure_buffer(ctx, buf, buf->len + len);
+	memcpy(buf->data + buf->len, data, len);
+	buf->len += len;
+	buf->unused_bits = 0;
+}
+
+void
+fz_append_byte(fz_context *ctx, fz_buffer *buf, int val)
 {
 	if (buf->len + 1 > buf->cap)
 		fz_grow_buffer(ctx, buf);
@@ -216,7 +247,8 @@ void fz_write_buffer_byte(fz_context *ctx, fz_buffer *buf, int val)
 	buf->unused_bits = 0;
 }
 
-void fz_write_buffer_rune(fz_context *ctx, fz_buffer *buf, int c)
+void
+fz_append_rune(fz_context *ctx, fz_buffer *buf, int c)
 {
 	char data[10];
 	int len = fz_runetochar(data, c);
@@ -227,21 +259,40 @@ void fz_write_buffer_rune(fz_context *ctx, fz_buffer *buf, int c)
 	buf->unused_bits = 0;
 }
 
-void fz_write_buffer_int32_le(fz_context *ctx, fz_buffer *buf, int x)
+void
+fz_append_int32_be(fz_context *ctx, fz_buffer *buf, int x)
 {
-	fz_write_buffer_byte(ctx, buf, (x)&0xFF);
-	fz_write_buffer_byte(ctx, buf, (x>>8)&0xFF);
-	fz_write_buffer_byte(ctx, buf, (x>>16)&0xFF);
-	fz_write_buffer_byte(ctx, buf, (x>>24)&0xFF);
+	fz_append_byte(ctx, buf, (x >> 24) & 0xFF);
+	fz_append_byte(ctx, buf, (x >> 16) & 0xFF);
+	fz_append_byte(ctx, buf, (x >> 8) & 0xFF);
+	fz_append_byte(ctx, buf, (x) & 0xFF);
 }
 
-void fz_write_buffer_int16_le(fz_context *ctx, fz_buffer *buf, int x)
+void
+fz_append_int16_be(fz_context *ctx, fz_buffer *buf, int x)
 {
-	fz_write_buffer_byte(ctx, buf, (x)&0xFF);
-	fz_write_buffer_byte(ctx, buf, (x>>8)&0xFF);
+	fz_append_byte(ctx, buf, (x >> 8) & 0xFF);
+	fz_append_byte(ctx, buf, (x) & 0xFF);
 }
 
-void fz_write_buffer_bits(fz_context *ctx, fz_buffer *buf, int val, int bits)
+void
+fz_append_int32_le(fz_context *ctx, fz_buffer *buf, int x)
+{
+	fz_append_byte(ctx, buf, (x)&0xFF);
+	fz_append_byte(ctx, buf, (x>>8)&0xFF);
+	fz_append_byte(ctx, buf, (x>>16)&0xFF);
+	fz_append_byte(ctx, buf, (x>>24)&0xFF);
+}
+
+void
+fz_append_int16_le(fz_context *ctx, fz_buffer *buf, int x)
+{
+	fz_append_byte(ctx, buf, (x)&0xFF);
+	fz_append_byte(ctx, buf, (x>>8)&0xFF);
+}
+
+void
+fz_append_bits(fz_context *ctx, fz_buffer *buf, int val, int bits)
 {
 	int shift;
 
@@ -302,54 +353,34 @@ void fz_write_buffer_bits(fz_context *ctx, fz_buffer *buf, int val, int bits)
 	buf->unused_bits = bits;
 }
 
-void fz_write_buffer_pad(fz_context *ctx, fz_buffer *buf)
+void
+fz_append_bits_pad(fz_context *ctx, fz_buffer *buf)
 {
 	buf->unused_bits = 0;
 }
 
-size_t
-fz_buffer_printf(fz_context *ctx, fz_buffer *buffer, const char *fmt, ...)
+static void fz_append_emit(fz_context *ctx, void *buffer, int c)
 {
-	size_t ret;
-	va_list args;
-	va_start(args, fmt);
-	ret = fz_buffer_vprintf(ctx, buffer, fmt, args);
-	va_end(args);
-	return ret;
-}
-
-size_t
-fz_buffer_vprintf(fz_context *ctx, fz_buffer *buffer, const char *fmt, va_list old_args)
-{
-	size_t slack;
-	size_t len;
-	va_list args;
-
-	slack = buffer->cap - buffer->len;
-	va_copy(args, old_args);
-	len = fz_vsnprintf((char *)buffer->data + buffer->len, slack, fmt, args);
-	va_copy_end(args);
-
-	/* len is the number of characters in the formatted string (not including
-	 * the terminating zero), so if (len > slack) the string was truncated. */
-	if (len > slack)
-	{
-		/* Grow the buffer and retry */
-		fz_ensure_buffer(ctx, buffer, buffer->len + len);
-		slack = buffer->cap - buffer->len;
-
-		va_copy(args, old_args);
-		len = fz_vsnprintf((char *)buffer->data + buffer->len, slack, fmt, args);
-		va_copy_end(args);
-	}
-
-	buffer->len += len;
-
-	return len;
+	fz_append_byte(ctx, buffer, c);
 }
 
 void
-fz_buffer_print_pdf_string(fz_context *ctx, fz_buffer *buffer, const char *text)
+fz_append_printf(fz_context *ctx, fz_buffer *buffer, const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	fz_format_string(ctx, buffer, fz_append_emit, fmt, args);
+	va_end(args);
+}
+
+void
+fz_append_vprintf(fz_context *ctx, fz_buffer *buffer, const char *fmt, va_list args)
+{
+	fz_format_string(ctx, buffer, fz_append_emit, fmt, args);
+}
+
+void
+fz_append_pdf_string(fz_context *ctx, fz_buffer *buffer, const char *text)
 {
 	size_t len = 2;
 	const char *s = text;
@@ -424,11 +455,13 @@ fz_buffer_print_pdf_string(fz_context *ctx, fz_buffer *buffer, const char *text)
 	buffer->len += len;
 }
 
-void fz_md5_buffer(fz_context *ctx, fz_buffer *buffer, unsigned char digest[16])
+void
+fz_md5_buffer(fz_context *ctx, fz_buffer *buffer, unsigned char digest[16])
 {
 	fz_md5 state;
 	fz_md5_init(&state);
-	fz_md5_update(&state, buffer->data, buffer->len);
+	if (buffer)
+		fz_md5_update(&state, buffer->data, buffer->len);
 	fz_md5_final(&state, digest);
 }
 
@@ -463,7 +496,7 @@ fz_test_buffer_write(fz_context *ctx)
 			k = (rand() & 31)+1;
 			if (k > j)
 				k = j;
-			fz_write_buffer_bits(ctx, copy, fz_read_bits(ctx, stm, k), k);
+			fz_append_bits(ctx, copy, fz_read_bits(ctx, stm, k), k);
 			j -= k;
 		}
 		while (j);

@@ -1,5 +1,8 @@
 #include "mupdf/fitz.h"
 
+#include <string.h>
+#include <stdlib.h>
+
 static const struct { const char *ent; int ucs; } html_entities[] = {
 	{"nbsp",160}, {"iexcl",161}, {"cent",162}, {"pound",163},
 	{"curren",164}, {"yen",165}, {"brvbar",166}, {"sect",167},
@@ -85,6 +88,7 @@ struct fz_xml_s
 	fz_xml *up, *down, *tail, *prev, *next;
 };
 
+#if 0
 static void xml_indent(int n)
 {
 	while (n--) {
@@ -141,6 +145,7 @@ void fz_debug_xml(fz_xml *item, int level)
 		printf(")%s\n", item->name);
 	}
 }
+#endif
 
 fz_xml *fz_xml_prev(fz_xml *item)
 {
@@ -585,15 +590,15 @@ parse_attribute_value:
 	return "end of data in attribute value";
 }
 
-static char *convert_to_utf8(fz_context *doc, unsigned char *s, size_t n, int *dofree)
+static char *convert_to_utf8(fz_context *doc, const unsigned char *s, size_t n, int *dofree)
 {
-	unsigned char *e = s + n;
+	const unsigned char *e = s + n;
 	char *dst, *d;
 	int c;
 
 	if (s[0] == 0xFE && s[1] == 0xFF) {
 		s += 2;
-		dst = d = fz_malloc(doc, n * 2);
+		dst = d = fz_malloc(doc, n * FZ_UTFMAX);
 		while (s + 1 < e) {
 			c = s[0] << 8 | s[1];
 			d += fz_runetochar(d, c);
@@ -606,7 +611,7 @@ static char *convert_to_utf8(fz_context *doc, unsigned char *s, size_t n, int *d
 
 	if (s[0] == 0xFF && s[1] == 0xFE) {
 		s += 2;
-		dst = d = fz_malloc(doc, n * 2);
+		dst = d = fz_malloc(doc, n * FZ_UTFMAX);
 		while (s + 1 < e) {
 			c = s[0] | s[1] << 8;
 			d += fz_runetochar(d, c);
@@ -626,14 +631,18 @@ static char *convert_to_utf8(fz_context *doc, unsigned char *s, size_t n, int *d
 }
 
 fz_xml *
-fz_parse_xml(fz_context *ctx, unsigned char *s, size_t n, int preserve_white)
+fz_parse_xml(fz_context *ctx, fz_buffer *buf, int preserve_white)
 {
 	struct parser parser;
 	fz_xml root, *node;
 	char *p, *error;
 	int dofree;
+	unsigned char *s;
+	size_t n;
 
-	/* s is already null-terminated (see xps_new_part) */
+	/* ensure we are zero-terminated */
+	fz_terminate_buffer(ctx, buf);
+	n = fz_buffer_storage(ctx, buf, &s);
 
 	memset(&root, 0, sizeof(root));
 	parser.head = &root;

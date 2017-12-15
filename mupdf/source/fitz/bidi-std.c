@@ -6,6 +6,8 @@
 #include "mupdf/fitz.h"
 #include "bidi-imp.h"
 
+#include <assert.h>
+
 #ifndef TRUE
 #define TRUE (1)
 #endif
@@ -57,7 +59,7 @@
 	only bidi.h and bidi.cpp are needed.
 
 	The Win32 version is provided as a dialog procedure. To use as a
-	standalone program compile with the the lbmain.cpp file. If all you
+	standalone program compile with the lbmain.cpp file. If all you
 	need is the ability to run the code "as is", you can instead download
 	the unibook utility from http://uincode.org/unibook/ which contains
 	the bidi demo compiled from this source file.
@@ -720,7 +722,7 @@ void fz_bidi_resolve_weak(fz_context *ctx, fz_bidi_level baselevel, fz_bidi_char
 	for (ich = 0; ich < cch; ich++)
 	{
 		if (pcls[ich] > BDI_BN) {
-			fz_warn(ctx, "error: pcls[" FMT_zu "] > BN (%d)\n", ich, pcls[ich]);
+			fz_warn(ctx, "error: pcls[%zu] > BN (%d)\n", ich, pcls[ich]);
 		}
 
 		// ignore boundary neutrals

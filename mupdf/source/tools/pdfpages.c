@@ -3,7 +3,11 @@
  * Print information about pages of a pdf.
  */
 
+#include "mupdf/fitz.h"
 #include "mupdf/pdf.h"
+
+#include <stdlib.h>
+#include <stdio.h>
 
 static void
 infousage(void)
@@ -31,7 +35,7 @@ showbox(fz_context *ctx, fz_output *out, pdf_obj *page, char *text, pdf_obj *nam
 
 		pdf_to_rect(ctx, obj, &bbox);
 
-		fz_printf(ctx, out, "<%s l=\"%g\" b=\"%g\" r=\"%g\" t=\"%g\" />\n", text, bbox.x0, bbox.y0, bbox.x1, bbox.y1);
+		fz_write_printf(ctx, out, "<%s l=\"%g\" b=\"%g\" r=\"%g\" t=\"%g\" />\n", text, bbox.x0, bbox.y0, bbox.x1, bbox.y1);
 	}
 	fz_catch(ctx)
 	{
@@ -53,7 +57,7 @@ shownum(fz_context *ctx, fz_output *out, pdf_obj *page, char *text, pdf_obj *nam
 		if (!pdf_is_number(ctx, obj))
 			break;
 
-		fz_printf(ctx, out, "<%s v=\"%g\" />\n", text, pdf_to_real(ctx, obj));
+		fz_write_printf(ctx, out, "<%s v=\"%g\" />\n", text, pdf_to_real(ctx, obj));
 	}
 	fz_catch(ctx)
 	{
@@ -69,7 +73,7 @@ showpage(fz_context *ctx, pdf_document *doc, fz_output *out, int page)
 	pdf_obj *pageref;
 	int failed = 0;
 
-	fz_printf(ctx, out, "<page pagenum=\"%d\">\n", page);
+	fz_write_printf(ctx, out, "<page pagenum=\"%d\">\n", page);
 	fz_try(ctx)
 	{
 		pageref = pdf_lookup_page_obj(ctx, doc, page-1);
@@ -78,7 +82,7 @@ showpage(fz_context *ctx, pdf_document *doc, fz_output *out, int page)
 	}
 	fz_catch(ctx)
 	{
-		fz_printf(ctx, out, "Failed to gather information for page %d\n", page);
+		fz_write_printf(ctx, out, "Failed to gather information for page %d\n", page);
 		failed = 1;
 	}
 
@@ -93,7 +97,7 @@ showpage(fz_context *ctx, pdf_document *doc, fz_output *out, int page)
 		failed |= shownum(ctx, out, pageref, "UserUnit", PDF_NAME_UserUnit);
 	}
 
-	fz_printf(ctx, out, "</page>\n");
+	fz_write_printf(ctx, out, "</page>\n");
 
 	return failed;
 }
@@ -141,7 +145,7 @@ pdfpages_pages(fz_context *ctx, fz_output *out, char *filename, char *password, 
 			pdf_drop_document(ctx, doc);
 
 			filename = argv[argidx];
-			fz_printf(ctx, out, "%s:\n", filename);
+			fz_write_printf(ctx, out, "%s:\n", filename);
 			doc = pdf_open_document(ctx, filename);
 			if (pdf_needs_password(ctx, doc))
 				if (!pdf_authenticate_password(ctx, doc, password))
@@ -171,7 +175,6 @@ int pdfpages_main(int argc, char **argv)
 	char *filename = "";
 	char *password = "";
 	int c;
-	fz_output *out = NULL;
 	int ret;
 	fz_context *ctx;
 
@@ -196,19 +199,11 @@ int pdfpages_main(int argc, char **argv)
 		exit(1);
 	}
 
-	fz_var(out);
-
 	ret = 0;
 	fz_try(ctx)
-	{
-		out = fz_stdout(ctx);
-		ret = pdfpages_pages(ctx, out, filename, password, &argv[fz_optind], argc-fz_optind);
-	}
+		ret = pdfpages_pages(ctx, fz_stdout(ctx), filename, password, &argv[fz_optind], argc-fz_optind);
 	fz_catch(ctx)
-	{
 		ret = 1;
-	}
-	fz_drop_output(ctx, out);
 	fz_drop_context(ctx);
 	return ret;
 }

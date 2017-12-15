@@ -1,5 +1,6 @@
 #include "mupdf/fitz.h"
 
+#include <stdio.h>
 #include <jpeglib.h>
 
 #ifndef SHARE_JPEG
@@ -117,7 +118,6 @@ static boolean fill_input_buffer_dct(j_decompress_ptr cinfo)
 	}
 	fz_catch(ctx)
 	{
-		fz_rethrow_if(ctx, FZ_ERROR_TRYLATER);
 		return 0;
 	}
 	src->next_input_byte = curr_stm->rp;
@@ -170,6 +170,8 @@ next_dctd(fz_context *ctx, fz_stream *stm, size_t max)
 	if (!state->init)
 	{
 		int c;
+
+		cinfo->src = NULL;
 		cinfo->client_data = state;
 		cinfo->err = &state->errmgr;
 		jpeg_std_error(cinfo->err);

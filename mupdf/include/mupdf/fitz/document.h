@@ -3,11 +3,12 @@
 
 #include "mupdf/fitz/system.h"
 #include "mupdf/fitz/context.h"
-#include "mupdf/fitz/math.h"
+#include "mupdf/fitz/geometry.h"
 #include "mupdf/fitz/device.h"
 #include "mupdf/fitz/transition.h"
 #include "mupdf/fitz/link.h"
 #include "mupdf/fitz/outline.h"
+#include "mupdf/fitz/separation.h"
 
 /*
 	Document interface
@@ -16,6 +17,7 @@ typedef struct fz_document_s fz_document;
 typedef struct fz_document_handler_s fz_document_handler;
 typedef struct fz_page_s fz_page;
 typedef struct fz_annot_s fz_annot;
+typedef intptr_t fz_bookmark;
 
 typedef enum
 {
@@ -26,29 +28,161 @@ typedef enum
 }
 fz_permission;
 
+/*
+	fz_document_drop_fn: Type for a function to be called when
+	the reference count for the fz_document drops to 0. The
+	implementation should release any resources held by the
+	document. The actual document pointer will be freed by the
+	caller.
+*/
 typedef void (fz_document_drop_fn)(fz_context *ctx, fz_document *doc);
+
+/*
+	fz_document_needs_password_fn: Type for a function to be
+	called to enquire whether the document needs a password
+	or not. See fz_needs_password for more information.
+*/
 typedef int (fz_document_needs_password_fn)(fz_context *ctx, fz_document *doc);
+
+/*
+	fz_document_authenticate_password_fn: Type for a function to be
+	called to attempt to authenticate a password. See
+	fz_authenticate_password for more information.
+*/
 typedef int (fz_document_authenticate_password_fn)(fz_context *ctx, fz_document *doc, const char *password);
+
+/*
+	fz_document_has_permission_fn: Type for a function to be
+	called to see if a document grants a certain permission. See
+	fz_document_has_permission for more information.
+*/
 typedef int (fz_document_has_permission_fn)(fz_context *ctx, fz_document *doc, fz_permission permission);
+
+/*
+	fz_document_load_outline_fn: Type for a function to be called to
+	load the outlines for a document. See fz_document_load_outline
+	for more information.
+*/
 typedef fz_outline *(fz_document_load_outline_fn)(fz_context *ctx, fz_document *doc);
+
+/*
+	fz_document_layout_fn: Type for a function to be called to lay
+	out a document. See fz_layout_document for more information.
+*/
 typedef void (fz_document_layout_fn)(fz_context *ctx, fz_document *doc, float w, float h, float em);
+
+/*
+	fz_document_resolve_link_fn: Type for a function to be called to
+	resolve an internal link to a page number. See fz_resolve_link
+	for more information.
+*/
 typedef int (fz_document_resolve_link_fn)(fz_context *ctx, fz_document *doc, const char *uri, float *xp, float *yp);
+
+/*
+	fz_document_count_pages_fn: Type for a function to be called to
+	count the number of pages in a document. See fz_count_pages for
+	more information.
+*/
 typedef int (fz_document_count_pages_fn)(fz_context *ctx, fz_document *doc);
+
+/*
+	fz_document_load_page_fn: Type for a function to load a given
+	page from a document. See fz_load_page for more information.
+*/
 typedef fz_page *(fz_document_load_page_fn)(fz_context *ctx, fz_document *doc, int number);
+
+/*
+	fz_document_lookup_metadata_fn: Type for a function to query
+	a documents metadata. See fz_lookup_metadata for more
+	information.
+*/
 typedef int (fz_document_lookup_metadata_fn)(fz_context *ctx, fz_document *doc, const char *key, char *buf, int size);
 
-typedef fz_link *(fz_page_load_links_fn)(fz_context *ctx, fz_page *page);
-typedef fz_rect *(fz_page_bound_page_fn)(fz_context *ctx, fz_page *page, fz_rect *);
-typedef void (fz_page_run_page_contents_fn)(fz_context *ctx, fz_page *page, fz_device *dev, const fz_matrix *transform, fz_cookie *cookie);
-typedef void (fz_page_drop_page_fn)(fz_context *ctx, fz_page *page);
-typedef fz_transition *(fz_page_page_presentation_fn)(fz_context *ctx, fz_page *page, fz_transition *transition, float *duration);
+/*
+	fz_document_output_intent_fn: Return output intent color space if it exists
+*/
+typedef fz_colorspace* (fz_document_output_intent_fn)(fz_context *ctx, fz_document *doc);
 
+/*
+	fz_document_make_bookmark_fn: Type for a function to make
+	a bookmark. See fz_make_bookmark for more information.
+*/
+typedef fz_bookmark (fz_document_make_bookmark_fn)(fz_context *ctx, fz_document *doc, int page);
+
+/*
+	fz_document_lookup_bookmark_fn: Type for a function to lookup
+	a bookmark. See fz_lookup_bookmark for more information.
+*/
+typedef int (fz_document_lookup_bookmark_fn)(fz_context *ctx, fz_document *doc, fz_bookmark mark);
+
+/*
+	fz_page_drop_page_fn: Type for a function to release all the
+	resources held by a page. Called automatically when the
+	reference count for that page reaches zero.
+*/
+typedef void (fz_page_drop_page_fn)(fz_context *ctx, fz_page *page);
+
+/*
+	fz_page_bound_page_fn: Type for a function to return the
+	bounding box of a page. See fz_bound_page for more
+	information.
+*/
+typedef fz_rect *(fz_page_bound_page_fn)(fz_context *ctx, fz_page *page, fz_rect *);
+
+/*
+	fz_page_run_page_contents_fn: Type for a function to run the
+	contents of a page. See fz_run_page_contents for more
+	information.
+*/
+typedef void (fz_page_run_page_contents_fn)(fz_context *ctx, fz_page *page, fz_device *dev, const fz_matrix *transform, fz_cookie *cookie);
+
+/*
+	fz_page_load_links_fn: Type for a function to load the links
+	from a page. See fz_load_links for more information.
+*/
+typedef fz_link *(fz_page_load_links_fn)(fz_context *ctx, fz_page *page);
+
+/*
+	fz_page_first_annot_fn: Type for a function to load the
+	annotations from a page. See fz_first_annot for more
+	information.
+*/
 typedef fz_annot *(fz_page_first_annot_fn)(fz_context *ctx, fz_page *page);
 
+/*
+	fz_page_page_presentation_fn: Type for a function to
+	obtain the details of how this page should be presented when
+	in presentation mode. See fz_page_presentation for more
+	information.
+*/
+typedef fz_transition *(fz_page_page_presentation_fn)(fz_context *ctx, fz_page *page, fz_transition *transition, float *duration);
+
+/*
+	fz_page_control_separation: Type for a function to enable/
+	disable separations on a page. See fz_control_separation for
+	more information.
+*/
 typedef void (fz_page_control_separation_fn)(fz_context *ctx, fz_page *page, int separation, int disable);
+
+/*
+	fz_page_separation_disabled_fn: Type for a function to detect
+	whether a given separation is enabled or disabled on a page.
+	See FZ_SEPARATION_DISABLED for more information.
+*/
 typedef int (fz_page_separation_disabled_fn)(fz_context *ctx, fz_page *page, int separation);
-typedef int (fz_page_count_separations_fn)(fz_context *ctx, fz_page *page);
-typedef const char *(fz_page_get_separation_fn)(fz_context *ctx, fz_page *page, int separation, uint32_t *rgb, uint32_t *cmyk);
+
+/*
+	fz_page_separations_fn: Type for a function to retrieve
+	details of separations on a page. See fz_get_separations
+	for more information.
+*/
+typedef fz_separations *(fz_page_separations_fn)(fz_context *ctx, fz_page *page);
+
+/*
+	fz_page_uses_overprint_fn: Type for a function to retrieve
+	whether or not a given page uses overprint.
+*/
+typedef int (fz_page_uses_overprint_fn)(fz_context *ctx, fz_page *page);
 
 typedef void (fz_annot_drop_fn)(fz_context *ctx, fz_annot *annot);
 typedef fz_annot *(fz_annot_next_fn)(fz_context *ctx, fz_annot *annot);
@@ -83,13 +217,15 @@ struct fz_page_s
 	fz_page_page_presentation_fn *page_presentation;
 	fz_page_control_separation_fn *control_separation;
 	fz_page_separation_disabled_fn *separation_disabled;
-	fz_page_count_separations_fn *count_separations;
-	fz_page_get_separation_fn *get_separation;
+	fz_page_separations_fn *separations;
+	fz_page_uses_overprint_fn *overprint;
 };
 
 /*
 	Structure definition is public so other classes can
-	derive from it. Do not access the members directly.
+	derive from it. Callers shoud not access the members
+	directly, though implementations will need initialize
+	functions directly.
 */
 struct fz_document_s
 {
@@ -100,16 +236,49 @@ struct fz_document_s
 	fz_document_has_permission_fn *has_permission;
 	fz_document_load_outline_fn *load_outline;
 	fz_document_layout_fn *layout;
+	fz_document_make_bookmark_fn *make_bookmark;
+	fz_document_lookup_bookmark_fn *lookup_bookmark;
 	fz_document_resolve_link_fn *resolve_link;
 	fz_document_count_pages_fn *count_pages;
 	fz_document_load_page_fn *load_page;
 	fz_document_lookup_metadata_fn *lookup_metadata;
+	fz_document_output_intent_fn *get_output_intent;
 	int did_layout;
 	int is_reflowable;
 };
 
+/*
+	fz_document_open_fn: Function type to open a document from a
+	file.
+
+	filename: file to open
+
+	Pointer to opened document. Throws exception in case of error.
+*/
 typedef fz_document *(fz_document_open_fn)(fz_context *ctx, const char *filename);
+
+/*
+	fz_document_open_with_stream_fn: Function type to open a
+	document from a file.
+
+	stream: fz_stream to read document data from. Must be
+	seekable for formats that require it.
+
+	Pointer to opened document. Throws exception in case of error.
+*/
 typedef fz_document *(fz_document_open_with_stream_fn)(fz_context *ctx, fz_stream *stream);
+
+/*
+	fz_document_recognize_fn: Recognize a document type from
+	a magic string.
+
+	magic: string to recognise - typically a filename or mime
+	type.
+
+	Returns a number between 0 (not recognized) and 100
+	(fully recognized) based on how certain the recognizer
+	is that this is of the required type.
+*/
 typedef int (fz_document_recognize_fn)(fz_context *ctx, const char *magic);
 
 struct fz_document_handler_s
@@ -117,11 +286,33 @@ struct fz_document_handler_s
 	fz_document_recognize_fn *recognize;
 	fz_document_open_fn *open;
 	fz_document_open_with_stream_fn *open_with_stream;
+	const char **extensions;
+	const char **mimetypes;
 };
 
+/*
+	fz_register_document_handler: Register a handler
+	for a document type.
+
+	handler: The handler to register.
+*/
 void fz_register_document_handler(fz_context *ctx, const fz_document_handler *handler);
 
+/*
+	fz_register_document_handler: Register handlers
+	for all the standard document types supported in
+	this build.
+*/
 void fz_register_document_handlers(fz_context *ctx);
+
+/*
+	fz_recognize_document: Given a magic find a document
+	handler that can handle a document of this type.
+
+	magic: Can be a file extension (including initial period) or
+	a mimetype.
+*/
+const fz_document_handler *fz_recognize_document(fz_context *ctx, const char *magic);
 
 /*
 	fz_open_document: Open a PDF, XPS or CBZ document.
@@ -131,9 +322,7 @@ void fz_register_document_handlers(fz_context *ctx);
 	documents (without actually changing the file contents).
 
 	The returned fz_document is used when calling most other
-	document related functions. Note that it wraps the context, so
-	those functions implicitly can access the global state in
-	context.
+	document related functions.
 
 	filename: a path to a file as it would be given to open(2).
 */
@@ -154,12 +343,10 @@ fz_document *fz_open_document_with_stream(fz_context *ctx, const char *magic, fz
 */
 void *fz_new_document_of_size(fz_context *ctx, int size);
 
-#define fz_new_document(C,M) ((M*)Memento_label(fz_new_document_of_size(C, sizeof(M)), #M))
+#define fz_new_derived_document(C,M) ((M*)Memento_label(fz_new_document_of_size(C, sizeof(M)), #M))
 
 /*
 	fz_keep_document: Keep a reference to an open document.
-
-	Does not throw exceptions.
 */
 fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
 
@@ -169,16 +356,12 @@ fz_document *fz_keep_document(fz_context *ctx, fz_document *doc);
 	The resource store in the context associated with fz_document
 	is emptied, and any allocations for the document are freed when
 	the last reference is dropped.
-
-	Does not throw exceptions.
 */
 void fz_drop_document(fz_context *ctx, fz_document *doc);
 
 /*
 	fz_needs_password: Check if a document is encrypted with a
 	non-blank password.
-
-	Does not throw exceptions.
 */
 int fz_needs_password(fz_context *ctx, fz_document *doc);
 
@@ -190,7 +373,14 @@ int fz_needs_password(fz_context *ctx, fz_document *doc);
 	specifications do not specify any particular text encoding, so
 	neither do we.
 
-	Does not throw exceptions.
+	Returns 0 for failure to authenticate, non-zero for success.
+
+	For PDF documents, further information can be given by examining
+	the bits in the return code.
+
+		Bit 0 => No password required
+		Bit 1 => User password authenticated
+		Bit 2 => Owner password authenticated
 */
 int fz_authenticate_password(fz_context *ctx, fz_document *doc, const char *password);
 
@@ -215,6 +405,18 @@ int fz_is_document_reflowable(fz_context *ctx, fz_document *doc);
 	em: Default font size in points.
 */
 void fz_layout_document(fz_context *ctx, fz_document *doc, float w, float h, float em);
+
+/*
+	Create a bookmark for the given page, which can be used to find the
+	same location after the document has been laid out with different
+	parameters.
+*/
+fz_bookmark fz_make_bookmark(fz_context *ctx, fz_document *doc, int page);
+
+/*
+	Find a bookmark and return its page number.
+*/
+int fz_lookup_bookmark(fz_context *ctx, fz_document *doc, fz_bookmark mark);
 
 /*
 	fz_count_pages: Return the number of pages in document
@@ -256,14 +458,16 @@ fz_page *fz_load_page(fz_context *ctx, fz_document *doc, int number);
 fz_link *fz_load_links(fz_context *ctx, fz_page *page);
 
 /*
-	fz_new_page: Create and initialize a page struct.
+	fz_new_page_of_size: Create and initialize a page struct.
 */
-void *fz_new_page(fz_context *ctx, int size);
+fz_page *fz_new_page_of_size(fz_context *ctx, int size);
+
+#define fz_new_derived_page(CTX,TYPE) \
+	((TYPE *)Memento_label(fz_new_page_of_size(CTX,sizeof(TYPE)),#TYPE))
 
 /*
 	fz_bound_page: Determine the size of a page at 72 dpi.
 
-	Does not throw exceptions.
 */
 fz_rect *fz_bound_page(fz_context *ctx, fz_page *page, fz_rect *rect);
 
@@ -335,22 +539,13 @@ void fz_run_annot(fz_context *ctx, fz_annot *annot, fz_device *dev, const fz_mat
 
 /*
 	fz_keep_page: Keep a reference to a loaded page.
-
-	Does not throw exceptions.
 */
 fz_page *fz_keep_page(fz_context *ctx, fz_page *page);
 
 /*
 	fz_drop_page: Free a loaded page.
-
-	Does not throw exceptions.
 */
 void fz_drop_page(fz_context *ctx, fz_page *page);
-
-/*
-	fz_new_annot: Create and initialize an annotation struct.
-*/
-void *fz_new_annot(fz_context *ctx, int size);
 
 /*
 	fz_page_presentation: Get the presentation details for a given page.
@@ -360,7 +555,7 @@ void *fz_new_annot(fz_context *ctx, int size);
 	duration: A pointer to a place to set the page duration in seconds.
 	Will be set to 0 if no transition is specified for the page.
 
-	Returns: a pointer to a the transition structure, or NULL if there is no
+	Returns: a pointer to the transition structure, or NULL if there is no
 	transition specified for the page.
 */
 fz_transition *fz_page_presentation(fz_context *ctx, fz_page *page, fz_transition *transition, float *duration);
@@ -407,31 +602,25 @@ int fz_lookup_metadata(fz_context *ctx, fz_document *doc, const char *key, char 
 #define FZ_META_INFO_TITLE "info:Title"
 
 /*
-	Get the number of separations on a page (including CMYK). This will
-	be 0, unless the format specifically supports separations (such as
-	gproof files).
+	Find the output intent colorspace if the document has defined one.
 */
-int fz_count_separations_on_page(fz_context *ctx, fz_page *page);
+fz_colorspace *fz_document_output_intent(fz_context *ctx, fz_document *doc);
 
 /*
-	Enable/Disable a given separation on a given page. This will only
-	affect future renderings of pages from a format that supports
-	separations (such as gproof files).
+	fz_page_separations: Get the separations details for a page.
+	This will be NULL, unless the format specifically supports
+	separations (such as gproof, or PDF files). May be NULL even
+	so, if there are no separations on a page.
+
+	Returns a reference that must be dropped.
 */
-void fz_control_separation_on_page(fz_context *ctx, fz_page *page, int sep, int disable);
+fz_separations *fz_page_separations(fz_context *ctx, fz_page *page);
 
 /*
-	Returns whether a given separation on a given page is disabled. This will only
-	work from a format that supports separations (such as gproof files).
- */
-int fz_separation_disabled_on_page (fz_context *ctx, fz_page *, int sep);
-
-/*
-	Get the name and equivalent RGBA, CMYK colors of a given separation
-	on a given page. This will only work for formats that support
-	gproof files.
+	fz_page_uses_overprint: Find out whether a given page requests
+	overprint.
 */
-const char *fz_get_separation_on_page(fz_context *ctx, fz_page *page, int sep, uint32_t *rgba, uint32_t *cmyk);
+int fz_page_uses_overprint(fz_context *ctx, fz_page *page);
 
 /*
 	fz_save_gproof: Given a currently open document, create a

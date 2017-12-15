@@ -1,4 +1,7 @@
+#include "mupdf/fitz.h"
 #include "fitz-imp.h"
+
+#include <string.h>
 
 typedef struct tar_entry_s tar_entry;
 typedef struct fz_tar_archive_s fz_tar_archive;
@@ -193,18 +196,17 @@ fz_open_tar_archive_with_stream(fz_context *ctx, fz_stream *file)
 	if (!fz_is_tar_archive(ctx, file))
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot recognize tar archive");
 
-	tar = fz_new_archive(ctx, file, fz_tar_archive);
+	tar = fz_new_derived_archive(ctx, file, fz_tar_archive);
+	tar->super.format = "tar";
+	tar->super.count_entries = count_tar_entries;
+	tar->super.list_entry = list_tar_entry;
+	tar->super.has_entry = has_tar_entry;
+	tar->super.read_entry = read_tar_entry;
+	tar->super.open_entry = open_tar_entry;
+	tar->super.drop_archive = drop_tar_archive;
 
 	fz_try(ctx)
 	{
-		tar->super.format = "tar";
-		tar->super.count_entries = count_tar_entries;
-		tar->super.list_entry = list_tar_entry;
-		tar->super.has_entry = has_tar_entry;
-		tar->super.read_entry = read_tar_entry;
-		tar->super.open_entry = open_tar_entry;
-		tar->super.drop_archive = drop_tar_archive;
-
 		ensure_tar_entries(ctx, tar);
 	}
 	fz_catch(ctx)

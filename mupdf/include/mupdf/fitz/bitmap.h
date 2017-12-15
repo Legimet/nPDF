@@ -17,7 +17,7 @@ typedef struct fz_bitmap_s fz_bitmap;
 
 	bit: The bitmap to increment the reference for.
 
-	Returns bit. Does not throw exceptions.
+	Returns bit.
 */
 fz_bitmap *fz_keep_bitmap(fz_context *ctx, fz_bitmap *bit);
 
@@ -26,8 +26,6 @@ fz_bitmap *fz_keep_bitmap(fz_context *ctx, fz_bitmap *bit);
 
 	Decrement the reference count for the bitmap. When no
 	references remain the pixmap will be freed.
-
-	Does not throw exceptions.
 */
 void fz_drop_bitmap(fz_context *ctx, fz_bitmap *bit);
 
@@ -36,7 +34,7 @@ void fz_drop_bitmap(fz_context *ctx, fz_bitmap *bit);
 	threshold tile is a pixmap, possibly of varying sizes and phases.
 	Currently, we only provide one 'default' halftone tile for operating
 	on 1 component plus alpha pixmaps (where the alpha is ignored). This
-	is signified by an fz_halftone pointer to NULL.
+	is signified by a fz_halftone pointer to NULL.
 */
 typedef struct fz_halftone_s fz_halftone;
 

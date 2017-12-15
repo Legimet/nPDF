@@ -9,8 +9,6 @@ include/mupdf/pdf/name-table.h
 source/pdf/pdf-name-table.h
 tags
 cscope.*
-platform/android/bin
-platform/android/.idea
 
 # Editor and file browser turds:
 *~
@@ -29,14 +27,11 @@ platform/android/.idea
 *.xps
 *.epub
 *.fb2
-*.xhtml
-*.css
 *.svg
 *.pam
 *.pbm
 *.pgm
 *.ppm
-*.png
 *.jpg
 *.jpeg
 *.pcl
@@ -47,10 +42,13 @@ platform/android/.idea
 *.jar
 *.o
 *.so
-DerivedData
 *.zip
-*.apk
 *.dll
+DerivedData
+
+platform/java/obj
+platform/java/libs
+platform/java/local.properties
 
 platform/win32/*.user
 platform/win32/*.ncb
@@ -62,13 +60,3 @@ platform/win32/Release
 platform/win32/ReleaseOpenssl
 platform/win32/Memento
 platform/win32/x64
-
-platform/android/*/obj
-platform/android/*/bin
-platform/android/*/libs
-platform/android/*/gen
-platform/android/*/jni/andprof
-platform/android/*/local.properties
-platform/android/*/.classpath
-platform/android/*/.project
-platform/android/*/.settings
