@@ -43,8 +43,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="FREEGLUT_LIB_PRAGMAS=0;FREEGLUT_STATIC;WIN32;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -64,7 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -121,8 +121,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="WIN64;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -198,8 +198,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING;MEMENTO"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="FREEGLUT_LIB_PRAGMAS=0;FREEGLUT_STATIC;WIN32;_DEBUG;MEMENTO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -219,7 +219,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -273,8 +273,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING;MEMENTO"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="WIN64;_DEBUG;MEMENTO=1"
 				RuntimeLibrary="1"
 			/>
 			<Tool
@@ -288,6 +288,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="opengl32.lib winmm.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -339,8 +340,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="FREEGLUT_LIB_PRAGMAS=0;FREEGLUT_STATIC;WIN32;NDEBUG"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -359,7 +360,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -418,8 +419,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="WIN64;NDEBUG"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -437,7 +438,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -495,8 +496,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING;MEMENTO"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="FREEGLUT_LIB_PRAGMAS=0;FREEGLUT_STATIC;WIN32;_DEBUG;MEMENTO"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -516,7 +517,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -571,8 +572,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING;MEMENTO"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="WIN64;_DEBUG;MEMENTO"
 				RuntimeLibrary="1"
 			/>
 			<Tool
@@ -586,6 +587,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -638,8 +640,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="FREEGLUT_LIB_PRAGMAS=0;FREEGLUT_STATIC;WIN32;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -659,7 +661,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -716,8 +718,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;USE_OUTPUT_DEBUG_STRING"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="WIN64;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -737,7 +739,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -793,8 +795,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="FREEGLUT_LIB_PRAGMAS=0;FREEGLUT_STATIC;WIN32;NDEBUG"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -813,7 +815,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -872,8 +874,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\glfw\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				AdditionalIncludeDirectories="..\..\include;..\..\thirdparty\freeglut\include;..\..\scripts\freetype;..\..\thirdparty\freetype\include"
+				PreprocessorDefinitions="WIN64;NDEBUG"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -891,7 +893,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="opengl32.lib"
+				AdditionalOptions="opengl32.lib winmm.lib"
 				LinkIncremental="0"
 				GenerateDebugInformation="true"
 				SubSystem="2"

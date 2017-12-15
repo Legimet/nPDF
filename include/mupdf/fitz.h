@@ -12,18 +12,18 @@ extern "C" {
 
 #include "mupdf/fitz/crypt.h"
 #include "mupdf/fitz/getopt.h"
+#include "mupdf/fitz/geometry.h"
 #include "mupdf/fitz/hash.h"
-#include "mupdf/fitz/math.h"
 #include "mupdf/fitz/pool.h"
-#include "mupdf/fitz/string.h"
+#include "mupdf/fitz/string-util.h"
 #include "mupdf/fitz/tree.h"
-#include "mupdf/fitz/ucdn.h"
 #include "mupdf/fitz/bidi.h"
 #include "mupdf/fitz/xml.h"
 
 /* I/O */
 #include "mupdf/fitz/buffer.h"
 #include "mupdf/fitz/stream.h"
+#include "mupdf/fitz/compress.h"
 #include "mupdf/fitz/compressed-buffer.h"
 #include "mupdf/fitz/filter.h"
 #include "mupdf/fitz/output.h"
@@ -36,12 +36,12 @@ extern "C" {
 #include "mupdf/fitz/glyph.h"
 #include "mupdf/fitz/bitmap.h"
 #include "mupdf/fitz/image.h"
-#include "mupdf/fitz/function.h"
 #include "mupdf/fitz/shade.h"
 #include "mupdf/fitz/font.h"
 #include "mupdf/fitz/path.h"
 #include "mupdf/fitz/text.h"
 #include "mupdf/fitz/separation.h"
+#include "mupdf/fitz/color-management.h"
 
 #include "mupdf/fitz/device.h"
 #include "mupdf/fitz/display-list.h"
@@ -60,11 +60,14 @@ extern "C" {
 
 /* Output formats */
 #include "mupdf/fitz/writer.h"
+#include "mupdf/fitz/band-writer.h"
 #include "mupdf/fitz/output-pnm.h"
 #include "mupdf/fitz/output-png.h"
 #include "mupdf/fitz/output-pwg.h"
 #include "mupdf/fitz/output-pcl.h"
+#include "mupdf/fitz/output-pclm.h"
 #include "mupdf/fitz/output-ps.h"
+#include "mupdf/fitz/output-psd.h"
 #include "mupdf/fitz/output-svg.h"
 #include "mupdf/fitz/output-tga.h"
 

@@ -2,7 +2,11 @@
  * pdfextract -- the ultimate way to extract images and fonts from pdfs
  */
 
+#include "mupdf/fitz.h"
 #include "mupdf/pdf.h"
+
+#include <stdlib.h>
+#include <stdio.h>
 
 static pdf_document *doc = NULL;
 static fz_context *ctx = NULL;
@@ -28,57 +32,52 @@ static int isfontdesc(pdf_obj *obj)
 	return pdf_name_eq(ctx, type, PDF_NAME_FontDescriptor);
 }
 
-static void writepixmap(fz_context *ctx, fz_pixmap *pix, char *file, int rgb)
+static void writepixmap(fz_context *ctx, fz_pixmap *pix, char *file, int dorgb)
 {
 	char buf[1024];
-	fz_pixmap *converted = NULL;
+	fz_pixmap *rgb = NULL;
 
 	if (!pix)
 		return;
 
-	if (rgb && pix->colorspace && pix->colorspace != fz_device_rgb(ctx))
+	if (dorgb && pix->colorspace && pix->colorspace != fz_device_rgb(ctx))
 	{
-		fz_irect bbox;
-		converted = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), fz_pixmap_bbox(ctx, pix, &bbox), pix->alpha);
-		fz_convert_pixmap(ctx, converted, pix);
-		pix = converted;
+		rgb = fz_convert_pixmap(ctx, pix, fz_device_rgb(ctx), NULL, NULL, NULL /* FIXME */, 1);
+		pix = rgb;
 	}
 
 	if (pix->n - pix->alpha <= 3)
 	{
-		snprintf(buf, sizeof(buf), "%s.png", file);
+		fz_snprintf(buf, sizeof(buf), "%s.png", file);
 		printf("extracting image %s\n", buf);
 		fz_save_pixmap_as_png(ctx, pix, buf);
 	}
 	else
 	{
-		snprintf(buf, sizeof(buf), "%s.pam", file);
+		fz_snprintf(buf, sizeof(buf), "%s.pam", file);
 		printf("extracting image %s\n", buf);
 		fz_save_pixmap_as_pam(ctx, pix, buf);
 	}
 
-	fz_drop_pixmap(ctx, converted);
+	fz_drop_pixmap(ctx, rgb);
 }
 
 static void
 writejpeg(fz_context *ctx, const unsigned char *data, size_t len, const char *file)
 {
 	char buf[1024];
-	fz_output *out = NULL;
+	fz_output *out;
 
-	fz_var(out);
+	fz_snprintf(buf, sizeof(buf), "%s.jpg", file);
 
-	snprintf(buf, sizeof(buf), "%s.jpg", file);
-
+	out = fz_new_output_with_path(ctx, buf, 0);
 	fz_try(ctx)
 	{
-		out = fz_new_output_with_path(ctx, buf, 0);
-		fz_write(ctx, out, data, len);
+		fz_write_data(ctx, out, data, len);
+		fz_close_output(ctx, out);
 	}
 	fz_always(ctx)
-	{
 		fz_drop_output(ctx, out);
-	}
 	fz_catch(ctx)
 		fz_rethrow(ctx);
 }
@@ -101,7 +100,7 @@ static void saveimage(int num)
 	{
 		image = pdf_load_image(ctx, doc, ref);
 		cbuf = fz_compressed_image_buffer(ctx, image);
-		snprintf(buf, sizeof(buf), "img-%04d", num);
+		fz_snprintf(buf, sizeof(buf), "img-%04d", num);
 		type = cbuf == NULL ? FZ_IMAGE_UNKNOWN : cbuf->params.type;
 		if (image->use_colorkey)
 			type = FZ_IMAGE_UNKNOWN;
@@ -115,7 +114,7 @@ static void saveimage(int num)
 		{
 			unsigned char *data;
 			size_t len = fz_buffer_storage(ctx, cbuf->buffer, &data);
-			snprintf(buf, sizeof(buf), "img-%04d", num);
+			fz_snprintf(buf, sizeof(buf), "img-%04d", num);
 			writejpeg(ctx, data, len, buf);
 			break;
 		}
@@ -132,7 +131,6 @@ static void saveimage(int num)
 	}
 	fz_catch(ctx)
 		fz_rethrow(ctx);
-
 }
 
 static void savefont(pdf_obj *dict, int num)
@@ -143,7 +141,7 @@ static void savefont(pdf_obj *dict, int num)
 	pdf_obj *obj;
 	char *ext = "";
 	fz_output *out;
-	char *fontname = "font";
+	const char *fontname = "font";
 	size_t len;
 	unsigned char *data;
 
@@ -194,11 +192,14 @@ static void savefont(pdf_obj *dict, int num)
 	len = fz_buffer_storage(ctx, buf, &data);
 	fz_try(ctx)
 	{
-		snprintf(namebuf, sizeof(namebuf), "%s-%04d.%s", fontname, num, ext);
+		fz_snprintf(namebuf, sizeof(namebuf), "%s-%04d.%s", fontname, num, ext);
 		printf("extracting font %s\n", namebuf);
 		out = fz_new_output_with_path(ctx, namebuf, 0);
 		fz_try(ctx)
-			fz_write(ctx, out, data, len);
+		{
+			fz_write_data(ctx, out, data, len);
+			fz_close_output(ctx, out);
+		}
 		fz_always(ctx)
 			fz_drop_output(ctx, out);
 		fz_catch(ctx)

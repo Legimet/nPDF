@@ -208,6 +208,34 @@ extern "C" {
 }
 #endif
 #endif
+/* Header for class com_artifex_mupdf_fitz_ColorParams */
+
+#ifndef _Included_com_artifex_mupdf_fitz_ColorParams
+#define _Included_com_artifex_mupdf_fitz_ColorParams
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef com_artifex_mupdf_fitz_ColorParams_BP
+#define com_artifex_mupdf_fitz_ColorParams_BP 32L
+#undef com_artifex_mupdf_fitz_ColorParams_OP
+#define com_artifex_mupdf_fitz_ColorParams_OP 64L
+#undef com_artifex_mupdf_fitz_ColorParams_OPM
+#define com_artifex_mupdf_fitz_ColorParams_OPM 128L
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class com_artifex_mupdf_fitz_ColorParams_RenderingIntent */
+
+#ifndef _Included_com_artifex_mupdf_fitz_ColorParams_RenderingIntent
+#define _Included_com_artifex_mupdf_fitz_ColorParams_RenderingIntent
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
 /* Header for class com_artifex_mupdf_fitz_ColorSpace */
 
 #ifndef _Included_com_artifex_mupdf_fitz_ColorSpace
@@ -416,30 +444,6 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Device_finalize
 JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_Device_newNative
   (JNIEnv *, jobject);
 
-/*
- * Class:     com_artifex_mupdf_fitz_Device
- * Method:    getHints
- * Signature: ()I
- */
-JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_Device_getHints
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_artifex_mupdf_fitz_Device
- * Method:    enableDeviceHints
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Device_enableDeviceHints
-  (JNIEnv *, jobject, jint);
-
-/*
- * Class:     com_artifex_mupdf_fitz_Device
- * Method:    disableDeviceHints
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Device_disableDeviceHints
-  (JNIEnv *, jobject, jint);
-
 #ifdef __cplusplus
 }
 #endif
@@ -603,19 +607,27 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Document_finalize
 
 /*
  * Class:     com_artifex_mupdf_fitz_Document
- * Method:    newNativeWithPath
- * Signature: (Ljava/lang/String;)J
+ * Method:    openNativeWithPath
+ * Signature: (Ljava/lang/String;)Lcom/artifex/mupdf/fitz/Document;
  */
-JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_Document_newNativeWithPath
-  (JNIEnv *, jobject, jstring);
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_Document_openNativeWithPath
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     com_artifex_mupdf_fitz_Document
- * Method:    newNativeWithBuffer
- * Signature: ([BLjava/lang/String;)J
+ * Method:    openNativeWithBuffer
+ * Signature: ([BLjava/lang/String;)Lcom/artifex/mupdf/fitz/Document;
  */
-JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_Document_newNativeWithBuffer
-  (JNIEnv *, jobject, jbyteArray, jstring);
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_Document_openNativeWithBuffer
+  (JNIEnv *, jclass, jbyteArray, jstring);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Document
+ * Method:    recognize
+ * Signature: (Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_artifex_mupdf_fitz_Document_recognize
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     com_artifex_mupdf_fitz_Document
@@ -683,18 +695,26 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Document_layout
 
 /*
  * Class:     com_artifex_mupdf_fitz_Document
+ * Method:    makeBookmark
+ * Signature: (I)J
+ */
+JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_Document_makeBookmark
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Document
+ * Method:    findBookmark
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_Document_findBookmark
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Document
  * Method:    isUnencryptedPDF
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_com_artifex_mupdf_fitz_Document_isUnencryptedPDF
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_artifex_mupdf_fitz_Document
- * Method:    toPDFDocument
- * Signature: ()Lcom/artifex/mupdf/fitz/PDFDocument;
- */
-JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_Document_toPDFDocument
   (JNIEnv *, jobject);
 
 /*
@@ -734,19 +754,19 @@ JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_DocumentWriter_newNativeDocu
 
 /*
  * Class:     com_artifex_mupdf_fitz_DocumentWriter
- * Method:    beingPage
+ * Method:    beginPage
  * Signature: (Lcom/artifex/mupdf/fitz/Rect;)Lcom/artifex/mupdf/fitz/Device;
  */
-JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_DocumentWriter_beingPage
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_DocumentWriter_beginPage
   (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     com_artifex_mupdf_fitz_DocumentWriter
  * Method:    endPage
- * Signature: (Lcom/artifex/mupdf/fitz/Device;)V
+ * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_DocumentWriter_endPage
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject);
 
 /*
  * Class:     com_artifex_mupdf_fitz_DocumentWriter
@@ -1129,18 +1149,18 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_close
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    fillPath
- * Signature: (Lcom/artifex/mupdf/fitz/Path;ZLcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FF)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Path;ZLcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FFI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_fillPath
-  (JNIEnv *, jobject, jobject, jboolean, jobject, jobject, jfloatArray, jfloat);
+  (JNIEnv *, jobject, jobject, jboolean, jobject, jobject, jfloatArray, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    strokePath
- * Signature: (Lcom/artifex/mupdf/fitz/Path;Lcom/artifex/mupdf/fitz/StrokeState;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FF)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Path;Lcom/artifex/mupdf/fitz/StrokeState;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FFI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_strokePath
-  (JNIEnv *, jobject, jobject, jobject, jobject, jobject, jfloatArray, jfloat);
+  (JNIEnv *, jobject, jobject, jobject, jobject, jobject, jfloatArray, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
@@ -1161,18 +1181,18 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_clipStrokePath
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    fillText
- * Signature: (Lcom/artifex/mupdf/fitz/Text;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FF)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Text;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FFI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_fillText
-  (JNIEnv *, jobject, jobject, jobject, jobject, jfloatArray, jfloat);
+  (JNIEnv *, jobject, jobject, jobject, jobject, jfloatArray, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    strokeText
- * Signature: (Lcom/artifex/mupdf/fitz/Text;Lcom/artifex/mupdf/fitz/StrokeState;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FF)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Text;Lcom/artifex/mupdf/fitz/StrokeState;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FFI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_strokeText
-  (JNIEnv *, jobject, jobject, jobject, jobject, jobject, jfloatArray, jfloat);
+  (JNIEnv *, jobject, jobject, jobject, jobject, jobject, jfloatArray, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
@@ -1201,26 +1221,26 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_ignoreText
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    fillShade
- * Signature: (Lcom/artifex/mupdf/fitz/Shade;Lcom/artifex/mupdf/fitz/Matrix;F)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Shade;Lcom/artifex/mupdf/fitz/Matrix;FI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_fillShade
-  (JNIEnv *, jobject, jobject, jobject, jfloat);
+  (JNIEnv *, jobject, jobject, jobject, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    fillImage
- * Signature: (Lcom/artifex/mupdf/fitz/Image;Lcom/artifex/mupdf/fitz/Matrix;F)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Image;Lcom/artifex/mupdf/fitz/Matrix;FI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_fillImage
-  (JNIEnv *, jobject, jobject, jobject, jfloat);
+  (JNIEnv *, jobject, jobject, jobject, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    fillImageMask
- * Signature: (Lcom/artifex/mupdf/fitz/Image;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FF)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Image;Lcom/artifex/mupdf/fitz/Matrix;Lcom/artifex/mupdf/fitz/ColorSpace;[FFI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_fillImageMask
-  (JNIEnv *, jobject, jobject, jobject, jobject, jfloatArray, jfloat);
+  (JNIEnv *, jobject, jobject, jobject, jobject, jfloatArray, jfloat, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
@@ -1241,10 +1261,10 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_popClip
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
  * Method:    beginMask
- * Signature: (Lcom/artifex/mupdf/fitz/Rect;ZLcom/artifex/mupdf/fitz/ColorSpace;[F)V
+ * Signature: (Lcom/artifex/mupdf/fitz/Rect;ZLcom/artifex/mupdf/fitz/ColorSpace;[FI)V
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_NativeDevice_beginMask
-  (JNIEnv *, jobject, jobject, jboolean, jobject, jfloatArray);
+  (JNIEnv *, jobject, jobject, jboolean, jobject, jfloatArray, jint);
 
 /*
  * Class:     com_artifex_mupdf_fitz_NativeDevice
@@ -1301,6 +1321,329 @@ extern "C" {
 }
 #endif
 #endif
+/* Header for class com_artifex_mupdf_fitz_PDFAnnotation */
+
+#ifndef _Included_com_artifex_mupdf_fitz_PDFAnnotation
+#define _Included_com_artifex_mupdf_fitz_PDFAnnotation
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_TEXT
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_TEXT 0L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_LINK
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_LINK 1L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_FREE_TEXT
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_FREE_TEXT 2L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_LINE
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_LINE 3L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SQUARE
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SQUARE 4L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_CIRCLE
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_CIRCLE 5L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_POLYGON
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_POLYGON 6L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_POLY_LINE
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_POLY_LINE 7L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_HIGHLIGHT
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_HIGHLIGHT 8L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_UNDERLINE
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_UNDERLINE 9L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SQUIGGLY
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SQUIGGLY 10L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_STRIKE_OUT
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_STRIKE_OUT 11L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_STAMP
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_STAMP 12L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_CARET
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_CARET 13L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_INK
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_INK 14L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_POPUP
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_POPUP 15L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_FILE_ATTACHMENT
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_FILE_ATTACHMENT 16L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SOUND
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SOUND 17L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_MOVIE
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_MOVIE 18L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_WIDGET
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_WIDGET 19L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SCREEN
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_SCREEN 20L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_PRINTER_MARK
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_PRINTER_MARK 21L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_TRAP_NET
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_TRAP_NET 22L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_WATERMARK
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_WATERMARK 23L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_3D
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_3D 24L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_TYPE_UNKNOWN
+#define com_artifex_mupdf_fitz_PDFAnnotation_TYPE_UNKNOWN -1L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_NONE
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_NONE 0L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_SQUARE
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_SQUARE 1L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_CIRCLE
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_CIRCLE 2L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_DIAMOND
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_DIAMOND 3L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_OPENARROW
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_OPENARROW 4L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_CLOSEDARROW
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_CLOSEDARROW 5L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_BUTT
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_BUTT 6L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_ROPENARR
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_ROPENARR 7L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_RCLOSEDARROW
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_RCLOSEDARROW 8L
+#undef com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_SLASH
+#define com_artifex_mupdf_fitz_PDFAnnotation_LINE_ENDING_SLASH 9L
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getType
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getType
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getFlags
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getFlags
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setFlags
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setFlags
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getContents
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getContents
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setContents
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setContents
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getRect
+ * Signature: ()Lcom/artifex/mupdf/fitz/Rect;
+ */
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getRect
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setRect
+ * Signature: (Lcom/artifex/mupdf/fitz/Rect;)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setRect
+  (JNIEnv *, jobject, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getBorder
+ * Signature: ()F
+ */
+JNIEXPORT jfloat JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getBorder
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setBorder
+ * Signature: (F)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setBorder
+  (JNIEnv *, jobject, jfloat);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getColor
+ * Signature: ()[F
+ */
+JNIEXPORT jfloatArray JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getColor
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setColor
+ * Signature: ([F)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setColor
+  (JNIEnv *, jobject, jfloatArray);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getInteriorColor
+ * Signature: ()[F
+ */
+JNIEXPORT jfloatArray JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getInteriorColor
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setInteriorColor
+ * Signature: ([F)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setInteriorColor
+  (JNIEnv *, jobject, jfloatArray);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getAuthor
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getAuthor
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setAuthor
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setAuthor
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getModificationDateNative
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getModificationDateNative
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setModificationDate
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setModificationDate
+  (JNIEnv *, jobject, jlong);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getLineEndingStyles
+ * Signature: ()[I
+ */
+JNIEXPORT jintArray JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getLineEndingStyles
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setLineEndingStyles
+ * Signature: (II)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setLineEndingStyles
+  (JNIEnv *, jobject, jint, jint);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getVertices
+ * Signature: ()[F
+ */
+JNIEXPORT jfloatArray JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getVertices
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setVertices
+ * Signature: ([F)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setVertices
+  (JNIEnv *, jobject, jfloatArray);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getQuadPoints
+ * Signature: ()[[F
+ */
+JNIEXPORT jobjectArray JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getQuadPoints
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setQuadPoints
+ * Signature: ([[F)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setQuadPoints
+  (JNIEnv *, jobject, jobjectArray);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getInkList
+ * Signature: ()[[F
+ */
+JNIEXPORT jobjectArray JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getInkList
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setInkList
+ * Signature: ([[F)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setInkList
+  (JNIEnv *, jobject, jobjectArray);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    getIcon
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_getIcon
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setIcon
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setIcon
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    isOpen
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_isOpen
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    setIsOpen
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_setIsOpen
+  (JNIEnv *, jobject, jboolean);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFAnnotation
+ * Method:    updateAppearance
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFAnnotation_updateAppearance
+  (JNIEnv *, jobject);
+
+#ifdef __cplusplus
+}
+#endif
+#endif
 /* Header for class com_artifex_mupdf_fitz_PDFDocument */
 
 #ifndef _Included_com_artifex_mupdf_fitz_PDFDocument
@@ -1310,27 +1653,11 @@ extern "C" {
 #endif
 /*
  * Class:     com_artifex_mupdf_fitz_PDFDocument
- * Method:    finalize
- * Signature: ()V
+ * Method:    newNative
+ * Signature: ()J
  */
-JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_finalize
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_artifex_mupdf_fitz_PDFDocument
- * Method:    toDocument
- * Signature: ()Lcom/artifex/mupdf/fitz/Document;
- */
-JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_toDocument
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_artifex_mupdf_fitz_PDFDocument
- * Method:    countPages
- * Signature: ()I
- */
-JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_countPages
-  (JNIEnv *, jobject);
+JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_newNative
+  (JNIEnv *, jclass);
 
 /*
  * Class:     com_artifex_mupdf_fitz_PDFDocument
@@ -1395,6 +1722,14 @@ JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_newReal
  */
 JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_newString
   (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFDocument
+ * Method:    newByteString
+ * Signature: ([B)Lcom/artifex/mupdf/fitz/PDFObject;
+ */
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_newByteString
+  (JNIEnv *, jobject, jbyteArray);
 
 /*
  * Class:     com_artifex_mupdf_fitz_PDFDocument
@@ -1463,10 +1798,10 @@ JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_newPDFGraftMap
 /*
  * Class:     com_artifex_mupdf_fitz_PDFDocument
  * Method:    graftObject
- * Signature: (Lcom/artifex/mupdf/fitz/PDFDocument;Lcom/artifex/mupdf/fitz/PDFObject;Lcom/artifex/mupdf/fitz/PDFGraftMap;)Lcom/artifex/mupdf/fitz/PDFObject;
+ * Signature: (Lcom/artifex/mupdf/fitz/PDFObject;)Lcom/artifex/mupdf/fitz/PDFObject;
  */
 JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFDocument_graftObject
-  (JNIEnv *, jobject, jobject, jobject, jobject);
+  (JNIEnv *, jobject, jobject);
 
 /*
  * Class:     com_artifex_mupdf_fitz_PDFDocument
@@ -1582,6 +1917,14 @@ extern "C" {
  */
 JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFGraftMap_finalize
   (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFGraftMap
+ * Method:    graftObject
+ * Signature: (Lcom/artifex/mupdf/fitz/PDFObject;)Lcom/artifex/mupdf/fitz/PDFObject;
+ */
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFGraftMap_graftObject
+  (JNIEnv *, jobject, jobject);
 
 #ifdef __cplusplus
 }
@@ -1736,14 +2079,6 @@ JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_PDFObject_asIndirect
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_artifex_mupdf_fitz_PDFObject_asName
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_artifex_mupdf_fitz_PDFObject
- * Method:    asByteName
- * Signature: ()[B
- */
-JNIEXPORT jbyteArray JNICALL Java_com_artifex_mupdf_fitz_PDFObject_asByteName
   (JNIEnv *, jobject);
 
 /*
@@ -2046,6 +2381,33 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFObject_pushPDFObject
 }
 #endif
 #endif
+/* Header for class com_artifex_mupdf_fitz_PDFPage */
+
+#ifndef _Included_com_artifex_mupdf_fitz_PDFPage
+#define _Included_com_artifex_mupdf_fitz_PDFPage
+#ifdef __cplusplus
+extern "C" {
+#endif
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFPage
+ * Method:    createAnnotation
+ * Signature: (I)Lcom/artifex/mupdf/fitz/PDFAnnotation;
+ */
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_PDFPage_createAnnotation
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_PDFPage
+ * Method:    deleteAnnotation
+ * Signature: (Lcom/artifex/mupdf/fitz/Annotation;)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_PDFPage_deleteAnnotation
+  (JNIEnv *, jobject, jobject);
+
+#ifdef __cplusplus
+}
+#endif
+#endif
 /* Header for class com_artifex_mupdf_fitz_Page */
 
 #ifndef _Included_com_artifex_mupdf_fitz_Page
@@ -2143,27 +2505,11 @@ JNIEXPORT jbyteArray JNICALL Java_com_artifex_mupdf_fitz_Page_textAsHtml
 
 /*
  * Class:     com_artifex_mupdf_fitz_Page
- * Method:    countSeparations
- * Signature: ()I
+ * Method:    getSeparations
+ * Signature: ()Lcom/artifex/mupdf/fitz/Separations;
  */
-JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_Page_countSeparations
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_Page_getSeparations
   (JNIEnv *, jobject);
-
-/*
- * Class:     com_artifex_mupdf_fitz_Page
- * Method:    getSeparation
- * Signature: (I)Lcom/artifex/mupdf/fitz/Separation;
- */
-JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_Page_getSeparation
-  (JNIEnv *, jobject, jint);
-
-/*
- * Class:     com_artifex_mupdf_fitz_Page
- * Method:    enableSeparation
- * Signature: (IZ)V
- */
-JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Page_enableSeparation
-  (JNIEnv *, jobject, jint, jboolean);
 
 #ifdef __cplusplus
 }
@@ -2476,6 +2822,14 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
+/*
+ * Class:     com_artifex_mupdf_fitz_Rect
+ * Method:    adjustForStroke
+ * Signature: (Lcom/artifex/mupdf/fitz/StrokeState;Lcom/artifex/mupdf/fitz/Matrix;)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Rect_adjustForStroke
+  (JNIEnv *, jobject, jobject, jobject);
+
 #ifdef __cplusplus
 }
 #endif
@@ -2498,6 +2852,71 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class com_artifex_mupdf_fitz_Separations */
+
+#ifndef _Included_com_artifex_mupdf_fitz_Separations
+#define _Included_com_artifex_mupdf_fitz_Separations
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef com_artifex_mupdf_fitz_Separations_SEPARATION_COMPOSITE
+#define com_artifex_mupdf_fitz_Separations_SEPARATION_COMPOSITE 0L
+#undef com_artifex_mupdf_fitz_Separations_SEPARATION_SPOT
+#define com_artifex_mupdf_fitz_Separations_SEPARATION_SPOT 1L
+#undef com_artifex_mupdf_fitz_Separations_SEPARATION_DISABLED
+#define com_artifex_mupdf_fitz_Separations_SEPARATION_DISABLED 2L
+/*
+ * Class:     com_artifex_mupdf_fitz_Separations
+ * Method:    finalize
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Separations_finalize
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Separations
+ * Method:    getNumberOfSeparations
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_Separations_getNumberOfSeparations
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Separations
+ * Method:    getSeparation
+ * Signature: (I)Lcom/artifex/mupdf/fitz/Separation;
+ */
+JNIEXPORT jobject JNICALL Java_com_artifex_mupdf_fitz_Separations_getSeparation
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Separations
+ * Method:    areSeparationsControllable
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_artifex_mupdf_fitz_Separations_areSeparationsControllable
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Separations
+ * Method:    getSeparationBehavior
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_com_artifex_mupdf_fitz_Separations_getSeparationBehavior
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_artifex_mupdf_fitz_Separations
+ * Method:    setSeparationBehavior
+ * Signature: (II)V
+ */
+JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_Separations_setSeparationBehavior
+  (JNIEnv *, jobject, jint, jint);
+
 #ifdef __cplusplus
 }
 #endif
@@ -2559,14 +2978,6 @@ JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_StrokeState_finalize
  */
 JNIEXPORT jlong JNICALL Java_com_artifex_mupdf_fitz_StrokeState_newNative
   (JNIEnv *, jobject, jint, jint, jint, jint, jfloat, jfloat, jfloat, jfloatArray);
-
-/*
- * Class:     com_artifex_mupdf_fitz_StrokeState
- * Method:    adjustRectForStroke
- * Signature: (Lcom/artifex/mupdf/fitz/Rect;Lcom/artifex/mupdf/fitz/Matrix;)V
- */
-JNIEXPORT void JNICALL Java_com_artifex_mupdf_fitz_StrokeState_adjustRectForStroke
-  (JNIEnv *, jobject, jobject, jobject);
 
 /*
  * Class:     com_artifex_mupdf_fitz_StrokeState
@@ -2662,18 +3073,18 @@ JNIEXPORT jobjectArray JNICALL Java_com_artifex_mupdf_fitz_StructuredText_search
 /*
  * Class:     com_artifex_mupdf_fitz_StructuredText
  * Method:    highlight
- * Signature: (Lcom/artifex/mupdf/fitz/Rect;)[Lcom/artifex/mupdf/fitz/Rect;
+ * Signature: (Lcom/artifex/mupdf/fitz/Point;Lcom/artifex/mupdf/fitz/Point;)[Lcom/artifex/mupdf/fitz/Rect;
  */
 JNIEXPORT jobjectArray JNICALL Java_com_artifex_mupdf_fitz_StructuredText_highlight
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject);
 
 /*
  * Class:     com_artifex_mupdf_fitz_StructuredText
  * Method:    copy
- * Signature: (Lcom/artifex/mupdf/fitz/Rect;)Ljava/lang/String;
+ * Signature: (Lcom/artifex/mupdf/fitz/Point;Lcom/artifex/mupdf/fitz/Point;)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_artifex_mupdf_fitz_StructuredText_copy
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject);
 
 /*
  * Class:     com_artifex_mupdf_fitz_StructuredText
@@ -2691,17 +3102,6 @@ JNIEXPORT jobjectArray JNICALL Java_com_artifex_mupdf_fitz_StructuredText_getBlo
 
 #ifndef _Included_com_artifex_mupdf_fitz_StructuredText_TextChar
 #define _Included_com_artifex_mupdf_fitz_StructuredText_TextChar
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifdef __cplusplus
-}
-#endif
-#endif
-/* Header for class com_artifex_mupdf_fitz_StructuredText_TextSpan */
-
-#ifndef _Included_com_artifex_mupdf_fitz_StructuredText_TextSpan
-#define _Included_com_artifex_mupdf_fitz_StructuredText_TextSpan
 #ifdef __cplusplus
 extern "C" {
 #endif

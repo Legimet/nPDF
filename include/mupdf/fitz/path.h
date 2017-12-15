@@ -3,7 +3,7 @@
 
 #include "mupdf/fitz/system.h"
 #include "mupdf/fitz/context.h"
-#include "mupdf/fitz/math.h"
+#include "mupdf/fitz/geometry.h"
 
 /*
  * Vector path buffer.
@@ -134,11 +134,11 @@ int fz_packed_path_size(const fz_path *path);
 	fz_pack_path: Pack a path into the given block.
 	To minimise the size of paths, this function allows them to be
 	packed into a buffer with other information. Paths can be used
-	interchangably regardless of how they are packed.
+	interchangeably regardless of how they are packed.
 
 	pack: Pointer to a block of data to pack the path into. Should
 	be aligned by the caller to the same alignment as required for
-	an fz_path pointer.
+	a fz_path pointer.
 
 	max: The number of bytes available in the block.
 	If max < sizeof(fz_path) then an exception will
@@ -151,7 +151,7 @@ int fz_packed_path_size(const fz_path *path);
 
 	Returns the number of bytes within the block used. Callers can
 	access the packed path data by casting the value of pack on
-	entry to be an fz_path *.
+	entry to be a fz_path *.
 
 	Throws exceptions on failure to allocate, or if
 	max < sizeof(fz_path).
@@ -430,17 +430,5 @@ fz_stroke_state *fz_unshare_stroke_state_with_dash_len(fz_context *ctx, fz_strok
 	allocate.
 */
 fz_stroke_state *fz_clone_stroke_state(fz_context *ctx, fz_stroke_state *stroke);
-
-/*
-	fz_print_path: Print a debug representation of a path to
-	a given output stream. Not for use in production builds.
-
-	out: The output stream to print to.
-
-	path: The path to output.
-
-	indent: The amount to indent the output by.
-*/
-void fz_print_path(fz_context *ctx, fz_output *out, fz_path *, int indent);
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "mupdf/fitz/system.h"
 #include "mupdf/fitz/context.h"
-#include "mupdf/fitz/math.h"
+#include "mupdf/fitz/geometry.h"
 #include "mupdf/fitz/store.h"
 #include "mupdf/fitz/colorspace.h"
 #include "mupdf/fitz/pixmap.h"
@@ -39,6 +39,11 @@ typedef struct fz_shade_s
 	int use_background;	/* background color for fills but not 'sh' */
 	float background[FZ_MAX_COLORS];
 
+	/* Just to be confusing, PDF Shadings of Type 1 (Function Based
+	 * Shadings), do NOT use_function, but all the others do. This
+	 * is because Type 1 shadings take 2 inputs, whereas all the
+	 * others (when used with a function take 1 input. The type 1
+	 * data is in the 'f' field of the union below. */
 	int use_function;
 	float function[256][FZ_MAX_COLORS + 1];
 
@@ -75,7 +80,7 @@ typedef struct fz_shade_s
 } fz_shade;
 
 /*
-	fz_keep_shade: Add a reference to an fz_shade.
+	fz_keep_shade: Add a reference to a fz_shade.
 
 	shade: The reference to keep.
 
@@ -84,7 +89,7 @@ typedef struct fz_shade_s
 fz_shade *fz_keep_shade(fz_context *ctx, fz_shade *shade);
 
 /*
-	fz_drop_shade: Drop a reference to an fz_shade.
+	fz_drop_shade: Drop a reference to a fz_shade.
 
 	shade: The reference to drop. If this is the last
 	reference, shade will be destroyed.
@@ -117,14 +122,21 @@ fz_rect *fz_bound_shade(fz_context *ctx, fz_shade *shade, const fz_matrix *ctm, 
 
 	shade: The shade to paint.
 
+	override_cs: NULL, or colorspace to override the shades
+	inbuilt colorspace.
+
 	ctm: The transform to apply.
 
 	dest: The pixmap to render into.
 
+	color_params: The color rendering settings
+
 	bbox: Pointer to a bounding box to limit the rendering
 	of the shade.
+
+	op: NULL, or pointer to overprint bitmap.
 */
-void fz_paint_shade(fz_context *ctx, fz_shade *shade, const fz_matrix *ctm, fz_pixmap *dest, const fz_irect *bbox);
+void fz_paint_shade(fz_context *ctx, fz_shade *shade, fz_colorspace *override_cs, const fz_matrix *ctm, fz_pixmap *dest, const fz_color_params *color_params, const fz_irect *bbox, const fz_overprint *op);
 
 /*
  *	Handy routine for processing mesh based shades
@@ -145,7 +157,7 @@ struct fz_vertex_s
 
 	v: Pointer to a fz_vertex structure to populate.
 
-	c: Pointer to an array of floats to use to populate v.
+	c: Pointer to an array of floats used to populate v.
 */
 typedef void (fz_shade_prepare_fn)(fz_context *ctx, void *arg, fz_vertex *v, const float *c);
 
@@ -173,7 +185,7 @@ typedef void (fz_shade_process_fn)(fz_context *ctx, void *arg, fz_vertex *av, fz
 
 	prepare: Callback function to 'prepare' each vertex.
 	This function is passed an array of floats, and populates
-	an fz_vertex structure.
+	a fz_vertex structure.
 
 	process: This function is passed 3 pointers to vertex
 	structures, and actually performs the processing (typically
@@ -183,16 +195,8 @@ typedef void (fz_shade_process_fn)(fz_context *ctx, void *arg, fz_vertex *av, fz
 	to callback functions.
 */
 void fz_process_shade(fz_context *ctx, fz_shade *shade, const fz_matrix *ctm,
-			fz_shade_prepare_fn *prepare, fz_shade_process_fn *process, void *process_arg);
-
-/*
-	fz_print_shade: Output a textual representation of
-	a shading.
-
-	out: The stream to output to.
-
-	shade: The shade to dump information about.
-*/
-void fz_print_shade(fz_context *ctx, fz_output *out, fz_shade *shade);
+			fz_shade_prepare_fn *prepare,
+			fz_shade_process_fn *process,
+			void *process_arg);
 
 #endif

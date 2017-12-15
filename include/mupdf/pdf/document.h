@@ -6,10 +6,11 @@ typedef struct pdf_lexbuf_large_s pdf_lexbuf_large;
 typedef struct pdf_xref_s pdf_xref;
 typedef struct pdf_crypt_s pdf_crypt;
 typedef struct pdf_ocg_descriptor_s pdf_ocg_descriptor;
+typedef struct pdf_portfolio_s pdf_portfolio;
 
 typedef struct pdf_page_s pdf_page;
 typedef struct pdf_annot_s pdf_annot;
-typedef struct pdf_widget_s pdf_widget;
+typedef struct pdf_annot_s pdf_widget;
 typedef struct pdf_hotspot_s pdf_hotspot;
 typedef struct pdf_js_s pdf_js;
 
@@ -24,7 +25,7 @@ struct pdf_lexbuf_s
 	int size;
 	int base_size;
 	int len;
-	fz_off_t i;
+	int64_t i;
 	float f;
 	char *scratch;
 	char buffer[PDF_LEXBUF_SMALL];
@@ -89,13 +90,16 @@ pdf_document *pdf_open_document_with_stream(fz_context *ctx, fz_stream *file);
 
 	The resource store in the context associated with pdf_document
 	is emptied.
-
-	Does not throw exceptions.
 */
 void pdf_drop_document(fz_context *ctx, pdf_document *doc);
 
 /*
-	pdf_specifics: down-cast an fz_document to a pdf_document.
+	pdf_keep_document: Keep a reference to an open document.
+*/
+pdf_document *pdf_keep_document(fz_context *ctx, pdf_document *doc);
+
+/*
+	pdf_specifics: down-cast a fz_document to a pdf_document.
 	Returns NULL if underlying document is not PDF
 */
 pdf_document *pdf_specifics(fz_context *ctx, fz_document *doc);
@@ -112,6 +116,18 @@ pdf_page *pdf_page_from_fz_page(fz_context *ctx, fz_page *ptr);
 pdf_annot *pdf_annot_from_fz_annot(fz_context *ctx, fz_annot *ptr);
 
 int pdf_needs_password(fz_context *ctx, pdf_document *doc);
+
+/*
+	pdf_authenticate_password: Attempt to authenticate a
+	password.
+
+	Returns 0 for failure, non-zero for success.
+
+	In the non-zero case:
+		bit 0 set => no password required
+		bit 1 set => user password authenticated
+		bit 2 set => owner password authenticated
+*/
 int pdf_authenticate_password(fz_context *ctx, pdf_document *doc, const char *pw);
 
 int pdf_has_permission(fz_context *ctx, pdf_document *doc, fz_permission p);
@@ -244,6 +260,261 @@ void pdf_layer_config_ui_info(fz_context *ctx, pdf_document *doc, int ui, pdf_la
 void pdf_set_layer_config_as_default(fz_context *ctx, pdf_document *doc);
 
 /*
+	PDF portfolios (or collections) are embedded files. They can
+	be thought of as tables of information, with an embedded
+	file per row. For instance a PDF portfolio of an email box might
+	contain:
+
+			From	To	Cc	Date
+	message1.pdf	...	...	...	...
+	message2.pdf	...	...	...	...
+
+	etc. The details of the 'column headings' are known as the Schema.
+	This includes the order to use for the headings.
+
+	Each row in the table is a portfolio (or collection) entry.
+*/
+
+/*
+	pdf_count_portfolio_schema: Get the number of entries in the
+	portfolio schema used in this document.
+
+	doc: The document in question.
+*/
+int pdf_count_portfolio_schema(fz_context *ctx, pdf_document *doc);
+
+typedef enum
+{
+	PDF_SCHEMA_NUMBER,
+	PDF_SCHEMA_SIZE,
+	PDF_SCHEMA_TEXT,
+	PDF_SCHEMA_DATE,
+	PDF_SCHEMA_DESC,
+	PDF_SCHEMA_MODDATE,
+	PDF_SCHEMA_CREATIONDATE,
+	PDF_SCHEMA_FILENAME,
+	PDF_SCHEMA_UNKNOWN
+} pdf_portfolio_schema_type;
+
+typedef struct
+{
+	pdf_portfolio_schema_type type;
+	int visible;
+	int editable;
+	pdf_obj *name;
+} pdf_portfolio_schema;
+
+/*
+	pdf_portfolio_schema_info: Fetch information about a given
+	portfolio schema entry.
+
+	doc: The document in question.
+
+	entry: A value in the 0..n-1 range, where n is the
+	value returned from pdf_count_portfolio_schema.
+
+	info: Pointer to structure to fill in. Pointers within
+	this structure may be set to NULL if no information is
+	available.
+*/
+void pdf_portfolio_schema_info(fz_context *ctx, pdf_document *doc, int entry, pdf_portfolio_schema *info);
+
+/*
+	pdf_reorder_portfolio_schema: Reorder the portfolio schema.
+
+	doc: The document in question.
+
+	entry: A value in the 0..n-1 range, where n is the
+	value returned from pdf_count_portfolio_schema - the
+	position of the entry to move.
+
+	new_pos: A value in the 0..n-1 range, where n is the
+	value returned from pdf_count_portfolio_schema - the
+	position to move the entry to.
+*/
+void pdf_reorder_portfolio_schema(fz_context *ctx, pdf_document *doc, int entry, int new_pos);
+
+/*
+	pdf_rename_portfolio_schema: rename a given portfolio
+	schema entry.
+
+	doc: The document in question.
+
+	entry: The entry to renumber.
+
+	name: The new name for the portfolio schema
+
+	name_len: The byte length of the name.
+*/
+void pdf_rename_portfolio_schema(fz_context *ctx, pdf_document *doc, int entry, const char *name, int name_len);
+
+/*
+	pdf_delete_portfolio_schema: delete a given portfolio
+	schema entry.
+
+	doc: The document in question.
+
+	entry: The entry to delete.
+*/
+void pdf_delete_portfolio_schema(fz_context *ctx, pdf_document *doc, int entry);
+
+/*
+	pdf_add_portfolio_schema: Add a new portfolio schema
+	entry.
+
+	doc: The document in question.
+
+	entry: The point in the ordering at which to insert the new
+	schema entry.
+
+	info: Details of the schema entry.
+*/
+void pdf_add_portfolio_schema(fz_context *ctx, pdf_document *doc, int entry, const pdf_portfolio_schema *info);
+
+/*
+	pdf_count_portfolio_entries: Get the number of portfolio entries
+	in this document.
+
+	doc: The document in question.
+*/
+int pdf_count_portfolio_entries(fz_context *ctx, pdf_document *doc);
+
+/*
+	pdf_portfolio_entry: Create a buffer containing
+	a decoded portfolio entry.
+
+	doc: The document in question.
+
+	entry: A value in the 0..m-1 range, where m is the
+	value returned from pdf_count_portfolio_entries.
+
+	Returns a buffer containing the decoded portfolio
+	entry. Ownership of the buffer passes to the caller.
+*/
+fz_buffer *pdf_portfolio_entry(fz_context *ctx, pdf_document *doc, int entry);
+
+/*
+	pdf_portfolio_entry_obj_name: Retrieve the object and
+	name of a given portfolio entry.
+
+	doc: The document in question.
+
+	entry: A value in the 0..m-1 range, where m is the
+	value returned from pdf_count_portfolio_entries.
+
+	name: Pointer to a place to store the pointer to the
+	object representing the name. This is a borrowed
+	reference - do not drop it.
+
+	Returns a pointer to the pdf_object representing the
+	object. This is a borrowed reference - do not drop
+	it.
+*/
+pdf_obj *pdf_portfolio_entry_obj_name(fz_context *ctx, pdf_document *doc, int entry, pdf_obj **name);
+
+/*
+	pdf_portfolio_entry_obj: Retrieve the object
+	representing a given portfolio entry.
+
+	doc: The document in question.
+
+	entry: A value in the 0..m-1 range, where m is the
+	value returned from pdf_count_portfolio_entries.
+
+	Returns a pointer to the pdf_object representing the
+	object. This is a borrowed reference - do not drop
+	it.
+*/
+pdf_obj *pdf_portfolio_entry_obj(fz_context *ctx, pdf_document *doc, int entry);
+
+/*
+	pdf_portfolio_entry_name: Retrieve the name of
+	a given portfolio entry.
+
+	doc: The document in question.
+
+	entry: A value in the 0..m-1 range, where m is the
+	value returned from pdf_count_portfolio_entries.
+
+	name: Pointer to a place to store the pointer to the
+	object representing the name. This is a borrowed
+	reference - do not drop it.
+
+	Returns a pointer to the pdf_object representing the
+	name of the entry. This is a borrowed reference - do not drop
+	it.
+*/
+pdf_obj *pdf_portfolio_entry_name(fz_context *ctx, pdf_document *doc, int entry);
+
+/*
+	pdf_portfolio_entry_info: Fetch information about a given
+	portfolio entry.
+
+	doc: The document in question.
+
+	entry: A value in the 0..m-1 range, where m is the
+	value returned from pdf_count_portfolio_entries.
+
+	info: Pointer to structure to fill in. Pointers within
+	this structure may be set to NULL if no information is
+	available.
+*/
+pdf_obj *pdf_portfolio_entry_info(fz_context *ctx, pdf_document *doc, int entry, int schema_entry);
+
+/*
+	pdf_add_portfolio_entry: Add a new portfolio entry.
+
+	doc: The document in question.
+
+	name: The name to use for this entry (as used in the
+	PDF name tree for the collection).
+
+	name_len: The byte length of name.
+
+	desc: The description to use for this entry (as used
+	in the 'Desc' entry in the Collection entry).
+
+	desc_len: The byte length of desc.
+
+	filename: The filename to use for this entry (as used
+	in the 'F' entry in the collection entry).
+
+	filename_len: The byte length of filename.
+
+	unifilename: The filename to use for this entry (as used
+	in the 'UF' entry in the collection entry).
+
+	unifilename_len: The byte length of unifilename.
+
+	buf: The buffer containing the embedded file to add.
+
+	Returns the entry number for this new entry.
+*/
+int pdf_add_portfolio_entry(fz_context *ctx, pdf_document *doc,
+				const char *name, int name_len,
+				const char *desc, int desc_len,
+				const char *filename, int filename_len,
+				const char *unifile, int unifile_len, fz_buffer *buf);
+
+/*
+	pdf_set_portfolio_entry_info: Set part of the entry
+	information for a given portfolio entry.
+
+	doc: The document in question.
+
+	entry: The portfolio entry to set information for.
+	In the range 0..m-1, where m is the value returned
+	from pdf_count_portfolio_entries.
+
+	schema_entry: Which schema entry to set (in the
+	range 0..n-1, where n is the value returned from
+	pdf_count_portfolio_schema.
+
+	data: The value to set.
+*/
+void pdf_set_portfolio_entry_info(fz_context *ctx, pdf_document *doc, int entry, int schema_entry, pdf_obj *data);
+
+/*
 	pdf_update_page: update a page for the sake of changes caused by a call
 	to pdf_pass_event. pdf_update_page regenerates any appearance streams that
 	are out of date, checks for cases where different appearance streams
@@ -281,6 +552,13 @@ struct pdf_unsaved_sig_s
 	pdf_unsaved_sig *next;
 };
 
+typedef struct pdf_rev_page_map_s pdf_rev_page_map;
+struct pdf_rev_page_map_s
+{
+	int page;
+	int object;
+};
+
 struct pdf_document_s
 {
 	fz_document super;
@@ -288,36 +566,42 @@ struct pdf_document_s
 	fz_stream *file;
 
 	int version;
-	fz_off_t startxref;
-	fz_off_t file_size;
+	int64_t startxref;
+	int64_t file_size;
 	pdf_crypt *crypt;
 	pdf_ocg_descriptor *ocg;
+	pdf_portfolio *portfolio;
 	pdf_hotspot hotspot;
+	fz_colorspace *oi;
 
 	int max_xref_len;
 	int num_xref_sections;
+	int saved_num_xref_sections;
 	int num_incremental_sections;
 	int xref_base;
 	int disallow_new_increments;
 	pdf_xref *xref_sections;
+	pdf_xref *saved_xref_sections;
 	int *xref_index;
 	int freeze_updates;
 	int has_xref_streams;
 
-	int page_count;
+	int rev_page_count;
+	pdf_rev_page_map *rev_page_map;
 
 	int repair_attempted;
 
 	/* State indicating which file parsing method we are using */
 	int file_reading_linearly;
-	fz_off_t file_length;
+	int64_t file_length;
 
+	int linear_page_count;
 	pdf_obj *linear_obj; /* Linearized object (if used) */
 	pdf_obj **linear_page_refs; /* Page objects for linear loading */
 	int linear_page1_obj_num;
 
 	/* The state for the pdf_progressive_advance parser */
-	fz_off_t linear_pos;
+	int64_t linear_pos;
 	int linear_page_num;
 
 	int hint_object_offset;
@@ -341,17 +625,17 @@ struct pdf_document_s
 	struct
 	{
 		int number; /* Page object number */
-		fz_off_t offset; /* Offset of page object */
-		fz_off_t index; /* Index into shared hint_shared_ref */
+		int64_t offset; /* Offset of page object */
+		int64_t index; /* Index into shared hint_shared_ref */
 	} *hint_page;
 	int *hint_shared_ref;
 	struct
 	{
 		int number; /* Object number of first object */
-		fz_off_t offset; /* Offset of first object */
+		int64_t offset; /* Offset of first object */
 	} *hint_shared;
 	int hint_obj_offsets_max;
-	fz_off_t *hint_obj_offsets;
+	int64_t *hint_obj_offsets;
 
 	int resources_localised;
 
@@ -398,9 +682,54 @@ pdf_document *pdf_create_document(fz_context *ctx);
 */
 typedef struct pdf_graft_map_s pdf_graft_map;
 
-pdf_graft_map *pdf_new_graft_map(fz_context *ctx, pdf_document *src);
+/*
+	pdf_graft_object: Return a deep copied object equivalent to the
+	supplied object, suitable for use within the given document.
+
+	dst: The document in which the returned object is to be used.
+
+	obj: The object deep copy.
+
+	Note: If grafting multiple objects, you should use a pdf_graft_map
+	to avoid potential duplication of target objects.
+*/
+pdf_obj *pdf_graft_object(fz_context *ctx, pdf_document *dst, pdf_obj *obj);
+
+/*
+	pdf_new_graft_map: Prepare a graft map object to allow objects
+	to be deep copied from one document to the given one, avoiding
+	problems with duplicated child objects.
+
+	dst: The document to copy objects to.
+
+	Note: all the source objects must come from the same document.
+*/
+pdf_graft_map *pdf_new_graft_map(fz_context *ctx, pdf_document *dst);
+
+/*
+	pdf_keep_graft_map: Keep a reference to a graft map object.
+*/
+pdf_graft_map *pdf_keep_graft_map(fz_context *ctx, pdf_graft_map *map);
+
+/*
+	pdf_drop_graft_map: Drop a graft map.
+*/
 void pdf_drop_graft_map(fz_context *ctx, pdf_graft_map *map);
-pdf_obj *pdf_graft_object(fz_context *ctx, pdf_document *dst, pdf_document *src, pdf_obj *obj, pdf_graft_map *map);
+
+/*
+	pdf_graft_mapped_object: Return a deep copied object equivalent
+	to the supplied object, suitable for use within the target
+	document of the map.
+
+	map: A map targeted at the document in which the returned
+	object is to be used.
+
+	obj: The object deep copy.
+
+	Note: Copying multiple objects via the same graft map ensures
+	that any shared child are not duplicated more than once.
+*/
+pdf_obj *pdf_graft_mapped_object(fz_context *ctx, pdf_graft_map *map, pdf_obj *obj);
 
 /*
 	pdf_page_write: Create a device that will record the
@@ -491,7 +820,7 @@ void pdf_delete_page_range(fz_context *ctx, pdf_document *doc, int start, int en
 	on a document have completed, this will tidy up
 	the document. For now this is restricted to
 	rebalancing the page tree, but may be extended
-	in future.
+	in the future.
 */
 void pdf_finish_edit(fz_context *ctx, pdf_document *doc);
 
@@ -502,7 +831,7 @@ typedef struct pdf_write_options_s pdf_write_options;
 /*
 	In calls to fz_save_document, the following options structure can be used
 	to control aspects of the writing process. This structure may grow
-	in future, and should be zero-filled to allow forwards compatibility.
+	in the future, and should be zero-filled to allow forwards compatibility.
 */
 struct pdf_write_options_s
 {

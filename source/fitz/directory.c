@@ -1,5 +1,13 @@
 #include "mupdf/fitz.h"
 
+#include <string.h>
+#include <errno.h>
+#include <sys/stat.h>
+
+#ifdef _MSC_VER
+#define stat _stat
+#endif
+
 typedef struct fz_directory_s fz_directory;
 struct fz_directory_s
 {
@@ -53,28 +61,26 @@ fz_is_directory(fz_context *ctx, const char *path)
 	if (stat(path, &info) < 0)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot stat: %s", strerror(errno));
 
-	return info.st_mode & S_IFDIR;
+	return S_ISDIR(info.st_mode);
 }
 
 fz_archive *
 fz_open_directory(fz_context *ctx, const char *path)
 {
-	fz_directory *dir = NULL;
+	fz_directory *dir;
 
-	fz_var(dir);
+	if (!fz_is_directory(ctx, path))
+		fz_throw(ctx, FZ_ERROR_GENERIC, "'%s' is not a directory", path);
+
+	dir = fz_new_derived_archive(ctx, NULL, fz_directory);
+	dir->super.format = "dir";
+	dir->super.has_entry = has_dir_entry;
+	dir->super.read_entry = read_dir_entry;
+	dir->super.open_entry = open_dir_entry;
+	dir->super.drop_archive = drop_directory;
 
 	fz_try(ctx)
 	{
-		if (!fz_is_directory(ctx, path))
-			fz_throw(ctx, FZ_ERROR_GENERIC, "'%s' is not a directory", path);
-
-		dir = fz_new_archive(ctx, NULL, fz_directory);
-		dir->super.format = "dir";
-		dir->super.has_entry = has_dir_entry;
-		dir->super.read_entry = read_dir_entry;
-		dir->super.open_entry = open_dir_entry;
-		dir->super.drop_archive = drop_directory;
-
 		dir->path = fz_strdup(ctx, path);
 	}
 	fz_catch(ctx)

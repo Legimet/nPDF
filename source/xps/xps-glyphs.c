@@ -1,5 +1,6 @@
 #include "mupdf/fitz.h"
 #include "xps-imp.h"
+#include "../fitz/fitz-imp.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -64,9 +65,9 @@ xps_measure_font_glyph(fz_context *ctx, xps_document *doc, fz_font *font, int gi
 	FT_Get_Advance(face, gid, mask | FT_LOAD_VERTICAL_LAYOUT, &vadv);
 	fz_unlock(ctx, FZ_LOCK_FREETYPE);
 
-	mtx->hadv = hadv / (float)face->units_per_EM;
-	mtx->vadv = vadv / (float)face->units_per_EM;
-	mtx->vorg = face->ascender / (float) face->units_per_EM;
+	mtx->hadv = (float) hadv / face->units_per_EM;
+	mtx->vadv = (float) vadv / face->units_per_EM;
+	mtx->vorg = (float) face->ascender / face->units_per_EM;
 }
 
 static fz_font *
@@ -98,10 +99,13 @@ xps_deobfuscate_font_resource(fz_context *ctx, xps_document *doc, xps_part *part
 {
 	unsigned char buf[33];
 	unsigned char key[16];
+	unsigned char *data;
+	size_t size;
 	char *p;
 	int i;
 
-	if (part->size < 32)
+	size = fz_buffer_storage(ctx, part->data, &data);
+	if (size < 32)
 	{
 		fz_warn(ctx, "insufficient data for font deobfuscation");
 		return;
@@ -129,8 +133,8 @@ xps_deobfuscate_font_resource(fz_context *ctx, xps_document *doc, xps_part *part
 
 	for (i = 0; i < 16; i++)
 	{
-		part->data[i] ^= key[15-i];
-		part->data[i+16] ^= key[15-i];
+		data[i] ^= key[15-i];
+		data[i+16] ^= key[15-i];
 	}
 }
 
@@ -224,14 +228,10 @@ xps_lookup_font(fz_context *ctx, xps_document *doc, char *base_uri, char *font_u
 
 		fz_try(ctx)
 		{
-			buf = fz_new_buffer_from_data(ctx, part->data, part->size);
-			/* part->data is now owned by buf */
-			part->data = NULL;
-			font = fz_new_font_from_buffer(ctx, NULL, buf, subfontid, 1);
+			font = fz_new_font_from_buffer(ctx, NULL, part->data, subfontid, 1);
 		}
 		fz_always(ctx)
 		{
-			fz_drop_buffer(ctx, buf);
 			xps_drop_part(ctx, doc, part);
 		}
 		fz_catch(ctx)
@@ -379,7 +379,7 @@ xps_parse_glyphs_imp(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 
 	while ((us && un > 0) || (is && *is))
 	{
-		int char_code = 0xFFFD;
+		int char_code = FZ_REPLACEMENT_CHARACTER;
 		int code_count = 1;
 		int glyph_count = 1;
 
@@ -593,7 +593,7 @@ xps_parse_glyphs(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 
 	/* If it's a solid color brush fill/stroke do a simple fill */
 
-	if (fill_tag && !strcmp(fz_xml_tag(fill_tag), "SolidColorBrush"))
+	if (fz_xml_is_tag(fill_tag, "SolidColorBrush"))
 	{
 		fill_opacity_att = fz_xml_att(fill_tag, "Opacity");
 		fill_att = fz_xml_att(fill_tag, "Color");
@@ -611,7 +611,7 @@ xps_parse_glyphs(fz_context *ctx, xps_document *doc, const fz_matrix *ctm,
 		xps_set_color(ctx, doc, colorspace, samples);
 
 		fz_fill_text(ctx, dev, text, &local_ctm,
-			doc->colorspace, doc->color, doc->alpha);
+			doc->colorspace, doc->color, doc->alpha, NULL);
 	}
 
 	/* If it's a complex brush, use the charpath as a clip mask */

@@ -1,22 +1,26 @@
+#include "mupdf/fitz.h"
 #include "mupdf/pdf.h"
 
 #include "pdf-encodings.h"
 #include "pdf-glyphlist.h"
 
+#include <string.h>
+#include <stdlib.h>
+
 void
-pdf_load_encoding(char **estrings, char *encoding)
+pdf_load_encoding(const char **estrings, const char *encoding)
 {
-	char **bstrings = NULL;
+	const char * const *bstrings = NULL;
 	int i;
 
 	if (!strcmp(encoding, "StandardEncoding"))
-		bstrings = (char**) pdf_standard;
+		bstrings = pdf_standard;
 	if (!strcmp(encoding, "MacRomanEncoding"))
-		bstrings = (char**) pdf_mac_roman;
+		bstrings = pdf_mac_roman;
 	if (!strcmp(encoding, "MacExpertEncoding"))
-		bstrings = (char**) pdf_mac_expert;
+		bstrings = pdf_mac_expert;
 	if (!strcmp(encoding, "WinAnsiEncoding"))
-		bstrings = (char**) pdf_win_ansi;
+		bstrings = pdf_win_ansi;
 
 	if (bstrings)
 		for (i = 0; i < 256; i++)
@@ -24,7 +28,7 @@ pdf_load_encoding(char **estrings, char *encoding)
 }
 
 int
-pdf_lookup_agl(char *name)
+pdf_lookup_agl(const char *name)
 {
 	char buf[64];
 	char *p;
@@ -59,7 +63,7 @@ pdf_lookup_agl(char *name)
 	else if (buf[0] == 'a' && buf[1] != 0 && buf[2] != 0)
 		code = strtol(buf + 1, NULL, 10);
 
-	return (code >= 0 && code <= 0x10ffff) ? code : 0;
+	return (code > 0 && code <= 0x10ffff) ? code : FZ_REPLACEMENT_CHARACTER;
 }
 
 static const char *empty_dup_list[] = { 0 };

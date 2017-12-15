@@ -42,8 +42,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;DEBUG=1;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -104,8 +104,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;DEBUG=1;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN64;_DEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -167,8 +167,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -230,8 +230,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN64;NDEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -290,8 +290,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;MEMENTO=1;DEBUG=1;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;MEMENTO=1;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -352,8 +352,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;MEMENTO=1;DEBUG=1;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN64;_DEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;MEMENTO=1;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -413,8 +413,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;DEBUG=1;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -475,8 +475,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;DEBUG=1;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN64;_DEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -538,8 +538,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;JBIG_EXTERNAL_MEMENTO_H=\&quot;memento.h\&quot;;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -601,8 +601,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\scripts\freetype;..\..\scripts\jpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\jpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
-				PreprocessorDefinitions="_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=hb_malloc;hb_calloc_impl=hb_calloc;hb_realloc_impl=hb_realloc;hb_free_impl=hb_free"
+				AdditionalIncludeDirectories="..\..\thirdparty\lcms2\include;..\..\scripts\freetype;..\..\scripts\libjpeg;..\..\thirdparty\jbig2dec;..\..\thirdparty\libjpeg;..\..\thirdparty\openjpeg\src\lib\openjp2;..\..\thirdparty\zlib;..\..\thirdparty\freetype\include;..\..\thirdparty\freetype\include\freetype;..\..\include\"
+				PreprocessorDefinitions="WIN64;NDEBUG;_CRT_SECURE_NO_WARNINGS;FT2_BUILD_LIBRARY;OPJ_STATIC;USE_JPIP=1;FT_CONFIG_MODULES_H=\&quot;slimftmodules.h\&quot;;FT_CONFIG_OPTIONS_H=\&quot;slimftoptions.h\&quot;;verbose=-1;HAVE_OT;HAVE_UCDN;HB_NO_MT;hb_malloc_impl=fz_hb_malloc;hb_calloc_impl=fz_hb_calloc;hb_realloc_impl=fz_hb_realloc;hb_free_impl=fz_hb_free"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
@@ -644,127 +644,127 @@
 			Name="libjpeg"
 			>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jaricom.c"
+				RelativePath="..\..\thirdparty\libjpeg\jaricom.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jcomapi.c"
+				RelativePath="..\..\thirdparty\libjpeg\jcomapi.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdapimin.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdapimin.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdapistd.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdapistd.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdarith.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdarith.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdatadst.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdatadst.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdatasrc.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdatasrc.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdcoefct.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdcoefct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdcolor.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdcolor.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jddctmgr.c"
+				RelativePath="..\..\thirdparty\libjpeg\jddctmgr.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdhuff.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdhuff.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdinput.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdinput.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdmainct.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdmainct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdmarker.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdmarker.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdmaster.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdmaster.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdmerge.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdmerge.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdpostct.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdpostct.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdsample.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdsample.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jdtrans.c"
+				RelativePath="..\..\thirdparty\libjpeg\jdtrans.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jerror.c"
+				RelativePath="..\..\thirdparty\libjpeg\jerror.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jfdctflt.c"
+				RelativePath="..\..\thirdparty\libjpeg\jfdctflt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jfdctfst.c"
+				RelativePath="..\..\thirdparty\libjpeg\jfdctfst.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jfdctint.c"
+				RelativePath="..\..\thirdparty\libjpeg\jfdctint.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jidctflt.c"
+				RelativePath="..\..\thirdparty\libjpeg\jidctflt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jidctfst.c"
+				RelativePath="..\..\thirdparty\libjpeg\jidctfst.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jidctint.c"
+				RelativePath="..\..\thirdparty\libjpeg\jidctint.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jmemmgr.c"
+				RelativePath="..\..\thirdparty\libjpeg\jmemmgr.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jmemnobs.c"
+				RelativePath="..\..\thirdparty\libjpeg\jmemnobs.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jquant1.c"
+				RelativePath="..\..\thirdparty\libjpeg\jquant1.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jquant2.c"
+				RelativePath="..\..\thirdparty\libjpeg\jquant2.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\thirdparty\jpeg\jutils.c"
+				RelativePath="..\..\thirdparty\libjpeg\jutils.c"
 				>
 			</File>
 		</Filter>
@@ -1751,6 +1751,130 @@
 					>
 				</File>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="lcms2"
+			>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsalpha.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmscam02.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmscgats.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmscnvrt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmserr.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsgamma.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsgmt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmshalf.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsintrp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsio0.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsio1.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmslut.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsmd5.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsmtrx.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsnamed.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsopt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmspack.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmspcs.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsplugin.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsps2.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmssamp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmssm.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmstypes.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsvirt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmswtpnt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\cmsxform.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\extra_xform.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\src\lcms2_internal.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\include\lcms2art.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\thirdparty\lcms2\include\lcms2art_plugin.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

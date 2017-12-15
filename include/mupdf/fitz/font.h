@@ -3,7 +3,7 @@
 
 #include "mupdf/fitz/system.h"
 #include "mupdf/fitz/context.h"
-#include "mupdf/fitz/math.h"
+#include "mupdf/fitz/geometry.h"
 #include "mupdf/fitz/buffer.h"
 
 /* forward declaration for circular dependency */
@@ -59,7 +59,7 @@ enum { FZ_ADOBE_CNS_1, FZ_ADOBE_GB_1, FZ_ADOBE_JAPAN_1, FZ_ADOBE_KOREA_1 };
 
 /*
 	fz_font_flags_t: Every fz_font carries a set of flags
-	within it, in an fz_font_flags_t structure.
+	within it, in a fz_font_flags_t structure.
 */
 typedef struct
 {
@@ -75,7 +75,6 @@ typedef struct
 	unsigned int force_hinting : 1; /* force hinting for DynaLab fonts */
 	unsigned int has_opentype : 1; /* has opentype shaping tables */
 	unsigned int invalid_bbox : 1;
-	unsigned int use_glyph_bbox : 1;
 } fz_font_flags_t;
 
 /*
@@ -126,6 +125,26 @@ fz_shaper_data_t *fz_font_shaper_data(fz_context *ctx, fz_font *font);
 const char *fz_font_name(fz_context *ctx, fz_font *font);
 
 /*
+	fz_font_is_bold: Returns true if the font is bold.
+*/
+int fz_font_is_bold(fz_context *ctx, fz_font *font);
+
+/*
+	fz_font_is_italic: Returns true if the font is italic.
+*/
+int fz_font_is_italic(fz_context *ctx, fz_font *font);
+
+/*
+	fz_font_is_serif: Returns true if the font is serif.
+*/
+int fz_font_is_serif(fz_context *ctx, fz_font *font);
+
+/*
+	fz_font_is_monospaced: Returns true if the font is monospaced.
+*/
+int fz_font_is_monospaced(fz_context *ctx, fz_font *font);
+
+/*
 	fz_font_bbox: Retrieve a pointer to the font bbox.
 
 	font: The font to query.
@@ -136,48 +155,50 @@ const char *fz_font_name(fz_context *ctx, fz_font *font);
 fz_rect *fz_font_bbox(fz_context *ctx, fz_font *font);
 
 /*
-	fz_load_system_font_func: Type for user supplied system
-	font loading hook.
+	fz_load_system_font_fn: Type for user supplied system font loading hook.
 
 	name: The name of the font to load.
-
 	bold: 1 if a bold font desired, 0 otherwise.
-
 	italic: 1 if an italic font desired, 0 otherwise.
+	needs_exact_metrics: 1 if an exact metric match is required for the font requested.
 
-	needs_exact_metrics: 1 if an exact metric match is required
-	for the font requested.
-
-	Returns a new font handle, or NULL if no font found (or on
-	error).
+	Returns a new font handle, or NULL if no font found (or on error).
 */
-typedef fz_font *(*fz_load_system_font_func)(fz_context *ctx, const char *name, int bold, int italic, int needs_exact_metrics);
+typedef fz_font *(fz_load_system_font_fn)(fz_context *ctx, const char *name, int bold, int italic, int needs_exact_metrics);
 
 /*
-	fz_load_system_cjk_font_func: Type for user supplied cjk
-	font loading hook.
+	fz_load_system_cjk_font_fn: Type for user supplied cjk font loading hook.
 
 	name: The name of the font to load.
-
-	ros: The registry from which to load the font (e.g.
-	FZ_ADOBE_KOREA_1)
-
+	ros: The registry from which to load the font (e.g. FZ_ADOBE_KOREA_1)
 	serif: 1 if a serif font is desired, 0 otherwise.
 
-	Returns a new font handle, or NULL if no font found (or on
-	error).
+	Returns a new font handle, or NULL if no font found (or on error).
 */
-typedef fz_font *(*fz_load_system_cjk_font_func)(fz_context *ctx, const char *name, int ros, int serif);
+typedef fz_font *(fz_load_system_cjk_font_fn)(fz_context *ctx, const char *name, int ros, int serif);
 
 /*
-	fz_install_load_system_font_funcs: Install functions to allow
-	MuPDF to request fonts from the system.
+	fz_load_system_fallback_font_fn: Type for user supplied fallback font loading hook.
 
-	f, f_cjk: The hooks to use.
+	name: The name of the font to load.
+	script: UCDN script enum.
+	language: FZ_LANG enum.
+	serif, bold, italic: boolean style flags.
+
+	Returns a new font handle, or NULL if no font found (or on error).
+*/
+typedef fz_font *(fz_load_system_fallback_font_fn)(fz_context *ctx, int script, int language, int serif, int bold, int italic);
+
+/*
+	fz_install_load_system_font_fn: Install functions to allow
+	MuPDF to request fonts from the system.
 
 	Only one set of hooks can be in use at a time.
 */
-void fz_install_load_system_font_funcs(fz_context *ctx, fz_load_system_font_func f, fz_load_system_cjk_font_func f_cjk);
+void fz_install_load_system_font_funcs(fz_context *ctx,
+	fz_load_system_font_fn *f,
+	fz_load_system_cjk_font_fn *f_cjk,
+	fz_load_system_fallback_font_fn *f_fallback);
 
 /* fz_load_*_font returns NULL if no font could be loaded (also on error) */
 /*
@@ -229,7 +250,7 @@ fz_font *fz_load_system_cjk_font(fz_context *ctx, const char *name, int ros, int
 
 	Returns a pointer to the font file data, or NULL if not present.
 */
-const char *fz_lookup_builtin_font(fz_context *ctx, const char *name, int bold, int italic, int *len);
+const unsigned char *fz_lookup_builtin_font(fz_context *ctx, const char *name, int bold, int italic, int *len);
 
 /*
 	fz_lookup_base14_font: Search the builtin base14 fonts for a match.
@@ -243,7 +264,19 @@ const char *fz_lookup_builtin_font(fz_context *ctx, const char *name, int bold, 
 
 	Returns a pointer to the font file data, or NULL if not present.
 */
-const char *fz_lookup_base14_font(fz_context *ctx, const char *name, int *len);
+const unsigned char *fz_lookup_base14_font(fz_context *ctx, const char *name, int *len);
+
+/* ToDo:  Share fz_lookup_builtin_font and fz_lookup_icc?  Check with Tor */
+/*
+	fz_lookup_icc: Search for icc profile.
+
+	name: The name of the profile desired (gray-icc, rgb-icc, cmyk-icc or lab-icc).
+
+	len: Pointer to a place to receive the length of the discovered.
+
+	Returns a pointer to the icc file data, or NULL if not present.
+*/
+const unsigned char *fz_lookup_icc(fz_context *ctx, const char *name, size_t *len);
 
 /*
 	fz_lookup_cjk_font: Search the builtin cjk fonts for a match.
@@ -251,7 +284,7 @@ const char *fz_lookup_base14_font(fz_context *ctx, const char *name, int *len);
 	configuration in which MuPDF is built.
 
 	registry: The desired registry to lookup in (e.g.
-	FZ_ADOBE_KOREA_1)
+	FZ_ADOBE_KOREA_1).
 
 	serif: 1 if serif desired, 0 otherwise.
 
@@ -265,16 +298,16 @@ const char *fz_lookup_base14_font(fz_context *ctx, const char *name, int *len);
 
 	Returns a pointer to the font file data, or NULL if not present.
 */
-const char *fz_lookup_cjk_font(fz_context *ctx, int registry, int serif, int wmode, int *len, int *index);
+const unsigned char *fz_lookup_cjk_font(fz_context *ctx, int registry, int serif, int wmode, int *len, int *index);
 
 /*
 	fz_lookup_noto_font: Search the builtin noto fonts for a match.
 	Whether a font is present or not will depend on the
 	configuration in which MuPDF is built.
 
-	script: The script desired (e.g. UCDN_SCRIPT_KATAKANA)
+	script: The script desired (e.g. UCDN_SCRIPT_KATAKANA).
 
-	lang: The language desired (e.g. FZ_LANG_ja)
+	lang: The language desired (e.g. FZ_LANG_ja).
 
 	serif: 1 if serif desired, 0 otherwise.
 
@@ -283,7 +316,7 @@ const char *fz_lookup_cjk_font(fz_context *ctx, int registry, int serif, int wmo
 
 	Returns a pointer to the font file data, or NULL if not present.
 */
-const char *fz_lookup_noto_font(fz_context *ctx, int script, int lang, int serif, int *len);
+const unsigned char *fz_lookup_noto_font(fz_context *ctx, int script, int lang, int serif, int *len);
 
 /*
 	fz_lookup_noto_symbol_font: Search the builtin noto fonts
@@ -295,7 +328,7 @@ const char *fz_lookup_noto_font(fz_context *ctx, int script, int lang, int serif
 
 	Returns a pointer to the font file data, or NULL if not present.
 */
-const char *fz_lookup_noto_symbol_font(fz_context *ctx, int *len);
+const unsigned char *fz_lookup_noto_symbol_font(fz_context *ctx, int *len);
 
 /*
 	fz_lookup_noto_emoji_font: Search the builtin noto fonts
@@ -307,7 +340,7 @@ const char *fz_lookup_noto_symbol_font(fz_context *ctx, int *len);
 
 	Returns a pointer to the font file data, or NULL if not present.
 */
-const char *fz_lookup_noto_emoji_font(fz_context *ctx, int *len);
+const unsigned char *fz_lookup_noto_emoji_font(fz_context *ctx, int *len);
 
 /*
 	fz_load_fallback_font: Try to load a fallback font for the
@@ -315,9 +348,9 @@ const char *fz_lookup_noto_emoji_font(fz_context *ctx, int *len);
 	present or not will depend on the configuration in which
 	MuPDF is built.
 
-	script: The script desired (e.g. UCDN_SCRIPT_KATAKANA)
+	script: The script desired (e.g. UCDN_SCRIPT_KATAKANA).
 
-	language: The language desired (e.g. FZ_LANG_ja)
+	language: The language desired (e.g. FZ_LANG_ja).
 
 	serif: 1 if serif desired, 0 otherwise.
 
@@ -375,11 +408,11 @@ fz_font *fz_new_type3_font(fz_context *ctx, const char *name, const fz_matrix *m
 
 	Returns new font handle, or throws exception on error.
 */
-fz_font *fz_new_font_from_memory(fz_context *ctx, const char *name, const char *data, int len, int index, int use_glyph_bbox);
+fz_font *fz_new_font_from_memory(fz_context *ctx, const char *name, const unsigned char *data, int len, int index, int use_glyph_bbox);
 
 /*
 	fz_new_font_from_buffer: Create a new font from a font
-	file in an fz_buffer.
+	file in a fz_buffer.
 
 	name: Name of font (leave NULL to use name from font).
 
@@ -444,7 +477,7 @@ void fz_set_font_bbox(fz_context *ctx, fz_font *font, float xmin, float ymin, fl
 
 	trm: The matrix to apply to the glyph before bounding.
 
-	r: Pointer to an fz_rect to use for storage.
+	r: Pointer to a fz_rect to use for storage.
 
 	Returns r, after filling it in with the bounds of the given glyph.
 */
@@ -568,14 +601,10 @@ int fz_encode_character_with_fallback(fz_context *ctx, fz_font *font, int unicod
 void fz_get_glyph_name(fz_context *ctx, fz_font *font, int glyph, char *buf, int size);
 
 /*
-	fz_print_font: Output textual information about a font
-	to a given output stream.
-
-	out: The output stream to output to.
-
-	font: The font to output details for.
+	Get font ascender and descender values.
 */
-void fz_print_font(fz_context *ctx, fz_output *out, fz_font *font);
+float fz_font_ascender(fz_context *ctx, fz_font *font);
+float fz_font_descender(fz_context *ctx, fz_font *font);
 
 /*
 	Internal functions for our Harfbuzz integration
@@ -583,16 +612,16 @@ void fz_print_font(fz_context *ctx, fz_output *out, fz_font *font);
 */
 
 /*
-	hb_lock: Lock against Harfbuzz being called
+	fz_hb_lock: Lock against Harfbuzz being called
 	simultaneously in several threads. This reuses
 	FZ_LOCK_FREETYPE.
 */
-void hb_lock(fz_context *ctx);
+void fz_hb_lock(fz_context *ctx);
 
 /*
-	hb_unlock: Unlock after a Harfbuzz call. This reuses
+	fz_hb_unlock: Unlock after a Harfbuzz call. This reuses
 	FZ_LOCK_FREETYPE.
 */
-void hb_unlock(fz_context *ctx);
+void fz_hb_unlock(fz_context *ctx);
 
 #endif

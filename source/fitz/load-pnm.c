@@ -1,5 +1,8 @@
 #include "mupdf/fitz.h"
 
+#include <string.h>
+#include <limits.h>
+
 enum
 {
 	PAM_UNKNOWN = 0,
@@ -71,8 +74,8 @@ static inline int bitdepth_from_maxval(int maxval)
 	return depth;
 }
 
-static unsigned char *
-pnm_read_white(fz_context *ctx, unsigned char *p, unsigned char *e, int single_line)
+static const unsigned char *
+pnm_read_white(fz_context *ctx, const unsigned char *p, const unsigned char *e, int single_line)
 {
 	if (e - p < 1)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot parse whitespace in pnm image");
@@ -111,14 +114,13 @@ pnm_read_white(fz_context *ctx, unsigned char *p, unsigned char *e, int single_l
 			if (p < e && iseol(*p))
 				p++;
 		}
-
 	}
 
 	return p;
 }
 
-static unsigned char *
-pnm_read_signature(fz_context *ctx, unsigned char *p, unsigned char *e, char *signature)
+static const unsigned char *
+pnm_read_signature(fz_context *ctx, const unsigned char *p, const unsigned char *e, char *signature)
 {
 	if (e - p < 2)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot parse magic number in pnm image");
@@ -130,12 +132,12 @@ pnm_read_signature(fz_context *ctx, unsigned char *p, unsigned char *e, char *si
 	return p;
 }
 
-static unsigned char *
-pnm_read_number(fz_context *ctx, unsigned char *p, unsigned char *e, int *number)
+static const unsigned char *
+pnm_read_number(fz_context *ctx, const unsigned char *p, const unsigned char *e, int *number)
 {
 	if (e - p < 1)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot parse number in pnm image");
-	if (*p < '0' && *p > '9')
+	if (*p < '0' || *p > '9')
 		fz_throw(ctx, FZ_ERROR_GENERIC, "expected numeric field in pnm image");
 
 	while (p < e && *p >= '0' && *p <= '9')
@@ -147,8 +149,8 @@ pnm_read_number(fz_context *ctx, unsigned char *p, unsigned char *e, int *number
 	return p;
 }
 
-static unsigned char *
-pnm_read_tupletype(fz_context *ctx, unsigned char *p, unsigned char *e, int *tupletype)
+static const unsigned char *
+pnm_read_tupletype(fz_context *ctx, const unsigned char *p, const unsigned char *e, int *tupletype)
 {
 	const struct { int len; char *str; int type; } tupletypes[] =
 	{
@@ -161,7 +163,7 @@ pnm_read_tupletype(fz_context *ctx, unsigned char *p, unsigned char *e, int *tup
 		{4, "CMYK", PAM_CMYK},
 		{10, "CMYK_ALPHA", PAM_CMYKA},
 	};
-	unsigned char *s;
+	const unsigned char *s;
 	int i, len;
 
 	if (e - p < 1)
@@ -182,8 +184,8 @@ pnm_read_tupletype(fz_context *ctx, unsigned char *p, unsigned char *e, int *tup
 	fz_throw(ctx, FZ_ERROR_GENERIC, "unknown tuple type in pnm image");
 }
 
-static unsigned char *
-pnm_read_token(fz_context *ctx, unsigned char *p, unsigned char *e, int *token)
+static const unsigned char *
+pnm_read_token(fz_context *ctx, const unsigned char *p, const unsigned char *e, int *token)
 {
 	const struct { int len; char *str; int type; } tokens[] =
 	{
@@ -194,7 +196,7 @@ pnm_read_token(fz_context *ctx, unsigned char *p, unsigned char *e, int *token)
 		{8, "TUPLTYPE", TOKEN_TUPLTYPE},
 		{6, "ENDHDR", TOKEN_ENDHDR},
 	};
-	unsigned char *s;
+	const unsigned char *s;
 	int i, len;
 
 	if (e - p < 1)
@@ -223,7 +225,7 @@ map_color(fz_context *ctx, int color, int inmax, int outmax)
 }
 
 static fz_pixmap *
-pnm_ascii_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsigned char *e, int onlymeta, int bitmap)
+pnm_ascii_read_image(fz_context *ctx, struct info *pnm, const unsigned char *p, const unsigned char *e, int onlymeta, int bitmap)
 {
 	fz_pixmap *img = NULL;
 
@@ -262,7 +264,7 @@ pnm_ascii_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsign
 		int x, y, k;
 		int w, h, n;
 
-		img = fz_new_pixmap(ctx, pnm->cs, pnm->width, pnm->height, 0);
+		img = fz_new_pixmap(ctx, pnm->cs, pnm->width, pnm->height, NULL, 0);
 		dp = img->samples;
 
 		w = img->w;
@@ -295,14 +297,13 @@ pnm_ascii_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsign
 						*dp++ = map_color(ctx, v, pnm->maxval, 255);
 					}
 		}
-
 	}
 
 	return img;
 }
 
 static fz_pixmap *
-pnm_binary_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsigned char *e, int onlymeta, int bitmap)
+pnm_binary_read_image(fz_context *ctx, struct info *pnm, const unsigned char *p, const unsigned char *e, int onlymeta, int bitmap)
 {
 	fz_pixmap *img = NULL;
 
@@ -341,7 +342,7 @@ pnm_binary_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsig
 		int x, y, k;
 		int w, h, n;
 
-		img = fz_new_pixmap(ctx, pnm->cs, pnm->width, pnm->height, 0);
+		img = fz_new_pixmap(ctx, pnm->cs, pnm->width, pnm->height, NULL, 0);
 		dp = img->samples;
 
 		w = img->w;
@@ -386,46 +387,43 @@ pnm_binary_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsig
 	return img;
 }
 
-static unsigned char *
-pam_binary_read_header(fz_context *ctx, struct info *pnm, unsigned char *p, unsigned char *e)
+static const unsigned char *
+pam_binary_read_header(fz_context *ctx, struct info *pnm, const unsigned char *p, const unsigned char *e)
 {
 	int token = TOKEN_UNKNOWN;
 
-	fz_try(ctx)
+	while (p < e && token != TOKEN_ENDHDR)
 	{
-		while (p < e && token != TOKEN_ENDHDR)
+		p = pnm_read_token(ctx, p, e, &token);
+		p = pnm_read_white(ctx, p, e, 0);
+		switch (token)
 		{
-			p = pnm_read_token(ctx, p, e, &token);
-			p = pnm_read_white(ctx, p, e, 0);
-			switch (token)
-			{
-			case TOKEN_WIDTH: p = pnm_read_number(ctx, p, e, &pnm->width); break;
-			case TOKEN_HEIGHT: p = pnm_read_number(ctx, p, e, &pnm->height); break;
-			case TOKEN_DEPTH: p = pnm_read_number(ctx, p, e, &pnm->depth); break;
-			case TOKEN_MAXVAL: p = pnm_read_number(ctx, p, e, &pnm->maxval); break;
-			case TOKEN_TUPLTYPE: p = pnm_read_tupletype(ctx, p, e, &pnm->tupletype); break;
-			case TOKEN_ENDHDR: break;
-			default:
-				   fz_throw(ctx, FZ_ERROR_GENERIC, "unknown header token in pnm image");
-			}
-
-			if (token != TOKEN_ENDHDR)
-				p = pnm_read_white(ctx, p, e, 0);
+		case TOKEN_WIDTH: p = pnm_read_number(ctx, p, e, &pnm->width); break;
+		case TOKEN_HEIGHT: p = pnm_read_number(ctx, p, e, &pnm->height); break;
+		case TOKEN_DEPTH: p = pnm_read_number(ctx, p, e, &pnm->depth); break;
+		case TOKEN_MAXVAL: p = pnm_read_number(ctx, p, e, &pnm->maxval); break;
+		case TOKEN_TUPLTYPE: p = pnm_read_tupletype(ctx, p, e, &pnm->tupletype); break;
+		case TOKEN_ENDHDR: break;
+		default:
+			   fz_throw(ctx, FZ_ERROR_GENERIC, "unknown header token in pnm image");
 		}
+
+		if (token != TOKEN_ENDHDR)
+			p = pnm_read_white(ctx, p, e, 0);
 	}
-	fz_catch(ctx)
-		fz_rethrow(ctx);
 
 	return p;
 }
 
 static fz_pixmap *
-pam_binary_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsigned char *e, int onlymeta)
+pam_binary_read_image(fz_context *ctx, struct info *pnm, const unsigned char *p, const unsigned char *e, int onlymeta)
 {
 	fz_pixmap *img = NULL;
 	int bitmap = 0;
 	int minval = 1;
 	int maxval = 65535;
+
+	fz_var(img);
 
 	p = pam_binary_read_header(ctx, pnm, p, e);
 
@@ -503,88 +501,74 @@ pam_binary_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsig
 		int x, y, k, packed = 0;
 		int w, h, n;
 
-		img = fz_new_pixmap(ctx, pnm->cs, pnm->width, pnm->height, pnm->alpha);
-		dp = img->samples;
-
-		w = img->w;
-		h = img->h;
-		n = img->n;
-
-		if (pnm->maxval == 1 && e - p < w * h * n)
+		img = fz_new_pixmap(ctx, pnm->cs, pnm->width, pnm->height, NULL, pnm->alpha);
+		fz_try(ctx)
 		{
-			if (e - p < w * h * n / 8)
+			dp = img->samples;
+
+			w = img->w;
+			h = img->h;
+			n = img->n;
+
+			if (pnm->maxval == 1 && e - p < w * h * n)
+			{
+				if (e - p < w * h * n / 8)
+					fz_throw(ctx, FZ_ERROR_GENERIC, "truncated image");
+				packed = 1;
+			}
+			else if (e - p < w * h * n * (pnm->maxval < 256 ? 1 : 2))
 				fz_throw(ctx, FZ_ERROR_GENERIC, "truncated image");
-			packed = 1;
-		}
-		else if (e - p < w * h * n * (pnm->maxval < 256 ? 1 : 2))
-			fz_throw(ctx, FZ_ERROR_GENERIC, "truncated image");
 
-		if (pnm->maxval == 255)
-			memcpy(dp, p, w * h * n);
-		else if (bitmap && packed)
-		{
-			/* some encoders incorrectly pack bits into bytes and inverts the image */
-			for (y = 0; y < h; y++)
-				for (x = 0; x < w; x++)
-				{
-					for (k = 0; k < n; k++)
+			if (pnm->maxval == 255)
+				memcpy(dp, p, w * h * n);
+			else if (bitmap && packed)
+			{
+				/* some encoders incorrectly pack bits into bytes and inverts the image */
+				for (y = 0; y < h; y++)
+					for (x = 0; x < w; x++)
 					{
-						*dp++ = (*p & (1 << (7 - (x & 0x7)))) ? 0x00 : 0xff;
-						if ((x & 0x7) == 7)
+						for (k = 0; k < n; k++)
+						{
+							*dp++ = (*p & (1 << (7 - (x & 0x7)))) ? 0x00 : 0xff;
+							if ((x & 0x7) == 7)
+								p++;
+						}
+						if (w & 0x7)
 							p++;
 					}
-					if (w & 0x7)
-						p++;
-				}
-		}
-		else if (bitmap)
-		{
-			for (y = 0; y < h; y++)
-				for (x = 0; x < w; x++)
-					for (k = 0; k < n; k++)
-						*dp++ = *p++ ? 0xff : 0x00;
-		}
-		else if (pnm->maxval < 255)
-		{
-			for (y = 0; y < h; y++)
-				for (x = 0; x < w; x++)
-					for (k = 0; k < n; k++)
-						*dp++ = map_color(ctx, *p++, pnm->maxval, 255);
-		}
-		else
-		{
-			for (y = 0; y < h; y++)
-				for (x = 0; x < w; x++)
-					for (k = 0; k < n; k++)
-					{
-						*dp++ = map_color(ctx, (p[0] << 8) | p[1], pnm->maxval, 255);
-						p += 2;
-					}
-		}
-
-		if (pnm->alpha)
-		{
-			/* CMYK is a subtractive colorspace, we want additive for premul alpha */
-			if (img->n > 4)
+			}
+			else if (bitmap)
 			{
-				fz_pixmap *rgb = fz_new_pixmap(ctx, fz_device_rgb(ctx), img->w, img->h, 1);
-				rgb->xres = img->xres;
-				rgb->yres = img->yres;
-
-				fz_try(ctx)
-				{
-					fz_convert_pixmap(ctx, rgb, img);
-					fz_drop_pixmap(ctx, img);
-					img = rgb;
-					rgb = NULL;
-				}
-				fz_always(ctx)
-					fz_drop_pixmap(ctx, rgb);
-				fz_catch(ctx)
-					fz_rethrow(ctx);
+				for (y = 0; y < h; y++)
+					for (x = 0; x < w; x++)
+						for (k = 0; k < n; k++)
+							*dp++ = *p++ ? 0xff : 0x00;
+			}
+			else if (pnm->maxval < 255)
+			{
+				for (y = 0; y < h; y++)
+					for (x = 0; x < w; x++)
+						for (k = 0; k < n; k++)
+							*dp++ = map_color(ctx, *p++, pnm->maxval, 255);
+			}
+			else
+			{
+				for (y = 0; y < h; y++)
+					for (x = 0; x < w; x++)
+						for (k = 0; k < n; k++)
+						{
+							*dp++ = map_color(ctx, (p[0] << 8) | p[1], pnm->maxval, 255);
+							p += 2;
+						}
 			}
 
-			fz_premultiply_pixmap(ctx, img);
+			if (pnm->alpha)
+				fz_premultiply_pixmap(ctx, img);
+		}
+		fz_catch(ctx)
+		{
+			fz_drop_pixmap(ctx, img);
+			fz_rethrow(ctx);
 		}
 	}
 
@@ -592,9 +576,9 @@ pam_binary_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, unsig
 }
 
 static fz_pixmap *
-pnm_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, size_t total, int onlymeta)
+pnm_read_image(fz_context *ctx, struct info *pnm, const unsigned char *p, size_t total, int onlymeta)
 {
-	unsigned char *e = p + total;
+	const unsigned char *e = p + total;
 	char signature[3] = { 0 };
 
 	p = pnm_read_signature(ctx, p, e, signature);
@@ -637,37 +621,20 @@ pnm_read_image(fz_context *ctx, struct info *pnm, unsigned char *p, size_t total
 }
 
 fz_pixmap *
-fz_load_pnm(fz_context *ctx, unsigned char *p, size_t total)
+fz_load_pnm(fz_context *ctx, const unsigned char *p, size_t total)
 {
-	fz_pixmap *img;
 	struct info pnm = { 0 };
-
-	fz_try(ctx)
-		img = pnm_read_image(ctx, &pnm, p, total, 0);
-	fz_always(ctx)
-		fz_drop_colorspace(ctx, pnm.cs);
-	fz_catch(ctx)
-		fz_rethrow(ctx);
-
-	return img;
+	return pnm_read_image(ctx, &pnm, p, total, 0);
 }
 
 void
-fz_load_pnm_info(fz_context *ctx, unsigned char *p, size_t total, int *wp, int *hp, int *xresp, int *yresp, fz_colorspace **cspacep)
+fz_load_pnm_info(fz_context *ctx, const unsigned char *p, size_t total, int *wp, int *hp, int *xresp, int *yresp, fz_colorspace **cspacep)
 {
 	struct info pnm = { 0 };
-
-	fz_try(ctx)
-	{
-		pnm_read_image(ctx, &pnm, p, total, 1);
-		*cspacep = pnm.cs;
-		*wp = pnm.width;
-		*hp = pnm.height;
-		*xresp = 72;
-		*yresp = 72;
-	}
-	fz_always(ctx)
-		fz_drop_colorspace(ctx, pnm.cs);
-	fz_catch(ctx)
-		fz_rethrow(ctx);
+	(void) pnm_read_image(ctx, &pnm, p, total, 1);
+	*cspacep = fz_keep_colorspace(ctx, pnm.cs); /* pnm.cs is a borrowed device colorspace */
+	*wp = pnm.width;
+	*hp = pnm.height;
+	*xresp = 72;
+	*yresp = 72;
 }
