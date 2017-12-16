@@ -352,4 +352,9 @@ static inline float my_atan2f(float o, float a)
 #define atan2f(x,y) my_atan2f((x),(y))
 #endif
 
+/* Handle tns file extension on TI-Nspire */
+#ifdef _TINSPIRE
+#define FZ_FILEEXT "tns"
+#endif
+
 #endif

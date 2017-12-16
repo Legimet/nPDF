@@ -71,13 +71,25 @@ fz_recognize_document(fz_context *ctx, const char *magic)
 {
 	fz_document_handler_context *dc;
 	int i, best_score, best_i;
-	const char *ext, *needle;
+	const char *needle;
+	char *ext, *dup = NULL;
 
 	dc = ctx->handler;
 	if (dc->count == 0)
 		fz_throw(ctx, FZ_ERROR_GENERIC, "No document handlers registered");
 
 	ext = strrchr(magic, '.');
+#ifdef FZ_FILEEXT
+	if (ext && !strcmp(ext + 1, FZ_FILEEXT))
+	{
+		dup = fz_strdup(ctx, magic);
+		ext = dup + (ext - magic);
+		*ext = '\0';
+		while (ext > magic && *(--ext) != '.');
+		if (*ext != '.')
+			ext = NULL;
+	}
+#endif
 	if (ext)
 		needle = ext + 1;
 	else
@@ -117,6 +129,9 @@ fz_recognize_document(fz_context *ctx, const char *magic)
 			best_i = i;
 		}
 	}
+
+	if (dup)
+		fz_free(ctx, dup);
 
 	if (best_i < 0)
 		return NULL;
