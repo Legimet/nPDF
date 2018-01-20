@@ -224,7 +224,7 @@ CC = nspire-gcc
 LD = nspire-gcc
 AR := "$(shell (which arm-elf-ar arm-none-eabi-ar arm-linux-gnueabi-ar | head -1) 2>/dev/null)"
 ifeq "$(build)" "release"
-CFLAGS += -O3
+CFLAGS += -O3 -D_XOPEN_SOURCE=700
 endif
 CROSSCOMPILE=yes
 endif
