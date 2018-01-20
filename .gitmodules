@@ -9,7 +9,7 @@
 	url = git://git.ghostscript.com/thirdparty-freetype2.git
 [submodule "thirdparty/harfbuzz"]
 	path = mupdf/thirdparty/harfbuzz
-	url = git://git.ghostscript.com/thirdparty-harfbuzz.git
+	url = https://github.com/Legimet/thirdparty-harfbuzz.git
 [submodule "thirdparty/jpeg"]
 	path = mupdf/thirdparty/libjpeg
 	url = git://git.ghostscript.com/thirdparty-libjpeg.git
