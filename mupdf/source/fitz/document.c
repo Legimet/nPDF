@@ -85,7 +85,7 @@ fz_recognize_document(fz_context *ctx, const char *magic)
 		dup = fz_strdup(ctx, magic);
 		ext = dup + (ext - magic);
 		*ext = '\0';
-		while (ext > magic && *(--ext) != '.');
+		while (ext > dup && *(--ext) != '.');
 		if (*ext != '.')
 			ext = NULL;
 	}
