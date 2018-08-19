@@ -45,7 +45,7 @@ class Viewer {
 		int width;
 		int height;
 
-		fz_text_page *pageText;
+		fz_stext_page *pageText;
 		fz_rect matches[512];
 		int matchesCount;
 		int matchIdx;

@@ -58,7 +58,7 @@ Viewer::Viewer() {
 Viewer::~Viewer() {
 	fz_drop_pixmap(ctx, pix);
 	fz_drop_page(ctx, page);
-	fz_drop_text_page(ctx, pageText);
+	fz_drop_stext_page(ctx, pageText);
 	fz_drop_document(ctx, doc);
 	fz_drop_context(ctx);
 }
@@ -73,7 +73,7 @@ void Viewer::invert(const fz_rect *rect) {
 bool Viewer::find(const char *s) {
 	if (matchIdx != -1)
 		invert(&matches[matchIdx]);
-	matchesCount = fz_search_text_page(ctx, pageText, s, matches, nelem(matches));
+	matchesCount = fz_search_stext_page(ctx, pageText, s, matches, nelem(matches));
 	matchIdx = -1;
 	return (matchesCount > 0);
 }
@@ -135,7 +135,7 @@ void Viewer::fixBounds() {
 
 void Viewer::drawPage() {
 	fz_drop_pixmap(ctx, pix);
-	fz_drop_text_page(ctx, pageText);
+	fz_drop_stext_page(ctx, pageText);
 
 	pix = nullptr;
 	pageText = nullptr;
@@ -160,21 +160,18 @@ void Viewer::drawPage() {
 	fixBounds();
 
 	if (has_colors) {
-		pix = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), &bbox);
+		pix = fz_new_pixmap_with_bbox(ctx, fz_device_rgb(ctx), &bbox, nullptr, 1);
 	} else {
-		pix = fz_new_pixmap_with_bbox(ctx, fz_device_gray(ctx), &bbox);
+		pix = fz_new_pixmap_with_bbox(ctx, fz_device_gray(ctx), &bbox, nullptr, 1);
 	}
 	fz_clear_pixmap_with_value(ctx, pix, 0xff);
 
-	fz_device *dev = fz_new_draw_device(ctx, pix);
+	fz_device *dev = fz_new_draw_device(ctx, nullptr, pix);
 	fz_run_page(ctx, page, dev, &transform, nullptr);
 	fz_drop_device(ctx, dev);
 	dev = nullptr;
 
-	fz_text_sheet *sheet = fz_new_text_sheet(ctx);
-	pageText = fz_new_text_page_from_page(ctx, page, sheet);
-	fz_drop_text_sheet(ctx, sheet);
-	sheet = nullptr;
+	pageText = fz_new_stext_page_from_page(ctx, page, nullptr);
 
 	matchIdx = -1;
 }
