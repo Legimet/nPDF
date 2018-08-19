@@ -18,7 +18,7 @@ CXXFLAGS := -O$(OPTIMIZE) -Wall -Wextra -std=gnu++14 -marm -I $(MUPDF_INC)
 ifeq ($(OPTIMIZE),g)
 	CXXFLAGS += -g
 endif
-NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lmupdfthird -lfreetype -lz -lm
+NPDF_LDFLAGS = -L $(MUPDF_OUT) -lmupdf -lmupdfthird -lfreetype -lz -lm -Wl,--gc-sections
 ZEHNFLAGS := --compress --name "nPDF" --author "Legimet" --notice "Document viewer"
 OBJS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
 LIBS := $(patsubst %,$(MUPDF_OUT)/lib%.a,mupdf mupdfthird)

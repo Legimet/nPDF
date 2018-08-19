@@ -6,7 +6,7 @@
 	Enable the following for spot (and hence overprint/overprint
 	simulation) capable rendering. This forces FZ_PLOTTERS_N on.
 */
-#define FZ_ENABLE_SPOT_RENDERING
+/* #define FZ_ENABLE_SPOT_RENDERING */
 
 /*
 	Choose which plotters we need.
@@ -14,9 +14,9 @@
 	plotters in that aren't needed, define the unwanted
 	FZ_PLOTTERS_... define to 0.
 */
-/* #define FZ_PLOTTERS_G 1 */
-/* #define FZ_PLOTTERS_RGB 1 */
-/* #define FZ_PLOTTERS_CMYK 1 */
+#define FZ_PLOTTERS_G 0
+#define FZ_PLOTTERS_RGB 0
+#define FZ_PLOTTERS_CMYK 0
 /* #define FZ_PLOTTERS_N 1 */
 
 /*
@@ -25,7 +25,7 @@
 	ones, define FZ_ENABLE_... to 0.
 */
 /* #define FZ_ENABLE_PDF 1 */
-/* #define FZ_ENABLE_XPS 1 */
+#define FZ_ENABLE_XPS 0
 /* #define FZ_ENABLE_SVG 1 */
 /* #define FZ_ENABLE_CBZ 1 */
 /* #define FZ_ENABLE_IMG 1 */
@@ -46,7 +46,7 @@
 	Choose whether to enable JavaScript.
 	By default JavaScript is enabled both for mutool and PDF interactivity.
 */
-/* #define FZ_ENABLE_JS 1 */
+#define FZ_ENABLE_JS 0
 
 /*
 	Choose which fonts to include.
@@ -57,10 +57,10 @@
 	unwanted fonts.
 */
 /* To avoid all noto fonts except CJK, enable: */
-/* #define TOFU */
+#define TOFU
 
 /* To skip the CJK font, enable: (this implicitly enables TOFU_CJK_EXT and TOFU_CJK_LANG) */
-/* #define TOFU_CJK */
+#define TOFU_CJK
 
 /* To skip CJK Extension A, enable: (this implicitly enables TOFU_CJK_LANG) */
 /* #define TOFU_CJK_EXT */
