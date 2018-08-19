@@ -139,6 +139,9 @@ fz_recognize_document(fz_context *ctx, const char *magic)
 	return dc->handler[best_i];
 }
 
+#ifdef FZ_ENABLE_PDF
+extern fz_document_handler pdf_document_handler;
+#endif
 
 fz_document *
 fz_open_document_with_stream(fz_context *ctx, const char *magic, fz_stream *stream)
@@ -150,7 +153,11 @@ fz_open_document_with_stream(fz_context *ctx, const char *magic, fz_stream *stre
 
 	handler = fz_recognize_document(ctx, magic);
 	if (!handler)
+#ifdef FZ_ENABLE_PDF
+		handler = &pdf_document_handler;
+#else
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot find document handler for file type: %s", magic);
+#endif
 
 	return handler->open_with_stream(ctx, stream);
 }
@@ -167,7 +174,11 @@ fz_open_document(fz_context *ctx, const char *filename)
 
 	handler = fz_recognize_document(ctx, filename);
 	if (!handler)
+#ifdef FZ_ENABLE_PDF
+		handler = &pdf_document_handler;
+#else
 		fz_throw(ctx, FZ_ERROR_GENERIC, "cannot find document handler for file: %s", filename);
+#endif
 
 	if (handler->open)
 		return handler->open(ctx, filename);
