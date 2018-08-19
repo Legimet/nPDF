@@ -8,6 +8,10 @@
 #define timegm _mkgmtime
 #endif
 
+#ifdef _TINSPIRE
+#define timegm mktime
+#endif
+
 #define TEXT_ANNOT_SIZE (25.0f)
 
 #define isdigit(c) (c >= '0' && c <= '9')
