@@ -168,6 +168,7 @@ void Viewer::drawPage() {
 
 	fz_device *dev = fz_new_draw_device(ctx, nullptr, pix);
 	fz_run_page(ctx, page, dev, &transform, nullptr);
+	fz_close_device(ctx, dev);
 	fz_drop_device(ctx, dev);
 	dev = nullptr;
 
