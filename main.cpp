@@ -34,7 +34,9 @@ enum ScrollAction {
 	pgdown = 16,
 	pgup = 32,
 	zoomout = 64,
-	zoomin = 128
+	zoomin = 128,
+	findnext = 256,
+	findprev = 512
 };
 
 ScrollAction operator|(ScrollAction a, ScrollAction b) {
@@ -70,6 +72,12 @@ ScrollAction getScrollKey() {
 		action |= zoomout;
 	if (isKeyPressed(KEY_NSPIRE_MULTIPLY))
 		action |= zoomin;
+	if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
+		if (isKeyPressed(KEY_NSPIRE_SHIFT))
+			action |= findprev;
+		else
+			action |= findnext;
+	}
 	return action;
 }
 
@@ -157,6 +165,13 @@ int main(int argc, char **argv) {
 					v->zoomIn();
 					toRefresh = 1;
 				}
+				if (current & findnext) {
+					v->findNext(0);
+					toRefresh = 1;
+				} else if (current & findprev) {
+					v->findNext(1);
+					toRefresh = 1;
+				}
 				if (toRefresh) {
 					handleDelays(current, lastScrollKey);
 					v->display();
@@ -183,14 +198,6 @@ int main(int argc, char **argv) {
 						v->findNext(0);
 					}
 					delete s;
-				}
-				v->display();
-			}
-			if (isKeyPressed(KEY_NSPIRE_CTRL) && isKeyPressed(KEY_NSPIRE_G)) {
-				if (isKeyPressed(KEY_NSPIRE_SHIFT)) {
-					v->findNext(1);
-				} else {
-					v->findNext(0);
 				}
 				v->display();
 			}

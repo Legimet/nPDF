@@ -87,7 +87,7 @@ bool Viewer::findNext(bool dir) {
 	if (dir == 0)
 		matchIdx = (matchIdx + 1) % matchesCount;
 	else
-		matchIdx = (matchIdx - 1) % matchesCount;
+		matchIdx = (matchesCount + matchIdx - 1) % matchesCount;
 	invert(&matches[matchIdx]);
 	return true;
 }
